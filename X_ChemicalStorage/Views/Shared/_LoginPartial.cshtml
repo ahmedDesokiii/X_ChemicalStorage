@@ -3,24 +3,46 @@
 @inject UserManager<ApplicationUser> UserManager
 
 <ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
-{
+
+    @if (SignInManager.IsSignedIn(User))
+    {
+       
+        <li class="nav-item">
+            @* <a class="nav-link text-primary" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"> @UserManager.GetUserAsync(User).Result.FullName_Ar</a> *@
+            <a class="nav-link fs-6 link-offset-1-hover fw-bold" style="color:#415E72" href="#" title="تحديث البيانات">
+                @UserManager.GetUserAsync(User).Result.FullName<br class="p-0 m-0">
+            </a>
+        </li>
+        @*  @if (UserManager.GetUserAsync(User).Result.ProfilePicture != null)
+    {
+        <li class="nav-item">
+            <img class="avatar  rounded-circle " alt="profile" src="data:image/*;base64,@(Convert.ToBase64String(UserManager.GetUserAsync(User).Result.ProfilePicture))" />
+        </li>
+    }
     <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
-}
+        <a class="nav-link text-primary" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"> @UserManager.GetUserAsync(User).Result.FullName</a>
+    </li> *@
+
+        <li class="nav-item">
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("index", "Home", new { area = "" })">
+                <button type="submit" class=" btn btn-danger btn-sm rounded-3" style="font-size:16px !important">
+                    <i class="bi bi-door-open-fill fs-5 pe-2"></i>خروج
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        @*  <li class="nav-item">
+            <a class="btn  btn-secondary fs-6 m-1 btn-sm rounded-3" style="font-size:16px !important" asp-area="Identity" asp-page="/Account/Register">
+                <i class="bi bi-person-circle fs-5 ps-2"></i>تسجيل
+            </a>
+        </li> *@
+        <li class="nav-item">
+            <a class="btn btn-outline-info fw-bold fs-6 m-1 btn-sm rounded-3" style="font-size:16px !important" asp-area="Identity" asp-page="/Account/Login">
+                <i class="bi bi-door-closed fs-5 ps-2"></i>دخــول
+            </a>
+        </li>
+    }
 </ul>
+

@@ -1,0 +1,147 @@
+﻿@using X_ChemicalStorage.ViewModels
+@model IEnumerable<UserViewModel>
+@{
+    ViewData["Title"] = "قائمة المستخدمين";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int cNo = 0;
+    string state = "";
+}
+<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+    <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
+        قائمة المستخدمين
+        <i class="bi bi-people pe-2 fs-1"></i>
+    </span>
+</div>
+<!-- Main content -->
+
+<section class="container-fluid mt-3">
+    <div class="row">
+
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="card p-0">
+                <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
+                    <!-- Button trigger modal -->
+                    <a  title="إضافة مستخدم جديد" class="btn btn-sm pb-0  btn-warning rounded-3" asp-action="AddUser" asp-controller="Users">
+                        <i class="bi bi-plus fs-2 m-0 fw-bold"></i> 
+                    </a>
+                </div>
+                <!-- /.card-header -->
+
+                <div class="card-body p-0">
+                    <!-- Tab links -->
+                    @*  <div class="tab">
+                        <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
+                    </div> *@
+                    <!-- Tab content -->
+                    @if (!Model.Any())
+                    {
+                        <div class="alert  alert-warning mt-5">
+                            <h4 class="alert-heading">لا يوجد مستخدمين !</h4>
+                            <p class="mb-0">لم يتم اضافة مستخدمين للتطبيق حتي الآن</p>
+                        </div>
+                    }
+                    else
+                    {
+
+                        <div id="Users" class="tabcontent">
+                            <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الاسـم</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">اسم المستخدم</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">التليفون</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">المجموعات</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الحالة</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model)
+                                    {
+                                        cNo++;
+                                        if (user.CurrentState == 0)
+                                            state = "غير نشط";
+                                        if (user.CurrentState == 1)
+                                            state = "معلـق";
+                                        if (user.CurrentState == 2)
+                                            state = "نشــط";
+
+                                        <tr class="text-center">
+                                            <td class="fs-6 px-1 py-1 "><span class="">@cNo</span></td>
+                                            <td class="fs-6 px-1 py-1 "><span class="link-dark fw-bold">@user.FullName</span></td>
+                                            <td class="fs-6 px-1">@user.UserName</td>
+                                            <td class="fs-6 text-center px-1">@user.PhoneNumber</td>
+                                            <td class=" fs-6 px-1 py-1">@string.Join(" , ", user.Roles.ToList())</td>
+                                            
+                                            @if (state.Equals("نشــط"))
+                                            {
+                                                <td class="fw-bold fs-6 px-1 py-2 m-0 text-success"><span class="bg-success-subtle p-2 rounded-5">@state</span></td>
+                                            }
+                                            else if (state.Equals("معلـق"))
+                                            {
+                                                <td class="fw-bold fs-6 px-1 py-2 m-0 text-warning"><span class="bg-warning-subtle p-2 rounded-5">@state</span></td>
+                                            }
+                                            else if (state.Equals("غير نشط"))
+                                            {
+                                                <td class="fw-bold fs-6 px-1 py-2 m-0 text-danger"><span class="bg-danger-subtle p-2 rounded-5">@state</span></td>
+                                            }
+
+                                            <td class="py-1">
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="مجموعات" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i><br></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-5" title="تعديل" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i><br></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-5" title="حـذف" asp-controller="Users" asp-action="DeleteUser" asp-route-Id="@user.Id"><i class="bi bi-trash3-fill"></i><br></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+            <!-- /.card -->
+        </div>
+        <div class="col-md-1"></div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>
+<!-- /.content -->
+@section Scripts {
+    <script src="~/js/Users.js"></script>
+    @if (!string.IsNullOrEmpty(Context.Session.GetString(Helper.MsgType)))
+    {
+        if (Context.Session.GetString(Helper.MsgType) == Helper.Success)
+        {
+            <script>
+
+                Swal.fire({
+                    title: '@Context.Session.GetString(Helper.Title)',
+                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                    confirmButtonText: 'Ok',
+                    icon: 'success'
+                });
+            </script>
+
+        }
+        else
+        {
+            <script>
+
+                Swal.fire({
+                    title: '@Context.Session.GetString(Helper.Title)',
+                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                    confirmButtonText: 'Ok',
+                    icon: 'error'
+                });
+            </script>
+        }
+        Context.Session.SetString(Helper.MsgType, "");
+    }
+
+}
+

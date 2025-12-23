@@ -1,9 +1,6 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using X_ChemicalStorage.Models;
-
 namespace X_ChemicalStorage.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         public IActionResult Index()
@@ -11,9 +8,12 @@ namespace X_ChemicalStorage.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        [AllowAnonymous]
+        public IActionResult MasterDashboard()
         {
-            return View();
+            DashboardViewModel dvm = new DashboardViewModel();
+            
+            return View(dvm);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -1,0 +1,106 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div dir="rtl" class="text-center mb-2">
+    <div class="card border-0" style="border-radius:0  0 0 80px;background-color:#032b42 !important ">
+        <div class="card-body">
+            <div class="text-center fs-1 text-white">
+                <span class="text-center fs-1 fw-bold " style="color:#415E72 !important ">
+                    تسجيل الدخول
+                    <i class="bi bi-check-circle pe-2 fs-3"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="mt-2" id="loginfrm">
+    <div class="container-fluid pt-4">
+        <div class="row d-flex justify-content-center align-items-center mt-1">
+            <div class="col-md-4"></div>
+            <div class="col-md-4 mt-3">
+
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <!-- UserName -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-end-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;اسم المستخدم&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                        <input asp-for="Input.Email" id="userName" required class="form-control text-center me-1 p-0" aria-required="true" placeholder="ادخل اسم المستخدم أو البريد الالكتروني ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-width:3px;border-right-width:3px;">
+                    </div>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+
+                    <!-- Password -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-end-3 px-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;كلمة المرور&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp</span>
+                        <input asp-for="Input.Password" required id="pass" class="form-control text-center me-1 p-0" placeholder="ادخل كلمة المرور صحيحة..." type="password" style="border-top-left-radius : 20px ;border-left-width:3px;border-right-width:3px;">
+                    </div>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+                    @*  <div class="d-flex justify-content-between  align-items-center pt-2">
+                        <a class="text-body text-decoration-none link-primary" id="forgot-password" asp-area="Identity" asp-page="./ForgotPassword">نسيت كلمة المرور</a>
+                    *@
+
+                    <!-- Checkbox -->
+                    <div class="checkbox">
+                            <label asp-for="Input.RememberMe" class="form-label">
+                                <input class="form-check-input" asp-for="Input.RememberMe" />
+                                تذكرني
+                            </label>
+                        </div>
+                    
+                    <div class="text-center text-lg-start mt-2 pt-2">
+                        <button id="login-submit" type="submit" data-mdb-button-init data-mdb-ripple-init class="btn fw-bold btn-lg text-white w-100"
+                                style="padding-left: 3rem; padding-right: 3rem;background-color:#032b42">
+                            تسجيل الدخول
+                        </button>
+
+                        <p class="small fw-bold text-center mt-2 pt-1 mb-0">
+                            هل لديك حساب ؟ <a href="#" class="link-danger">تسجيل حساب جديد</a>
+                        </p>
+                        @*  <p class="small fw-bold text-center mt-2 pt-1 mb-0">
+                            هل لديك حساب ؟ <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl"
+                                              class="link-danger">تسجيل حساب جديد</a>
+                        </p> *@
+                    </div>
+                </form>
+                <div class="d-flex flex-row align-items-center justify-content-center mt-3">
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
+                        <i class="bi bi-google fs-4"></i>
+                    </button>
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
+                        <i class="bi bi-twitter fs-4"></i>
+                    </button>
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
+                        <i class="bi bi-youtube fs-4"></i>
+                    </button>
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
+                        <i class="bi bi-facebook fs-4"></i>
+                    </button>
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
+                        <i class="bi bi-whatsapp fs-4"></i>
+                    </button>
+                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
+                        <i class="bi bi-twitter-x fs-4"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-3 justify-content-center mx-auto">
+               @*  <img src="~/images/dots/hero-image.png" /> *@
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @* <script src="~/js/Login.js"></script> *@
+}
+
+
+

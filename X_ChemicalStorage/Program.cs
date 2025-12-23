@@ -1,40 +1,26 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using X_ChemicalStorage.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Using Local pc
+// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-          throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(
     options => options.UseSqlServer(connectionString));
 
+var Configuration = builder.Configuration;
+
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Scoped);
 
 
-builder.Services.AddControllersWithViews(); // Adds MVC services\
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSignalR();
-builder.Services.AddLogging(logging =>
-{
-    logging.AddConsole();
-    logging.AddDebug();
-});
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30);
-    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(30);
-    serverOptions.Limits.MaxRequestHeadersTotalSize = 32768;
-    serverOptions.Limits.MaxRequestBodySize = 104857600;
-});
-builder.Services.AddHttpClient("TwilioClient", client =>
-{
-    client.BaseAddress = new Uri("https://api.twilio.com/");
-    client.Timeout = TimeSpan.FromMinutes(30);
-});
-
-// Add services to the container.
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
     options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -49,47 +35,17 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.Zero;
 });
 
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
 
-//// Authorization Policy Provider and Handler
-//builder.Services.ConfigureApplicationCookie(options =>
-//{
-//    //options.LoginPath = "/Account/Login"; // Or any custom path
-//    options.AccessDeniedPath = "/"; // Or any custom path
-
-//});
+//Email Services
+//builder.Services.AddTransient<IEmailSender, EmailSender>();
+//builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 
 
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Specify resource file location
-builder.Services.AddMvc()
-    .AddViewLocalization()
-    .AddDataAnnotationsLocalization(); // For localizing validation messages
-
-builder.Services.Configure<RequestLocalizationOptions>(options =>
-{
-    var supportedCultures = new[]
-    {
-            new CultureInfo("en-US"),
-            new CultureInfo("ar") // Add Arabic culture
-        };
-
-    options.DefaultRequestCulture = new RequestCulture("en-US");
-    options.SupportedCultures = supportedCultures;
-    options.SupportedUICultures = supportedCultures;
-    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider()); // Use cookie to store culture
-});
-
-#region Scoped Services
-
-#endregion
+builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
+builder.Services.AddSession();
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
-app.UseSession();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -99,9 +55,9 @@ using (var scope = app.Services.CreateScope())
     {
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
-        //await X_ChemicalStorage.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
-        //await ERPWeb_v02.Seeds.DefaultUsers.SeedUserAsync(userManager, roleManager);
-        //await ERPWeb_v02.Seeds.DefaultUsers.SeedAdminAsync(userManager, roleManager);
+        await X_ChemicalStorage.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
+        await X_ChemicalStorage.Seeds.DefaultUsers.SeedUserAsync(userManager, roleManager);
+        await X_ChemicalStorage.Seeds.DefaultUsers.SeedAdminAsync(userManager, roleManager);
 
         logger.LogInformation("Finished Seeding Default Data");
         logger.LogInformation("Application Starting");
@@ -111,7 +67,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogWarning(ex, "An error occurred seeding the DB");
     }
 }
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -122,16 +77,20 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-//app.MapHub<ProgressHub>("/progressHub");
+
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
 app.Run();
+        
