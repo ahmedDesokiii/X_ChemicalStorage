@@ -14,12 +14,18 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(
     options => options.UseSqlServer(connectionString));
 
-var Configuration = builder.Configuration;
-
+builder.Services.AddControllersWithViews(); // Adds MVC services\
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>(); 
 builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Scoped);
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSignalR();
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+});
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
     options => options.SignIn.RequireConfirmedAccount = true)
@@ -35,17 +41,34 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.Zero;
 });
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
-//Email Services
-//builder.Services.AddTransient<IEmailSender, EmailSender>();
-//builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+//builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
+//builder.Services.AddSession();
+//builder.Services.AddControllersWithViews();
 
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+            new CultureInfo("en-US"),
+            new CultureInfo("ar") // Add Arabic culture
+        };
 
-builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
-builder.Services.AddSession();
-builder.Services.AddControllersWithViews();
+    options.DefaultRequestCulture = new RequestCulture("en-US");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider()); // Use cookie to store culture
+});
 
 var app = builder.Build();
+app.UseSession();
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -82,7 +105,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseSession();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

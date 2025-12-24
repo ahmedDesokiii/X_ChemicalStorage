@@ -23,7 +23,7 @@
 
             <div class="card-body row  justify-content-center">
                 <!-- Basic info -->
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <div class="card px-0">
                         <div class="card-header  fs py-2" style="background-color:#032b42 !important;color:#415E72 !important">
                             <span class="text-center fw-bold fs-4 m-0">بيانات المستخدم</span>
@@ -82,7 +82,7 @@
                 </div>
 
                 <!-- Roles -->
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="card px-0">
                         <div class="card-header  fs py-2" style="background-color:#032b42 !important;color:#415E72 !important">
                             <span class="text-center fw-bold fs-4 m-0">مجموعات المستخدم</span>
@@ -106,8 +106,8 @@
                                                 </label>
                                             </td>
 
-                                            <td class="fs-6 px-2 py-0 text-dark text-center" hidden>
-                                                <input type="hidden" asp-for="@Model.Roles[i].DisplayValue" />
+                                            <td  class="fs-6 px-2 py-0 text-dark text-center">
+                                                <input  type="hidden" asp-for="@Model.Roles[i].DisplayValue" />
                                             </td>
 
                                             <td class="fs-5 px-2 py-0 text-dark text-center ">

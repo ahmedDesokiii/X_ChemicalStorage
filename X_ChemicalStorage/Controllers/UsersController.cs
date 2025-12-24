@@ -23,10 +23,11 @@ namespace ERPWeb_v02.Controllers
         #region All Users
         public async Task<IActionResult> Index()
         {
+            Thread.Sleep(1000);
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var userVM = new List<UserViewModel>();
-            userVM = await _context.Users
+                userVM = await _context.Users
                 .Select(user => new UserViewModel()
                     {
                         Id = user.Id.ToString(),
@@ -39,7 +40,7 @@ namespace ERPWeb_v02.Controllers
                     })
                .OrderByDescending(u => u.CurrentState)
                .ToListAsync();
-
+            Thread.Sleep(1000);
             return View(userVM);
         }
         #endregion

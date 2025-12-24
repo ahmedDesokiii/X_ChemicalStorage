@@ -20,6 +20,45 @@
     <link href="~/css/bootstrap.min_lumen.css" rel="stylesheet" />
     <!-- custom arabic font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&display=swap">
+    @* <!-- custom datatables style -->
+    <link href="~/lib/datatables/css/datatables.bootstrap.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.bootstrap4.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.foundation.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.foundation.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.jqueryui.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.jqueryui.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.material.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.material.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.semanticui.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.semanticui.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.uikit.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/datatables.uikit.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.datatables.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.datatables.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.datatables_themeroller.css" rel="stylesheet" />
+    <link href="~/lib/datatables/css/jquery.datatables_themeroller.min.css" rel="stylesheet" /> *@
+
+    <!-- custom datatable css : ah-desoki-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/columncontrol/1.1.1/css/columnControl.dataTables.css" />
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.5/css/buttons.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.6.1/css/dataTables.dateTime.min.css" />
+
+    <!-- custom datatable js : ah-desoki -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js" asp-append-version="true"></script>
+    <script src=" https://cdn.datatables.net/2.3.4/js/dataTables.js" asp-append-version="true"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/2.3.4/api/sum().js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js   "></script>
+    <script src="https://cdn.datatables.net/datetime/1.5.6/js/dataTables.dateTime.min.js "></script>
+    <script src="https://cdn.datatables.net/columncontrol/1.1.1/js/dataTables.columnControl.js"></script>
+    <script src="https://cdn.datatables.net/columncontrol/1.1.1/js/columnControl.dataTables.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/2.3.4/api/sum().js"></script>
 
 </head>
 <body dir="rtl">
@@ -49,15 +88,12 @@
                                 </div>
                             }
                         } *@
-                            
-                                <div class="card-body px-auto py-0 m-0 d-flex">
-                                    <div class="">
-                                <a class="text-center my-0 py-0 text-decoration-none link-info fw-bold" style="font-size:25px !important ;" asp-area="" asp-controller="Home" asp-action="Index">
-                                           @*  <img src="~/images/nav/frst-logo-nav.png" alt="frist Logo" style="height: 60px !important;" /> *@
-                                        
-                                        المعامل الرئيسية للحرب الكيميائية
-                                        </a>
-                                    </div>
+                           
+                                <div class="card-body py-0 m-0 d-flex text-center">
+                                   
+                                    <a class="text-center my-0 py-0 text-decoration-none link-info fw-bold" style="font-size:25px !important ;" asp-area="" asp-controller="Home" asp-action="Index">
+                                        <img src="~/images/logooo.png" alt="frist Logo" style="height: 100px !important;" class="align-content-center align-items-center" />
+                                    </a>
                                 </div>
                        </div>
 
@@ -87,19 +123,19 @@
                                 @if (User.IsInRole(Roles.Admin.ToString()))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center" style="font-size:18px !important" asp-area="" asp-controller="Home" asp-action="MasterDashboard"><i class="bi bi-speedometer2 fs-3"></i><br>لوحة التحكم</a>
+                                        <a class="nav-link fw-bold link-light text-center" style="font-size:17px !important" asp-area="" asp-controller="Home" asp-action="MasterDashboard"><i class="bi bi-speedometer2 fs-4"></i><br>لوحة التحكم</a>
                                     </li>
                                 }
                                 @if (User.IsInRole(Roles.Admin.ToString()))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Users" asp-action="Index"><i class="bi bi-people-fill fs-3"></i><br>المستخدمين</a>
+                                        <a class="nav-link fw-bold link-light text-center " style="font-size:17px !important" asp-area="" asp-controller="Users" asp-action="Index"><i class="bi bi-people-fill fs-4"></i><br>المستخدمين</a>
                                     </li>
                                 }
                                 @if (User.IsInRole(Roles.Admin.ToString()))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Roles" asp-action="Index"><i class="bi bi-collection-fill fs-3"></i><br>المجموعـات</a>
+                                        <a class="nav-link fw-bold link-light text-center " style="font-size:17px !important" asp-area="" asp-controller="Roles" asp-action="Index"><i class="bi bi-collection-fill fs-4"></i><br>المجموعـات</a>
                                     </li>
                                 }
                                 @* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.HR.View).Result.Succeeded))
@@ -165,9 +201,35 @@
         <a asp-area="" asp-controller="" asp-action="" class="fw-bold px-2 link-underline-opacity-0"> ادارة النظـم</a> <span class="text-light fw-light">&copy; ERP [ PackLine | Frist ] 2025 </span>
     </div>
 </footer> *@
+   
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/Users.js" asp-append-version="true"></script>
+    <script src="~/js/Roles.js" asp-append-version="true"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* sweetalert liberary to pop msg*@
+    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
+    
+    @* datatables liberary *@
+    @* <script src="~/lib/datatables/js/datatables.bootstrap.js"></script>
+    <script src="~/lib/datatables/js/datatables.bootstrap.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.bootstrap4.js"></script>
+    <script src="~/lib/datatables/js/datatables.bootstrap4.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.datatables.js"></script>
+    <script src="~/lib/datatables/js/datatables.datatables.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.foundation.js"></script>
+    <script src="~/lib/datatables/js/datatables.foundation.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.jqueryui.js"></script>
+    <script src="~/lib/datatables/js/datatables.jqueryui.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.material.js"></script>
+    <script src="~/lib/datatables/js/datatables.material.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.semanticui.js"></script>
+    <script src="~/lib/datatables/js/datatables.semanticui.min.js"></script>
+    <script src="~/lib/datatables/js/datatables.uikit.js"></script>
+    <script src="~/lib/datatables/js/datatables.uikit.min.js"></script>
+    <script src="~/lib/datatables/js/jquery.datatables.js"></script>
+    <script src="~/lib/datatables/js/jquery.datatables.min.js"></script> *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 
