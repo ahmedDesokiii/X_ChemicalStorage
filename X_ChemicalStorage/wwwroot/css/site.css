@@ -182,12 +182,12 @@ img {
 /* ******************* Main Styeles : Radio Card */
 .imgWrap {
     display: inline-block;
-    background-color: #f2978d; /* Default background */
+    background-color: #147196; /* Default background */
     transition: background-color 0.5s ease; /* Optional: smooth transition */
 }
 
     .imgWrap:hover {
-        background-color: #EE7163; /* New background on hover */
+        background-color: white; /* New background on hover */
     }
 
 label.radio-card {
