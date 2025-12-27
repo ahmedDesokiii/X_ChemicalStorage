@@ -1,4 +1,6 @@
-﻿namespace X_ChemicalStorage.Constants
+﻿using ERPWeb_v02.Constants;
+
+namespace X_ChemicalStorage.Constants
 {
     public class Permissions
     {
@@ -7,62 +9,26 @@
             var permissionsList = GenerateAllPermissions();
             return permissionsList;
         }
-        public static List<string> Generate_AR_PermissionsList(string module)
+        public static List<string> Generate_Suppliers_PermissionsList(string module)
         {
             return new List<string>()
             {
-                $"Permissions.{module}.المبيعات",
-                $"Permissions.{module}.عرض قائمة الفواتير اليومية",
-                $"Permissions.{module}.إنشاء فاتورة بيع جديدة",
-                $"Permissions.{module}.تعديل فاتورة بيع",
-                $"Permissions.{module}.حذف فاتورة بيع",
+                $"Permissions.{module}.الموردين",
+                $"Permissions.{module}.عرض قائمة الموردين",
+                $"Permissions.{module}.إنشاء مورد جديد",
+                $"Permissions.{module}.تعديل بيانات مورد ",
+                $"Permissions.{module}.حذف بيانات مورد",
             };
         }
-        public static List<string> Generate_GL_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                $"Permissions.{module}.الأستاذ العام",
-                $"Permissions.{module}.إعدادات الأستاذ العام",
-                $"Permissions.{module}.تعريفات أساسية",
-                $"Permissions.{module}.عمليات الأستاذ العام",
-                $"Permissions.{module}.استعلامات وتقارير",
-                //Accounts
-                $"Permissions.{module}.عرض قائمة دليل الحسابات",
-                $"Permissions.{module}.إضافة حساب دليل الحسابات",
-                $"Permissions.{module}.تعديل حساب من دليل الحسابات",
-                //CostCenters
-                $"Permissions.{module}.عرض قائمة مراكز التكلفة",
-                $"Permissions.{module}.إضافة حساب مراكز التكلفة",
-                $"Permissions.{module}.تعديل حساب من مراكز التكلفة",
-                //EntryTypes
-                $"Permissions.{module}.عرض قائمة أنواع القيود",
-                $"Permissions.{module}.إضافة نوع قيد جديد",
-                $"Permissions.{module}.تعديل نوع قيد",
-                //DailyEntries
-                $"Permissions.{module}.عرض قائمة القيود اليومية",
-                $"Permissions.{module}.إضافة قيد جديد",
-                $"Permissions.{module}.تعديل بيانات قيد",
-                //ClosedPeriods
-                $"Permissions.{module}.عرض قائمة الإقفالات ",
-                $"Permissions.{module}. إضافة إقفال فترة مالية",
-            };
-        }
-        public static List<string> Generate_HR_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                $"Permissions.{module}.شئون الموظفين",
-                $"Permissions.{module}.عرض قائمة بيانات الموظفين",
-                $"Permissions.{module}.إضافة موظف جديد",
-                $"Permissions.{module}.تعديل بيانات موظف",
-                $"Permissions.{module}.عرض وإرسال المرتبات عبر الواتس آب "
-            };
-        }
-
+       
+       
         public static List<string> GenerateAllPermissions()
         {
+            var allSuppliersPermissions = new List<string>();
             var allPermissions = new List<string>();
+
+                allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
+                allPermissions = allSuppliersPermissions;
         
             return allPermissions;
         }
