@@ -72,6 +72,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 #region Scoped Services
 builder.Services.AddScoped<IServicesRepository<Supplier>, ServicesSupplier>();
+builder.Services.AddScoped<IServicesRepository<Category>, ServicesCategory>();
 #endregion
 var app = builder.Build();
 app.UseSession();

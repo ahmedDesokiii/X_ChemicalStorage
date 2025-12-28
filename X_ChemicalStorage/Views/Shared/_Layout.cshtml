@@ -126,19 +126,13 @@
                                         <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Suppliers" asp-action="Index"><i class="bi bi-people fs-4"></i><br>الموردين</a>
                                     </li>
                                 }
-                                @*
-                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.GL.View).Result.Succeeded))
+                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Categories.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="GL" asp-action="Index"><i class="bi bi-newspaper fs-3"></i><br>الأستاذ العام</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Categories" asp-action="Index"><i class="bi bi-diagram-3-fill fs-4"></i><br>فئات الأصناف</a>
                                     </li>
                                 }
-                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.AR.View).Result.Succeeded))
-                                {
-                                    <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="AR" asp-action="Index"><i class="bi bi-graph-up-arrow fs-3"></i><br>المبيعات</a>
-                                    </li>
-                                } *@
+                                
                             }
                         </ul>
                         @if (SignInManager.IsSignedIn(User))

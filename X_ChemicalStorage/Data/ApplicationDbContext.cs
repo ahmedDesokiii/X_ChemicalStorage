@@ -22,6 +22,7 @@
 
         }
         public virtual DbSet<Supplier> Suppliers { get; set; }
+        public virtual DbSet<Category> Categories { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

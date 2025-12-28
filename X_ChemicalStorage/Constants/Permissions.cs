@@ -21,15 +21,28 @@ namespace X_ChemicalStorage.Constants
                 $"Permissions.{module}.حذف بيانات مورد",
             };
         }
-       
-       
+        public static List<string> Generate_Categories_PermissionsList(string module)
+        {
+            return new List<string>()
+            {
+                $"Permissions.{module}.فئات الأصناف",
+                $"Permissions.{module}.عرض قائمة الفئات",
+                $"Permissions.{module}.إنشاء فئة جديد",
+                $"Permissions.{module}.عرض بيانات فئة",
+                $"Permissions.{module}.تعديل بيانات فئة ",
+                $"Permissions.{module}.حذف بيانات فئة",
+            };
+        }
+
         public static List<string> GenerateAllPermissions()
         {
             var allSuppliersPermissions = new List<string>();
+            var allCategoriesPermissions = new List<string>();
             var allPermissions = new List<string>();
 
                 allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
-                allPermissions = allSuppliersPermissions;
+                allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
+                allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).ToList();
         
             return allPermissions;
         }
@@ -45,45 +58,18 @@ namespace X_ChemicalStorage.Constants
             public const string Delete_Suppliers = "Permissions.Suppliers.حذف بيانات مورد";
         }
         #endregion
-        #region GL Modules
-        public static class GL
+        #region Categories Modules
+        public static class Categories
         {
-            public const string View = "Permissions.GL.الأستاذ العام";
-            public const string View_Settings = "Permissions.GL.اعدادات الأستاذ العام";
-            public const string View_Definitions = "Permissions.GL.اعدادات الأستاذ العام";
-            public const string View_Transactions = "Permissions.GL.اعدادات الأستاذ العام";
-            public const string View_Reports = "Permissions.GL.اعدادات الأستاذ العام";
-
-            public const string View_Accounts = "Permissions.GL.عرض قائمة دليل الحسابات";
-            public const string Create_Accounts = "Permissions.GL.إضافة حساب لدليل الحسابات";
-            public const string Edit_Accounts = "Permissions.GL.تعديل حساب من دليل الحسابات";
-
-            public const string View_CostCenters = "Permissions.GL.عرض قائمة مراكز التكلفة";
-            public const string Create_CostCenters = "Permissions.GL.إضافة حساب مراكز التكلفة";
-            public const string Edit_CostCenters = "Permissions.GL.تعديل حساب من مراكز التكلفة";
-
-            public const string View_EntryTypes = "Permissions.GL.عرض قائمة أنواع القيود";
-            public const string Create_EntryTypes = "Permissions.GL.إضافة نوع قيد جديد";
-            public const string Edit_EntryTypes = "Permissions.GL.تعديل نوع قيد";
-
-            public const string View_DailyEntries = "Permissions.GL.عرض قائمة القيود اليومية";
-            public const string Create_DailyEntries = "Permissions.GL.إضافة قيد جديد";
-            public const string Edit_DailyEntries = "Permissions.GL.تعديل بيانات قيد";
-
-            public const string View_ClosedPeriods = "Permissions.GL.عرض قائمة الإقفالات المالية";
-            public const string Create_ClosedPeriods = "Permissions.GL.إضافة إقفال فترة مالية";
+            public const string View = "Permissions.Categories.فئات الأصناف";
+            public const string View_Categories = "Permissions.Categories.عرض قائمة الفئات";
+            public const string Create_Categories = "Permissions.Categories.إنشاء فئة جديد";
+            public const string Details_Categories = "Permissions.Categories.عرض بيانات فئة";
+            public const string Edit_Categories = "Permissions.Categories.تعديل بيانات فئة ";
+            public const string Delete_Categories = "Permissions.Categories.حذف بيانات فئة";
         }
         #endregion
-        #region AR Modules
-        public static class AR
-        {
-            public const string View = "Permissions.AR.المبيعات";
-            public const string View_Invoice = "Permissions.AR.عرض قائمة الفواتير اليومية";
-            public const string Create_Invoice = "Permissions.AR.إنشاء فاتورة بيع جديدة";
-            public const string Edit_Invoice = "Permissions.AR.تعديل فاتورة بيع";
-            public const string Delete_Invoice = "Permissions.AR.حذف فاتورة بيع";
-        }
-        #endregion
+        
 
     }
 }

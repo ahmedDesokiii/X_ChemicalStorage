@@ -2,6 +2,7 @@
 {
     public enum Modules
     {
-        Suppliers   
+        Suppliers ,
+        Categories
     }
 }

@@ -152,3 +152,28 @@ function DeleteSupplier(id) {
         }
     })
 }
+EditCategory = (id, name,  details) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("catId").value = id;
+    document.getElementById("catName").value = name;
+    document.getElementById("catDetails").value = details;
+   
+}
+function DeleteCategory(id) {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/Categories/Delete?Id=${id}`;
+        }
+    })
+}
