@@ -94,7 +94,7 @@
                                             <td class="py-1">
                                                 <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="مجموعات مستخدم" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i></a>
                                                 <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-5" title="تعديل مستخدم" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-5" title="حـذف مستخدم" onclick="DeleteUser('@user.Id')" asp-route-Id="'@user.Id'"><i class="bi bi-trash3-fill"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-5" title="حـذف مستخدم" onclick="DeleteUser('@user.Id')" asp-route-Id="@user.Id"><i class="bi bi-trash3-fill"></i></a>
                                             </td>
                                         </tr>
                                     }
