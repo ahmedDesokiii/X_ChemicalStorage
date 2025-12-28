@@ -9,6 +9,10 @@
     {
       "library": "datatables@1.10.21",
       "destination": "wwwroot/lib/datatables/"
+    },
+    {
+      "library": "sweetalert2@11.23.0",
+      "destination": "wwwroot/sweetalert2/"
     }
   ]
 }

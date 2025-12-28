@@ -21,6 +21,7 @@
             builder.Entity<IdentityUserToken<int>>().ToTable("ERP_UserToken");
 
         }
+        public virtual DbSet<Supplier> Suppliers { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

@@ -21,26 +21,7 @@
     <link href="~/css/bootstrap.min_lumen.css" rel="stylesheet" />
     <!-- custom arabic font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&display=swap">
-    @* <!-- custom datatables style -->
-    <link href="~/lib/datatables/css/datatables.bootstrap.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.bootstrap.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.bootstrap4.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.bootstrap4.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.foundation.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.foundation.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.jqueryui.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.jqueryui.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.material.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.material.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.semanticui.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.semanticui.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.uikit.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/datatables.uikit.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/jquery.datatables.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/jquery.datatables.min.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/jquery.datatables_themeroller.css" rel="stylesheet" />
-    <link href="~/lib/datatables/css/jquery.datatables_themeroller.min.css" rel="stylesheet" /> *@
-
+    
     <!-- custom datatable css : ah-desoki-->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/columncontrol/1.1.1/css/columnControl.dataTables.css" />
@@ -139,12 +120,13 @@
                                         <a class="nav-link fw-bold link-light text-center " style="font-size:17px !important" asp-area="" asp-controller="Roles" asp-action="Index"><i class="bi bi-collection-fill fs-4"></i><br>المجموعـات</a>
                                     </li>
                                 }
-                                @* @if ((AuthorizationService.AuthorizeAsync(User, Permissions.HR.View).Result.Succeeded))
+                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="HR" asp-action="Index"><i class="bi bi-briefcase-fill fs-3"></i><br>شئون الموظفين</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Suppliers" asp-action="Index"><i class="bi bi-people fs-4"></i><br>الموردين</a>
                                     </li>
                                 }
+                                @*
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.GL.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
@@ -210,27 +192,15 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     @* sweetalert liberary to pop msg*@
-    <script src="~/lib/sweetalert/sweetalert.min.js"></script>
-    
-    @* datatables liberary *@
-    @* <script src="~/lib/datatables/js/datatables.bootstrap.js"></script>
-    <script src="~/lib/datatables/js/datatables.bootstrap.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.bootstrap4.js"></script>
-    <script src="~/lib/datatables/js/datatables.bootstrap4.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.datatables.js"></script>
-    <script src="~/lib/datatables/js/datatables.datatables.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.foundation.js"></script>
-    <script src="~/lib/datatables/js/datatables.foundation.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.jqueryui.js"></script>
-    <script src="~/lib/datatables/js/datatables.jqueryui.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.material.js"></script>
-    <script src="~/lib/datatables/js/datatables.material.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.semanticui.js"></script>
-    <script src="~/lib/datatables/js/datatables.semanticui.min.js"></script>
-    <script src="~/lib/datatables/js/datatables.uikit.js"></script>
-    <script src="~/lib/datatables/js/datatables.uikit.min.js"></script>
-    <script src="~/lib/datatables/js/jquery.datatables.js"></script>
-    <script src="~/lib/datatables/js/jquery.datatables.min.js"></script> *@
+    <script src="~/sweetalert2/sweetalert2.all.js"></script>
+    <script src="~/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="~/sweetalert2/sweetalert2.esm.all.js"></script>
+    <script src="~/sweetalert2/sweetalert2.esm.all.min.js"></script>
+    <script src="~/sweetalert2/sweetalert2.esm.js"></script>
+    <script src="~/sweetalert2/sweetalert2.esm.min.js"></script>
+    <script src="~/sweetalert2/sweetalert2.js"></script>
+    <script src="~/sweetalert2/sweetalert2.min.js"></script>
+   
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

@@ -1,0 +1,156 @@
+﻿@model SupplierViewModel
+
+@{
+    ViewData["Title"] = "قائمة الموردين";
+    int cNo = 0;
+   
+}
+<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+    <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
+        قائمة الموردين
+        <i class="bi bi-people pe-2 fs-1"></i>
+    </span>
+</div>
+<!-- Main content -->
+
+<section class="container-fluid mt-3">
+    <div class="row">
+
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="card p-0">
+                <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Create_Suppliers).Result.Succeeded )
+                    {
+                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="إضافة مورد جديد" onclick="Rest()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
+                    }
+                </div>
+                <!-- /.card-header -->
+
+                <div class="card-body p-0">
+                    <!-- Tab links -->
+                    @*  <div class="tab">
+                        <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
+                    </div> *@
+                    <!-- Tab content -->
+                    @if (!Model.SuppliersList.Any())
+                    {
+                        <div class="alert  alert-warning mt-5">
+                            <h4 class="alert-heading">لا يوجد موردين !</h4>
+                            <p class="mb-0">لم يتم اضافة موردين للتطبيق حتي الآن</p>
+                        </div>
+                    }
+                    else
+                    {
+
+                        <div id="Users" class="tabcontent">
+                            <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الاسـم</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">التليفون</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">العنوان</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">البريد الالكتروني</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var supp in Model.SuppliersList)
+                                    {
+                                        cNo++;
+                                        
+                                        <tr class="text-center">
+                                            <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
+                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@supp.Name</span></td>
+                                            <td class="fs-6 text-center px-1">@supp.Phone</td>
+                                            <td class="fs-6 text-center px-1">@supp.Adress</td>
+                                            <td class="fs-6 text-center px-1">@supp.Email</td>
+                                            
+                                            <td class="py-1">
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Details_Suppliers).Result.Succeeded)
+                                                {
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="تفاصيل المورد" asp-controller="Suppliers" asp-action="SelectedSupplier" asp-route-Id="@supp.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                }
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Edit_Suppliers).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل مورد" onclick="EditSupplier('@supp.Id','@supp.Name','@supp.Phone','@supp.Adress','@supp.Email')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    }
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Delete_Suppliers).Result.Succeeded)
+                                                {
+                                                    @* <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف مورد" asp-controller="Suppliers" asp-action="Delete" asp-route-Id="@supp.Id"> <i class="bi bi-trash3-fill"></i></a>*@
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف مورد" onclick="DeleteSupplier('@supp.Id')" ><i class="bi bi-trash3-fill"></i></a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+            <!-- /.card -->
+        </div>
+        <div class="col-md-1"></div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>
+<!-- /.content -->
+
+<partial name="_SaveSupplier" model="new SupplierViewModel()" />
+
+@section Scripts {
+    <script src="~/js/Users.js"></script>
+    @if (!string.IsNullOrEmpty(Context.Session.GetString(Helper.MsgType)))
+    {
+        if (Context.Session.GetString(Helper.MsgType) == Helper.Success)
+        {
+            <script>
+
+                Swal.fire({
+                    title: '@Context.Session.GetString(Helper.Title)',
+                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                    confirmButtonText: 'Ok',
+                    icon: 'success'
+                });
+            </script>
+
+        }
+        else
+        {
+            <script>
+
+                Swal.fire({
+                    title: '@Context.Session.GetString(Helper.Title)',
+                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                    confirmButtonText: 'Ok',
+                    icon: 'error'
+                });
+            </script>
+        }
+        Context.Session.SetString(Helper.MsgType, "");
+    }
+
+    <script>
+
+        let lbTitleEdit = '@Html.Raw("تعديل بيانات المورد")';
+        let lbEdit = '@Html.Raw("حفظ التعديلات")';
+        let lbAddNewRole = '@Html.Raw("إضافة مورد جديد")';
+        let lbbtnSave = '@Html.Raw("حفظ البيانات")';
+
+        let lbTitleMsgDelete = '@Html.Raw("حذف بيانات مورد")';
+        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف بيانات المورد وكل ما يتعلق به من طلبات و سجلات ؟ ")';
+        let lbconfirmButtonText = '@Html.Raw("نعم , احذف المورد")';
+        let lbcancelButtonText = '@Html.Raw("إلغـاء")';
+
+        let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
+        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف بيانات المورد بنجاح!")';
+        let lbSuccess = '@Html.Raw(Helper.Success)';
+
+    </script>
+}
+

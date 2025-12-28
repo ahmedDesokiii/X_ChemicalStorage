@@ -1,18 +1,22 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(
-    options => options.UseSqlServer(connectionString));
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+//    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+//builder.Services.AddDbContext<ApplicationDbContext>(
+//    options => options.UseSqlServer(connectionString));
+
+builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+{
+    var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var selectedConn = httpContextAccessor.HttpContext?.Session?.GetString("SelectedConnection") ?? "DefaultConnection";
+    var connectionString = configuration.GetConnectionString(selectedConn);
+
+    options.UseSqlServer(connectionString);
+});
+
+
 
 builder.Services.AddControllersWithViews(); // Adds MVC services\
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
@@ -66,6 +70,9 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider()); // Use cookie to store culture
 });
 
+#region Scoped Services
+builder.Services.AddScoped<IServicesRepository<Supplier>, ServicesSupplier>();
+#endregion
 var app = builder.Build();
 app.UseSession();
 

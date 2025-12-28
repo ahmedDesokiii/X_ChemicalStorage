@@ -1,0 +1,17 @@
+﻿namespace X_ChemicalStorage.IRepository
+{
+    public interface IServicesRepositoryLog<T> where T : class
+    {
+        List<T> GetAll();
+
+        T FindBy(Guid Id);
+
+        bool Save(Guid Id, Guid UserId);
+
+        bool Update(Guid Id, Guid UserId);
+
+        bool Delete(Guid Id, Guid UserId);
+
+        bool DeleteLog(Guid Id);
+    }
+}

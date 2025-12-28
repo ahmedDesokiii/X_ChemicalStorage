@@ -15,3 +15,8 @@ global using System.Diagnostics;
 global using Microsoft.AspNetCore.Mvc;
 global using X_ChemicalStorage.ViewModels;
 global using X_ChemicalStorage.Constants;
+global using Microsoft.AspNetCore.Identity.UI.Services;
+global using Microsoft.AspNetCore.Localization;
+global using System.Globalization;
+global using X_ChemicalStorage.IRepository;
+global using X_ChemicalStorage.IRepository.ServicesRepository;

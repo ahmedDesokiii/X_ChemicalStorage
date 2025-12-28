@@ -85,14 +85,14 @@ $('#tablePermission').dataTable({
     }
 });
 
-function Delete(id) {
+function DeleteRole(id) {
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
         icon: 'error',
         showCancelButton: true,
         confirmButtonColor: '#d33',
-        cancelButtonColor: 'secondary',
+        cancelButtonColor: '#57595B',
         confirmButtonText: lbconfirmButtonText,
         cancelButtonText: lbcancelButtonText,
         

@@ -16,6 +16,7 @@ namespace X_ChemicalStorage.Constants
                 $"Permissions.{module}.الموردين",
                 $"Permissions.{module}.عرض قائمة الموردين",
                 $"Permissions.{module}.إنشاء مورد جديد",
+                $"Permissions.{module}.عرض بيانات مورد",
                 $"Permissions.{module}.تعديل بيانات مورد ",
                 $"Permissions.{module}.حذف بيانات مورد",
             };
@@ -33,14 +34,15 @@ namespace X_ChemicalStorage.Constants
             return allPermissions;
         }
 
-        #region HR Modules
-        public static class HR
+        #region Suppliers Modules
+        public static class Suppliers
         {
-            public const string View = "Permissions.HR.شئون الموظفين";
-            public const string View_Employees = "Permissions.HR.عرض قائمة بيانات الموظفين";
-            public const string Create_Employees = "Permissions.HR.إضافة موظف جديد";
-            public const string Edit_Employees = "Permissions.HR.تعديل بيانات موظف";
-            public const string View_SalaryWhatsApp = "Permissions.HR.عرض وإرسال المرتبات عبر الواتس آب";
+            public const string View = "Permissions.Suppliers.الموردين";
+            public const string View_Suppliers = "Permissions.Suppliers.عرض قائمة الموردين";
+            public const string Create_Suppliers = "Permissions.Suppliers.إنشاء مورد جديد";
+            public const string Details_Suppliers = "Permissions.Suppliers.عرض بيانات مورد";
+            public const string Edit_Suppliers = "Permissions.Suppliers.تعديل بيانات مورد ";
+            public const string Delete_Suppliers = "Permissions.Suppliers.حذف بيانات مورد";
         }
         #endregion
         #region GL Modules

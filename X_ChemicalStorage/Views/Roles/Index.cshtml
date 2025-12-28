@@ -60,9 +60,9 @@
                                             <td class="fw-bold fs-5 px-1  m-0 text-success"><span class="bg-success-subtle p-2 rounded-5">@role.Name</span></td>
                                             <td class="fs-6 m-0">@role.Details</td>
                                             <td class="py-1 px-1 m-0">
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-4" title="صلاحيات" asp-controller="Roles" asp-action="ManagePermissions" asp-route-roleId="@role.Id"><i class="bi bi-shield-lock"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل" onclick="Edit('@role.Id','@role.Name','@role.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف" onclick=""> <i class="bi bi-trash3-fill"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-4" title="صلاحيات مجموعة" asp-controller="Roles" asp-action="ManagePermissions" asp-route-roleId="@role.Id"><i class="bi bi-shield-lock"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" تعديل مجموعة" onclick="Edit('@role.Id','@role.Name','@role.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" حذف مجموعة" onclick="DeleteRole('@role.Id')"> <i class="bi bi-trash3-fill"></i></a>
                                             </td>
                                         </tr>
                                     }
@@ -129,13 +129,13 @@
         let lbAddNewRole = '@Html.Raw("إضافة مجموعة جديدة")';
         let lbbtnSave = '@Html.Raw("حفظ البيانات")';
 
-        let lbTitleMsgDelete = '@Html.Raw("Delete")';
-        let lbTextMsgDelete = '@Html.Raw($"Are you sure delete role ? ")';
-        let lbconfirmButtonText = '@Html.Raw("Yes , Delete it")';
-        let lbcancelButtonText = '@Html.Raw("Cancle")';
+        let lbTitleMsgDelete = '@Html.Raw("حذف مجموعة")';
+        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف المجموعة وكل علاقتها بالمستخدمين ؟ ")';
+        let lbconfirmButtonText = '@Html.Raw("نعم , احذف")';
+        let lbcancelButtonText = '@Html.Raw("إلغـاء")';
 
-        let lbTitleDeletedOk = '@Html.Raw("Done")';
-        let lbMsgDeletedOkRole = '@Html.Raw("Role Deleted Successfully")';
+        let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
+        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف المجموعة بكل ما يتعلق بها من مستخدمين !")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
     </script>

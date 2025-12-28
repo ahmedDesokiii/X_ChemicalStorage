@@ -85,14 +85,14 @@ $('#tablePermissions').dataTable({
     }
 });
 
-function Delete(id) {
+function DeleteUser(id) {
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
         icon: 'error',
         showCancelButton: true,
         confirmButtonColor: '#d33',
-        cancelButtonColor: 'secondary',
+        cancelButtonColor: '#57595B',
         confirmButtonText: lbconfirmButtonText,
         cancelButtonText: lbcancelButtonText,
 
@@ -123,4 +123,32 @@ Rest = () => {
 
 ManageRoles = (id) => {
     document.getElementById("usrId").value = id;
+}
+
+EditSupplier = (id, name, phone,adress,email) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("suppId").value = id;
+    document.getElementById("suppName").value = name;
+    document.getElementById("suppPhone").value = phone;
+    document.getElementById("suppAdress").value = adress;
+    document.getElementById("suppEmail").value = email;
+}
+
+function DeleteSupplier(id) {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/Suppliers/Delete?Id=${id}`;
+        }
+    })
 }

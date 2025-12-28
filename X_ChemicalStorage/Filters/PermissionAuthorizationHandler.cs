@@ -1,6 +1,4 @@
-﻿
-
-namespace X_ChemicalStorage.Filters
+﻿namespace X_ChemicalStorage.Filters
 {
     public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
     {

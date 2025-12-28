@@ -9,7 +9,7 @@
 <div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
     <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
         قائمة المستخدمين
-        <i class="bi bi-people pe-2 fs-1"></i>
+        <i class="bi bi-people-fill pe-2 fs-1"></i>
     </span>
 </div>
 <!-- Main content -->
@@ -92,9 +92,9 @@
                                             }
 
                                             <td class="py-1">
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="مجموعات" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i><br></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-5" title="تعديل" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i><br></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-5" title="حـذف" asp-controller="Users" asp-action="DeleteUser" asp-route-Id="@user.Id"><i class="bi bi-trash3-fill"></i><br></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="مجموعات مستخدم" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-5" title="تعديل مستخدم" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-5" title="حـذف مستخدم" onclick="DeleteUser('@user.Id')" asp-route-Id="'@user.Id'"><i class="bi bi-trash3-fill"></i></a>
                                             </td>
                                         </tr>
                                     }
@@ -116,6 +116,16 @@
 <!-- /.content -->
 @section Scripts {
     <script src="~/js/Users.js"></script>
+    <script>
+        let lbTitleMsgDelete = '@Html.Raw("حذف مستخدم")';
+        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف المستخدم وكل علاقتها بالمستخدمين ؟ ")';
+        let lbconfirmButtonText = '@Html.Raw("نعم , احذف")';
+        let lbcancelButtonText = '@Html.Raw("إلغـاء")';
+
+        let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
+        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف المستخدم بكل ما يتعلق بها من مستخدمين !")';
+        let lbSuccess = '@Html.Raw(Helper.Success)';
+    </script>
     @if (!string.IsNullOrEmpty(Context.Session.GetString(Helper.MsgType)))
     {
         if (Context.Session.GetString(Helper.MsgType) == Helper.Success)
@@ -145,6 +155,6 @@
         }
         Context.Session.SetString(Helper.MsgType, "");
     }
-
+   
 }
 

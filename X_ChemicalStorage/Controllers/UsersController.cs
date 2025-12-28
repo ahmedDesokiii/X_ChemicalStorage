@@ -21,13 +21,12 @@ namespace ERPWeb_v02.Controllers
             _configuration = configuration;
         }
         #region All Users
-        public async Task<IActionResult> Index()
+        public ActionResult Index()
         {
-            //Thread.Sleep(1000);
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+            //Thread.Sleep(500);
             var userVM = new List<UserViewModel>();
-                userVM = await _context.Users
+                userVM =  _context.Users
                 .Select(user => new UserViewModel()
                     {
                         Id = user.Id.ToString(),
@@ -39,9 +38,8 @@ namespace ERPWeb_v02.Controllers
                         Roles = _userManager.GetRolesAsync(user).Result,
                     })
                .OrderByDescending(u => u.CurrentState)
-               .ToListAsync();
-
-            Thread.Sleep(1000);
+               .ToList();
+            //Thread.Sleep(500);
             return View(userVM);
         }
         #endregion
@@ -56,6 +54,7 @@ namespace ERPWeb_v02.Controllers
             {
                 Roles = roles
             };
+            
 
             return View(addUserVM);
         }
@@ -100,7 +99,7 @@ namespace ERPWeb_v02.Controllers
                 return View(model);
             }
             await _userManager.AddToRolesAsync(user, model.Roles.Where(r => r.IsSelected).OrderBy(r => r.IsSelected).Select(r => r.DisplayValue));
-
+            //Thread.Sleep(500);
             return RedirectToAction(nameof(Index));
         }
 
@@ -142,6 +141,7 @@ namespace ERPWeb_v02.Controllers
             user.Email = model.Email;
 
             await _userManager.UpdateAsync(user);
+            //Thread.Sleep(500);
             return RedirectToAction(nameof(Index));
         }
 
@@ -242,8 +242,8 @@ namespace ERPWeb_v02.Controllers
             user.EmailConfirmed = false;
 
             await _userManager.UpdateAsync(user);
+            Thread.Sleep(500);
             return RedirectToAction(nameof(Index));
-
         }
         #endregion
     }
