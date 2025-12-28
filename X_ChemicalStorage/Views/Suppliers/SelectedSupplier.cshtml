@@ -1,0 +1,293 @@
+﻿@inject IAuthorizationService AuthorizationService
+@inject UserManager<ApplicationUser> userManager
+@model SupplierViewModel
+@{
+    ViewData["Title"] = Model?.NewSupplier?.Name;
+}
+<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+    <div class="d-flex text-center mx-auto">
+        <a asp-controller="Suppliers" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">قائمة الموردين</a>
+        <i class="bi bi-chevron-double-left fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
+    </div>
+</div>
+<section class="container-fluid ">
+    <div class="row mb-2">
+        <div class="col-12 d-flex">
+
+            <div class="col-md-2 "></div>
+            <div class="card col-md-8 col-12 border-0">
+                <div class="card-body ">
+                    <div class="accordion shadow mb-3 py-0" id="accordionExamplez">
+                        <div class="accordion-item  bg-danger-subtle py-0">
+                            <div class="accordion-header bg-danger-subtle d-flex py-0" id="header_z">
+                                <div class="col-md-12">
+                                    <button class=" collapsed  bg-danger-subtle w-100 border-0 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_z" aria-expanded="true" aria-controls="collapse_z">
+                                        <span class="text-center fw-bolder fs-6">البيانات الشخصية للطالب</span><i class="mt-1 me-2 bi bi-box-arrow-in-down"></i>
+                                    </button>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="collapse_z" class="accordion-collapse collapse" aria-labelledby="header_z" data-bs-parent="#accordionExample0">
+                            <div class="accordion-body">
+                                <div class="form-group mb-2">
+                                    <div class="row">
+                                        <div class="col-sm-4 col-4">
+                                            <span class="input-group-text w-auto text-center pe-sm-2 pe-1 p-1 bg-info-subtle">اسم المورد</span>
+                                        </div>
+                                        <div class="col-sm-8 col-8">
+                                            <input type="text" readonly class="form-control text-center p-1" value="@Model?.NewSupplier?.Name" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="form-group mb-2">
+                                    <div class="row">
+                                        <div class="col-sm-4 col-4">
+                                            <span class="input-group-text w-auto text-center pe-sm-2 pe-1 p-1 bg-info-subtle">تليفون المورد</span>
+                                        </div>
+                                        <div class="col-sm-8 col-8">
+                                            <input type="text" readonly class="form-control text-center p-1" value="@Model?.NewSupplier?.Phone" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="form-group mb-2">
+                                    <div class="row">
+                                        <div class="col-sm-4 col-4">
+                                            <span class="input-group-text w-auto text-center pe-sm-2 pe-1 p-1 bg-info-subtle">عنوان المورد</span>
+                                        </div>
+                                        <div class="col-sm-8 col-8">
+                                            <input type="text" readonly class="form-control text-center p-1" value="@Model?.NewSupplier?.Adress" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <div class="row">
+                                        <div class="col-sm-4 col-4">
+                                            <span class="input-group-text w-auto text-center pe-sm-2 pe-1 p-1 bg-info-subtle">البريد الالكتروني</span>
+                                        </div>
+                                        <div class="col-sm-8 col-8">
+                                            <input type="text" readonly class="form-control text-center p-1" value="@Model?.NewSupplier?.Email" />
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="accordion shadow mb-3 py-0" id="accordionExample3">
+                        <div class="accordion-item  bg-danger-subtle py-0">
+                            <div class="accordion-header bg-dark-subtle d-flex py-0" id="header_three">
+                                <div class="col-sm-12 col-12">
+                                    <button class=" collapsed  bg-dark-subtle w-100 border-0 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_three" aria-expanded="false" aria-controls="collapse_three">
+                                        <span class="text-center fw-bolder fs-6">التقييمات</span><i class="mt-1 me-2 bi bi-box-arrow-in-down"></i>
+                                    </button>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div id="collapse_three" class="accordion-collapse collapse" aria-labelledby="header_three" data-bs-parent="#accordionExample3">
+                            <div class="accordion-body">
+                                @* <div>
+
+                                            @if (!Model.StudentVM.Evaluations.Any())
+                                            {
+                                                <div class="alert  alert-warning mt-5">
+                                                    <h4 class="alert-heading">No Evaluation!</h4>
+                                                    <p class="mb-0">No Evaluations where added yet.</p>
+                                                </div>
+                                            }
+                                            else
+                                            {
+
+                                                <table border="0" cellspacing="5" cellpadding="5">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>بداية الفترة</td>
+                                                            <td><input type="text" readonly id="min" name="min"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>نهاية الفترة</td>
+                                                            <td><input type="text" readonly id="max" name="max"></td>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+
+                                                <table id="example" class="table-hover display nowrap w-100 p-2 table-bordered border-primary-subtle">
+                                                    <thead>
+                                                        <tr class="text-center p-2">
+                                                            <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" rowspan="2"></td>
+                                                            <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" rowspan="2">تاريخ</td>
+                                                            <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" rowspan="2">حضور</td>
+                                                            @if (Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الخطة المفتوحة"))
+                                                            {
+                                                                <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" colspan="5">مقدار</td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" colspan="5">حفظ</td>
+                                                            }
+                                                            @if (Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الذكر الحكيم"))
+                                                            {
+                                                                <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" colspan="5">ربط</td>
+                                                            }
+                                                            @if (!Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الخطة المفتوحة"))
+                                                            {
+                                                                <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" colspan="5">مراجعة</td>
+                                                            }
+                                                            <td class="text-center p-2 bg-danger-subtle fs-5 fw-bold" rowspan="2">ملاحظات</td>
+                                                        </tr>
+                                                        <tr class="text-center p-2">
+
+                                                            <td class="text-center p-2 bg-danger-subtle fw-bold">سورة</td>
+                                                            <td class="text-center p-2 bg-danger-subtle fw-bold">اية</td>
+                                                            <td class="text-center p-2 bg-danger-subtle fw-bold">سورة</td>
+                                                            <td class="text-center p-2 bg-danger-subtle fw-bold">اية</td>
+                                                            <td class="text-center p-2 bg-danger-subtle fw-bold">تقييم</td>
+                                                            @if (Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الذكر الحكيم"))
+                                                            {
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">سورة</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">اية</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">سورة</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">اية</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">تقييم</td>
+                                                            }
+                                                            @if (!Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الخطة المفتوحة"))
+                                                            {
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">سورة</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">اية</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">سورة</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">اية</td>
+                                                                <td class="text-center p-2 bg-danger-subtle fw-bold">تقييم</td>
+                                                            }
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var item in Model.StudentVM.Evaluations)
+                                                        {
+
+                                                            //attendance
+                                                            var attend = item.Ev_Attend; var result_attend = string.Empty;
+                                                            if (attend == 0) result_attend = "حاضر";
+                                                            else if (attend == 1) result_attend = "متأخر";
+                                                            else if (attend == 2) result_attend = "مستأذن";
+                                                            else if (attend == 3) result_attend = "غائب بإذن";
+                                                            else if (attend == 4) result_attend = "غائب";
+
+                                                            //Save
+                                                            var save = item.Ev_Save; var result_save = string.Empty;
+                                                            if (save == 10 || save == 9) result_save = "ممتاز";
+                                                            else if (save == 7 || save == 8) result_save = "جيد جدا";
+                                                            else if (save == 6) result_save = "جيد";
+                                                            else if (save == 5) result_save = "مقبول";
+                                                            else if (save > 0 && save < 5) result_save = "غير مقبول";
+                                                            else if (save == 0) result_save = "غائب";
+                                                            else if (save < 0) result_save = "لم يقيم ";
+
+                                                            //Rabt
+                                                            var rabt = item.Ev_Rabt; var result_rabt = string.Empty;
+                                                            if (rabt == 10 || rabt == 9) result_rabt = "ممتاز";
+                                                            else if (rabt == 7 || rabt == 8) result_rabt = "جيد جدا";
+                                                            else if (rabt == 6) result_rabt = "جيد";
+                                                            else if (rabt == 5) result_rabt = "مقبول";
+                                                            else if (rabt > 0 && rabt < 5) result_rabt = "غير مقبول";
+                                                            else if (rabt == 0) result_rabt = "غائب";
+                                                            else if (rabt < 0) result_rabt = "لم يقيم ";
+
+                                                            //Rev
+                                                            var rev = item.Ev_Rev; var result_rev = string.Empty;
+                                                            if (rev == 10 || rev == 9) result_rev = "ممتاز";
+                                                            else if (rev == 7 || rev == 8) result_rev = "جيد جدا";
+                                                            else if (rev == 6) result_rev = "جيد";
+                                                            else if (rev == 5) result_rev = "مقبول";
+                                                            else if (rev > 0 && rev < 5) result_rev = "غير مقبول";
+                                                            else if (rev == 0) result_rev = "غائب";
+                                                            else if (rev < 0) result_rev = "لم يقيم ";
+
+
+                                                            <tr class="text-center">
+                                                                @{
+                                                                    cNo++;
+                                                                }
+                                                                <td class="text-center">@cNo</td>
+                                                                <td class="text-center">@item.Ev_Date.ToString("yyyy-MM-dd")</td>
+                                                                <td class="text-center">@result_attend</td>
+
+                                                                <td class="text-center">@item.Ev_SaveSurahNameFrom</td>
+                                                                <td class="text-center">@item.Ev_SaveAyahIdFrom   </td>
+                                                                <td class="text-center">@item.Ev_SaveSurahNameTo  </td>
+                                                                <td class="text-center">@item.Ev_SaveAyahIdTo     </td>
+                                                                @if (save < 0)
+                                                                {
+                                                                    <td class="text-center">@result_save </td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td class="text-center">@result_save <br>@save / 10</td>
+                                                                }
+
+                                                                @if (Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الذكر الحكيم"))
+                                                                {
+                                                                    <td class="text-center">@item.Ev_RabtSurahNameFrom</td>
+                                                                    <td class="text-center">@item.Ev_RabtAyahIdFrom   </td>
+                                                                    <td class="text-center">@item.Ev_RabtSurahNameTo  </td>
+                                                                    <td class="text-center">@item.Ev_RabtAyahIdTo     </td>
+                                                                    @if (rabt < 0)
+                                                                    {
+                                                                        <td class="text-center">@result_rabt </td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td class="text-center">@result_rabt <br>@rabt / 10</td>
+                                                                    }
+
+                                                                }
+                                                                @if (!Model.StudentVM.NewStudent.LessonData.LevelData.PlanData.Name.Contains("الخطة المفتوحة "))
+                                                                {
+                                                                    <td class="text-center">@item.Ev_RevSurahNameFrom</td>
+                                                                    <td class="text-center">@item.Ev_RevAyahIdFrom   </td>
+                                                                    <td class="text-center">@item.Ev_RevSurahNameTo  </td>
+                                                                    <td class="text-center">@item.Ev_RevAyahIdTo     </td>
+                                                                    @if (rev < 0)
+                                                                    {
+                                                                        <td class="text-center">@result_rev </td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td class="text-center">@result_rev <br>@rev / 10</td>
+                                                                    }
+
+                                                                }
+                                                                <td class="text-center">@item.Notes</td>
+                                                            </tr>
+
+                                                        }
+                                                    </tbody>
+                                                    @{
+                                                        i++;
+                                                    }
+                                                </table>
+                                            }
+                                        </div> *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 "></div>
+
+        </div>
+    </div>
+</section>
+@section Scripts {
+    
+
+
+}
