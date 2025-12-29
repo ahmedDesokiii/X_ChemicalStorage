@@ -4,6 +4,7 @@
     {
         Suppliers ,
         Categories,
-        ManufacuterCompanies
+        ManufacuterCompanies,
+        Locations
     }
 }

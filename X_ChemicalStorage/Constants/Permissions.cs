@@ -33,6 +33,18 @@ namespace X_ChemicalStorage.Constants
                 $"Permissions.{module}.حذف بيانات فئة",
             };
         }
+        public static List<string> Generate_Locations_PermissionsList(string module)
+        {
+            return new List<string>()
+            {
+                $"Permissions.{module}.أماكن التخزين",
+                $"Permissions.{module}.عرض قائمة أماكن التخزين",
+                $"Permissions.{module}.إنشاء مكان تخزين جديد",
+                $"Permissions.{module}.عرض بيانات مكان التخزين",
+                $"Permissions.{module}.تعديل بيانات اماكن التخزين ",
+                $"Permissions.{module}.حذف بيانات اماكن التخزين",
+            };
+        }
         public static List<string> Generate_ManufacuterCompanies_PermissionsList(string module)
         {
             return new List<string>()
@@ -50,13 +62,15 @@ namespace X_ChemicalStorage.Constants
         {
             var allSuppliersPermissions = new List<string>();
             var allCategoriesPermissions = new List<string>();
+            var allLocationsPermissions = new List<string>();
             var allManufacuterCompaniesPermissions = new List<string>();
             var allPermissions = new List<string>();
 
                 allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
                 allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
+                allLocationsPermissions.AddRange(Generate_Locations_PermissionsList(Modules.Locations.ToString()));
                 allManufacuterCompaniesPermissions.AddRange(Generate_ManufacuterCompanies_PermissionsList(Modules.ManufacuterCompanies.ToString()));
-                allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).Concat(allManufacuterCompaniesPermissions).ToList();
+                allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).Concat(allManufacuterCompaniesPermissions).Concat(allLocationsPermissions).ToList();
         
             return allPermissions;
         }
@@ -81,6 +95,17 @@ namespace X_ChemicalStorage.Constants
             public const string Details_Categories = "Permissions.Categories.عرض بيانات فئة";
             public const string Edit_Categories = "Permissions.Categories.تعديل بيانات فئة ";
             public const string Delete_Categories = "Permissions.Categories.حذف بيانات فئة";
+        }
+        #endregion
+        #region Locations Modules
+        public static class Locations
+        {
+            public const string View = "Permissions.Locations.أماكن التخزين";
+            public const string View_Locations = "Permissions.Locations.عرض قائمة أماكن التخزين";
+            public const string Create_Locations = "Permissions.Locations.إنشاء مكان تخزين جديد";
+            public const string Details_Locations = "Permissions.Locations.عرض بيانات مكان تخزين";
+            public const string Edit_Locations = "Permissions.Locations.تعديل بيانات مكان تخزين ";
+            public const string Delete_Locations = "Permissions.Locations.حذف بيانات مكان تخزين";
         }
         #endregion
         #region ManufacuterCompanies Modules

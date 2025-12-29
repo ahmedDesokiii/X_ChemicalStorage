@@ -23,6 +23,7 @@
         }
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
+        public virtual DbSet<Location> Locations { get; set; }
         public virtual DbSet<ManufacuterCompany> ManufacuterCompanies { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

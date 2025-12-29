@@ -1,0 +1,41 @@
+﻿@model LocationViewModel
+
+
+<!-- Modal -->
+<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog card card-success card-outline">
+        <div class="modal-content">
+            <div class="modal-header bg-danger-subtle" dir="rtl">
+                <span class="fs-4 fw-bold modal-title" id="title"></span>
+                <a href="#" class="btn-close position-absolute  start-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Save" asp-controller="Locations" method="post">
+                    <input type="text" hidden class="form-control" asp-for="NewLocation.Id" id="catId" value="0" />
+                    <!-- LocationName -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم الشركة المصنعة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="catName" required asp-for="@Model.NewLocation.LocationName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم الشركة المصنعة ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-left-color:red;border-top-left-radius : 20px ;">
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.LocationName" class="text-danger"></span>
+
+                    
+                    <!-- LocationDetails -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; وصف الشركة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="catDetails" required asp-for="@Model.NewLocation.LocationDetails" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل وصف الشركة المصنعة  ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.LocationDetails" class="text-danger"></span>
+                    
+                   
+                    <div class="modal-footer mt-3" style="padding:0 15px 15px 0">
+                        <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" />
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغــاء</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
