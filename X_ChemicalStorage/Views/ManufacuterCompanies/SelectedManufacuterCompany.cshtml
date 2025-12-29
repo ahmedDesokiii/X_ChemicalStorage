@@ -1,0 +1,13 @@
+﻿@inject IAuthorizationService AuthorizationService
+@inject UserManager<ApplicationUser> userManager
+@model ManufacuterCompanyViewModel
+@{
+    ViewData["Title"] = Model?.NewManufacuterCompany?.Name;
+}
+<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+    <div class="d-flex text-center mx-auto">
+        <a asp-controller="ManufacuterCompanies" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">قائمة فئات الأصناف</a>
+        <i class="bi bi-chevron-double-left fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
+    </div>
+</div>

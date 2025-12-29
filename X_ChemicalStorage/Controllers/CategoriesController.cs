@@ -37,7 +37,7 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
 
-        #region Delete Center [Delete & Delete Log]
+        #region Delete Category [Delete & Delete Log]
         //Delete
         [Authorize(Permissions.Categories.Delete_Categories)]
         public IActionResult Delete(int Id)
@@ -74,12 +74,12 @@ namespace X_ChemicalStorage.Controllers
                 { //Create
                     //Exist
                     if (_servicesCategory.FindBy(model.NewCategory.Name) != null)
-                        SessionMsg(Helper.Error, "مورد مكرر !", "اسم المورد موجود من قبل");
+                        SessionMsg(Helper.Error, "فئة مكرره !", "اسم الفئة موجود من قبل");
 
                     else
                     {
                         if (_servicesCategory.Save(model.NewCategory))
-                            SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة المورد بنجاح ");
+                            SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة الفئة بنجاح ");
                         else
                             SessionMsg(Helper.Error, "خطأ في الإضافة", "حدوث خطأ اثناء ادخال بعض البيانات !");
                     }
@@ -87,7 +87,7 @@ namespace X_ChemicalStorage.Controllers
                 else
                 { //Update
                     if (_servicesCategory.Save(model.NewCategory))
-                        SessionMsg(Helper.Success, "تم التعديل", "تم تعديل بيانات المورد بنجاح !");
+                        SessionMsg(Helper.Success, "تم التعديل", "تم تعديل بيانات الفئة بنجاح !");
                     else
                         SessionMsg(Helper.Error, "مشكلة في التعديل", "! حدوث خطأ اثناء تعديل بعض البيانات");
 

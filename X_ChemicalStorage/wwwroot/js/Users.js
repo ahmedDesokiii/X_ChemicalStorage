@@ -177,3 +177,30 @@ function DeleteCategory(id) {
         }
     })
 }
+
+EditManufacuterCompany = (id, name,shName, details) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("catId").value = id;
+    document.getElementById("catName").value = name;
+    document.getElementById("catShCutName").value = shName;
+    document.getElementById("catDetails").value = details;
+
+}
+function DeleteManufacuterCompany(id) {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/ManufacuterCompanies/Delete?Id=${id}`;
+        }
+    })
+}

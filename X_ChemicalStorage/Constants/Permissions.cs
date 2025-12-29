@@ -33,16 +33,30 @@ namespace X_ChemicalStorage.Constants
                 $"Permissions.{module}.حذف بيانات فئة",
             };
         }
+        public static List<string> Generate_ManufacuterCompanies_PermissionsList(string module)
+        {
+            return new List<string>()
+            {
+                $"Permissions.{module}.الشركة المصنعة",
+                $"Permissions.{module}.عرض قائمة الشركات المصنعة",
+                $"Permissions.{module}.إنشاء شركة جديدة",
+                $"Permissions.{module}.عرض بيانات شركة",
+                $"Permissions.{module}.تعديل بيانات شركة ",
+                $"Permissions.{module}.حذف بيانات شركة",
+            };
+        }
 
         public static List<string> GenerateAllPermissions()
         {
             var allSuppliersPermissions = new List<string>();
             var allCategoriesPermissions = new List<string>();
+            var allManufacuterCompaniesPermissions = new List<string>();
             var allPermissions = new List<string>();
 
                 allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
                 allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
-                allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).ToList();
+                allManufacuterCompaniesPermissions.AddRange(Generate_ManufacuterCompanies_PermissionsList(Modules.ManufacuterCompanies.ToString()));
+                allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).Concat(allManufacuterCompaniesPermissions).ToList();
         
             return allPermissions;
         }
@@ -69,7 +83,16 @@ namespace X_ChemicalStorage.Constants
             public const string Delete_Categories = "Permissions.Categories.حذف بيانات فئة";
         }
         #endregion
-        
-
+        #region ManufacuterCompanies Modules
+        public static class ManufacuterCompanies
+        {
+            public const string View = "Permissions.ManufacuterCompanies.الشركة المصنعة";
+            public const string View_ManufacuterCompanies = "Permissions.ManufacuterCompanies.عرض قائمة الشركات المصنعة";
+            public const string Create_ManufacuterCompanies = "Permissions.ManufacuterCompanies.إنشاء شركة جديدة";
+            public const string Details_ManufacuterCompanies = "Permissions.ManufacuterCompanies.عرض بيانات شركة";
+            public const string Edit_ManufacuterCompanies = "Permissions.ManufacuterCompanies.تعديل بيانات شركة ";
+            public const string Delete_ManufacuterCompanies = "Permissions.ManufacuterCompanies.حذف بيانات شركة";
+        }
+        #endregion
     }
 }

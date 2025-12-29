@@ -1,14 +1,14 @@
-﻿@model CategoryViewModel
+﻿@model ManufacuterCompanyViewModel
 
 @{
-    ViewData["Title"] = "قائمة فئات الأصناف";
+    ViewData["Title"] = "قائمة الشركات المصنعة";
     int cNo = 0;
 
 }
 <div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
     <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
-        قائمة فئات الأصناف
-        <i class="bi bi-diagram-3-fill pe-2 fs-1"></i>
+        قائمة الشركات المصنعة
+        <i class="bi bi-buildings-fill pe-2 fs-1"></i>
     </span>
 </div>
 <!-- Main content -->
@@ -20,9 +20,9 @@
         <div class="col-md-10">
             <div class="card p-0">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
-                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Create_Categories).Result.Succeeded)
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Create_ManufacuterCompanies).Result.Succeeded)
                     {
-                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="إضافة فئة جديدة" onclick="Rest()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
+                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="إضافة شركة مصنعة جديدة" onclick="Rest()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
                     }
                 </div>
                 <!-- /.card-header -->
@@ -33,11 +33,11 @@
                         <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
                     </div> *@
                     <!-- Tab content -->
-                    @if (!Model.CategoriesList.Any())
+                    @if (!Model.ManufacuterCompaniesList.Any())
                     {
                         <div class="alert  alert-warning mt-5">
-                            <h4 class="alert-heading">لا يوجد فئات اصناف !</h4>
-                            <p class="mb-0">لم يتم اضافة فئات  للتطبيق حتي الآن</p>
+                            <h4 class="alert-heading">لا يوجد شركات مصنعة !</h4>
+                            <p class="mb-0">لم يتم اضافة شركات مصنعة  للتطبيق حتي الآن</p>
                         </div>
                     }
                     else
@@ -49,32 +49,34 @@
                                     <tr class="text-center">
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الاسـم</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الاسـم المختصر</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الوصف</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var cat in Model.CategoriesList)
+                                    @foreach (var cat in Model.ManufacuterCompaniesList)
                                     {
                                         cNo++;
 
                                         <tr class="text-center">
                                             <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
                                             <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@cat.Name</span></td>
+                                            <td class="fs-6 text-center px-1">@cat.ShortCutName</td>
                                             <td class="fs-6 text-center px-1">@cat.Details</td>
-                                            
+
                                             <td class="py-1">
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Details_Categories).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Details_ManufacuterCompanies).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="تفاصيل الفئة" asp-controller="Categories" asp-action="SelectedCategory" asp-route-Id="@cat.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="تفاصيل الشركة المصنعة" asp-controller="ManufacuterCompanies" asp-action="SelectedManufacuterCompany" asp-route-Id="@cat.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Edit_Categories).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Edit_ManufacuterCompanies).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل فئة" onclick="EditCategory('@cat.Id','@cat.Name','@cat.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل شركة مصنعة" onclick="EditManufacuterCompany('@cat.Id','@cat.Name','@cat.ShortCutName','@cat.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Delete_Categories).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Delete_ManufacuterCompanies).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف فئة" onclick="DeleteCategory('@cat.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف شركة مصنعة" onclick="DeleteCategory('@cat.Id')" ><i class="bi bi-trash3-fill"></i></a>
                                                 }
                                             </td>
                                         </tr>
@@ -96,7 +98,7 @@
 </section>
 <!-- /.content -->
 
-<partial name="_SaveCategory" model="new CategoryViewModel()" />
+<partial name="_SaveManufacuterCompany" model="new ManufacuterCompanyViewModel()" />
 
 @section Scripts {
     <script src="~/js/Users.js"></script>
@@ -132,18 +134,18 @@
 
     <script>
 
-        let lbTitleEdit = '@Html.Raw("تعديل بيانات الفئة")';
+        let lbTitleEdit = '@Html.Raw("تعديل بيانات الشركة المصنعة")';
         let lbEdit = '@Html.Raw("حفظ التعديلات")';
-        let lbAddNewRole = '@Html.Raw("إضافة فئة جديدة")';
+        let lbAddNewRole = '@Html.Raw("إضافة شركة مصنعة جديدة")';
         let lbbtnSave = '@Html.Raw("حفظ البيانات")';
 
-        let lbTitleMsgDelete = '@Html.Raw("حذف بيانات فئة")';
-        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف بيانات الفئة وكل ما يتعلق به من طلبات و سجلات ؟ ")';
-        let lbconfirmButtonText = '@Html.Raw("نعم , احذف الفئة")';
+        let lbTitleMsgDelete = '@Html.Raw("حذف بيانات شركة")';
+        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف بيانات الشركة المصنعة وكل ما يتعلق به من طلبات و سجلات ؟ ")';
+        let lbconfirmButtonText = '@Html.Raw("نعم , احذف الشركة المصنعة")';
         let lbcancelButtonText = '@Html.Raw("إلغـاء")';
 
         let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
-        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف بيانات الفئة بنجاح!")';
+        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف بيانات الشركة المصنعة بنجاح!")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
     </script>
