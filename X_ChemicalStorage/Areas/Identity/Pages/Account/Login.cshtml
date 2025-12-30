@@ -6,12 +6,13 @@
 }
 
 <div dir="rtl" class="text-center mb-2">
-    <div class="card border-0" style="border-radius:0  0 0 80px;background-color:#032b42 !important ">
+    <div class="card border-0" style="border-radius:0  0 75px 0;background-color:#032b42 !important ">
         <div class="card-body">
             <div class="text-center fs-1 text-white">
                 <span class="text-center fs-1 fw-bold " style="color:#415E72 !important ">
-                    تسجيل الدخول
+                   
                     <i class="bi bi-check-circle pe-2 fs-3"></i>
+                    Log in
                 </span>
             </div>
         </div>
@@ -28,16 +29,16 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                     <!-- UserName -->
                     <div class="input-group mb-3">
-                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-end-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;اسم المستخدم&nbsp;&nbsp;&nbsp;&nbsp;</span>
 
-                        <input asp-for="Input.Email" id="userName" required class="form-control text-center me-1 p-0" aria-required="true" placeholder="ادخل اسم المستخدم أو البريد الالكتروني ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-width:3px;border-right-width:3px;">
+                        <input asp-for="Input.Email" id="userName" required class="form-control text-center me-1 px-1" aria-required="true" placeholder=" ! Enter Username or Email " type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;" >
+                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-start-3" id="inputGroup-sizing-default">Username</span>
                     </div>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
 
                     <!-- Password -->
                     <div class="input-group mb-3">
-                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-end-3 px-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;كلمة المرور&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp</span>
-                        <input asp-for="Input.Password" required id="pass" class="form-control text-center me-1 p-0" placeholder="ادخل كلمة المرور صحيحة..." type="password" style="border-top-left-radius : 20px ;border-left-width:3px;border-right-width:3px;">
+                        <input asp-for="Input.Password" required id="pass" class="form-control text-center me-1 px-2" placeholder="! Enter fixed password " type="password" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;">
+                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-start-3 px-3" id="inputGroup-sizing-default">Password</span>
                     </div>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
 

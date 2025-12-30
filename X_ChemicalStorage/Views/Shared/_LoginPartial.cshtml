@@ -9,8 +9,8 @@
        
         <li class="nav-item">
             @* <a class="nav-link text-primary" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"> @UserManager.GetUserAsync(User).Result.FullName_Ar</a> *@
-            <a class="nav-link fs-6 link-offset-1-hover fw-bold mx-2" style="color:#415E72" href="#" title="تحديث البيانات">
-                <i class="bi bi-person-circle fw-bold ms-2 fs-4" style="color:#415E72 !important"></i> @UserManager.GetUserAsync(User).Result.FullName
+            <a class="nav-link fs-6 link-offset-1-hover fw-bold mx-2" style="color:#415E72" href="#" title="Update profile data !">
+                @UserManager.GetUserAsync(User).Result.FullName <i class="bi bi-person-circle fw-bold ms-2 fs-4" style="color:#415E72 !important"></i>
             </a> 
         </li>
         @*  @if (UserManager.GetUserAsync(User).Result.ProfilePicture != null)
@@ -26,7 +26,7 @@
         <li class="nav-item">
             <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("index", "Home", new { area = "" })">
                 <button type="submit" class=" btn btn-danger btn-sm rounded-3" style="font-size:16px !important">
-                    <i class="bi bi-door-open-fill fs-5 pe-2"></i>خروج
+                    Sign Out  <i class="bi bi-door-open-fill fs-5 pe-2"></i>
                 </button>
             </form>
         </li>
@@ -39,8 +39,8 @@
             </a>
         </li> *@
         <li class="nav-item">
-            <a class="btn btn-outline-warning border-0 fw-bold fs-6 m-1 btn-sm rounded-3" style="font-size:16px !important" asp-area="Identity" asp-page="/Account/Login">
-                <i class="bi bi-door-closed fs-5 ps-2"></i>دخــول
+            <a class="btn btn-outline-warning border-0 fw-bold fs-5 m-1 rounded-3" style="font-size:16px !important" asp-area="Identity" asp-page="/Account/Login">
+               Log in <i class="bi bi-door-closed fs-5 ps-2"></i>
             </a>
         </li>
     }
