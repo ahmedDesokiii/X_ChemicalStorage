@@ -84,7 +84,7 @@ $('#tablePermissions').dataTable({
         }
     }
 });
-
+//User Methods
 function DeleteUser(id) {
     Swal.fire({
         title: lbTitleMsgDelete,
@@ -102,7 +102,6 @@ function DeleteUser(id) {
         }
     })
 }
-
 Edit = (id, name,passUser,passSign) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
@@ -112,7 +111,6 @@ Edit = (id, name,passUser,passSign) => {
     document.getElementById("passSign").value = passSign;
 
 }
-
 Rest = () => {
     document.getElementById("title").innerHTML = lbAddNewUser;
     document.getElementById("btnSave").value = lbbtnSave;
@@ -120,11 +118,10 @@ Rest = () => {
     document.getElementById("UserName").value = "";
 
 }
-
 ManageRoles = (id) => {
     document.getElementById("usrId").value = id;
 }
-
+//Supplier Methods
 EditSupplier = (id, name, phone,adress,email) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
@@ -134,7 +131,6 @@ EditSupplier = (id, name, phone,adress,email) => {
     document.getElementById("suppAdress").value = adress;
     document.getElementById("suppEmail").value = email;
 }
-
 function DeleteSupplier(id) {
     Swal.fire({
         title: lbTitleMsgDelete,
@@ -152,7 +148,8 @@ function DeleteSupplier(id) {
         }
     })
 }
-EditCategory = (id, name,  details) => {
+//Category Methods
+EditCategory = (id, name, details) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
     document.getElementById("catId").value = id;
@@ -177,7 +174,7 @@ function DeleteCategory(id) {
         }
     })
 }
-
+//ManufacuterCompany Methods
 EditManufacuterCompany = (id, name,shName, details) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
@@ -203,4 +200,78 @@ function DeleteManufacuterCompany(id) {
             window.location.href = `/ManufacuterCompanies/Delete?Id=${id}`;
         }
     })
+}
+//Location Methods
+EditLocation = (id, name, shName, details) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("locId").value = id;
+    document.getElementById("locName").value = name;
+    document.getElementById("locDetails").value = name;
+    
+}
+function DeleteLocation(id) {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/Locations/Delete?Id=${id}`;
+        }
+    })
+}
+GetStorageTypes = () => {
+    var roomType = document.getElementById("locRoomType");
+    //var caseName = document.getElementById("locCase");
+    //var caseNum = document.getElementById("locCase");
+    
+    if(roomType.selectedIndex == 0) { // normal
+        document.getElementById("roomNum").style.display = "none";
+        document.getElementById("caseNum").style.display = "none";
+        document.getElementById("shelfNum").style.display = "none";
+        document.getElementById("rackNum").style.display = "none";
+        document.getElementById("boxNum").style.display = "none";
+        document.getElementById("tubeNum").style.display = "none";
+    }
+    else if (roomType.selectedIndex == 1) { // normal
+        document.getElementById("roomNum").style.display = "flex";
+        document.getElementById("caseNum").style.display = "flex";
+        document.getElementById("shelfNum").style.display = "flex";
+        document.getElementById("rackNum").style.display = "none";
+        document.getElementById("boxNum").style.display = "none";
+        document.getElementById("tubeNum").style.display = "none";
+
+        document.getElementById("caseName").innerHTML = "دولاب";
+        document.getElementById("opt0caseName").innerHTML = "الدولاب";
+        document.getElementById("optcaseName").innerHTML = "الدولاب";
+        document.getElementById("lblcaseName").innerHTML = "الدولاب";
+
+    }
+    else if (roomType.selectedIndex == 2) { //chill
+        document.getElementById("roomNum").style.display = "flex";
+        document.getElementById("caseNum").style.display = "flex";
+        document.getElementById("shelfNum").style.display = "flex";
+        document.getElementById("rackNum").style.display = "flex";
+        document.getElementById("boxNum").style.display = "none";
+        document.getElementById("tubeNum").style.display = "none";
+
+
+    }
+    else if (roomType.selectedIndex == 3) { // freez
+        document.getElementById("roomNum").style.display = "flex";
+        document.getElementById("caseNum").style.display = "flex";
+        document.getElementById("shelfNum").style.display = "flex";
+        document.getElementById("rackNum").style.display = "flex";
+        document.getElementById("boxNum").style.display = "flex";
+        document.getElementById("tubeNum").style.display = "flex";
+
+    }
+    //document.getElementById("roomNum").style.display = "block";
 }

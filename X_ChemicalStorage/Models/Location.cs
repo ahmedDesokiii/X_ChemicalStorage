@@ -12,11 +12,13 @@ namespace X_ChemicalStorage.Models
         public string? LocationName { get; set; }
         public string? LocationDetails { get; set; }
 
-        public string? RoomType { get; set; }
-        public int? RoomNum { get; set; }
-        public int? ShelfNum { get; set; }
-        public int? RackNum { get; set; }
-        public int? BoxNum { get; set; }
+        public string? RoomType { get; set; } = String.Empty;
+        public int? RoomNum { get; set; } = 0;
+        public int? CaseNum { get; set; } = 0;
+        public int? ShelfNum { get; set; } = 0;
+        public int? RackNum { get; set; } = 0;
+        public int? BoxNum { get; set; } = 0;
+        public int? TubeNum { get; set; } = 0;
 
         public int? CurrentState { get; set; }
     }

@@ -36,8 +36,8 @@
                     @if (!Model.LocationsList.Any())
                     {
                         <div class="alert  alert-warning mt-5">
-                            <h4 class="alert-heading">لا يوجد شركات مصنعة !</h4>
-                            <p class="mb-0">لم يتم اضافة شركات مصنعة  للتطبيق حتي الآن</p>
+                            <h4 class="alert-heading">لا يوجد أماكن تخزين !</h4>
+                            <p class="mb-0">لم يتم اضافة مكان تخزين  للتطبيق حتي الآن</p>
                         </div>
                     }
                     else
@@ -55,27 +55,32 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var cat in Model.LocationsList)
+                                    @foreach (var loc in Model.LocationsList)
                                     {
                                         cNo++;
 
                                         <tr class="text-center">
                                             <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
-                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@cat.LocationName</span></td>
-                                            <td class="fs-6 text-center px-1">@cat.LocationDetails</td>
+                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@loc.LocationName</span></td>
+                                            <td class="fs-6 text-center px-1">@loc.LocationDetails</td>
+                                            <td class="fs-6 text-center px-1">@loc.RoomNum</td>
+                                            <td class="fs-6 text-center px-1">@loc.RoomType</td>
+                                            <td class="fs-6 text-center px-1">@loc.ShelfNum</td>
+                                            <td class="fs-6 text-center px-1">@loc.RackNum</td>
+                                            <td class="fs-6 text-center px-1">@loc.BoxNum</td>
 
                                             <td class="py-1">
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Details_ManufacuterCompanies).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Details_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="تفاصيل الشركة المصنعة" asp-controller="ManufacuterCompanies" asp-action="SelectedManufacuterCompany" asp-route-Id="@cat.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="تفاصيل مكان التخزين" asp-controller="ManufacuterCompanies" asp-action="SelectedManufacuterCompany" asp-route-Id="@loc.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Edit_ManufacuterCompanies).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Edit_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل شركة مصنعة" onclick="EditManufacuterCompany('@cat.Id','@cat.LocationName','@cat.LocationDetails')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل مكان التخزين" onclick="EditManufacuterCompany('@loc.Id','@loc.LocationName','@loc.LocationDetails')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Delete_ManufacuterCompanies).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Delete_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف شركة مصنعة" onclick="DeleteCategory('@cat.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف مكان التخزين" onclick="DeleteCategory('@loc.Id')"><i class="bi bi-trash3-fill"></i></a>
                                                 }
                                             </td>
                                         </tr>
@@ -133,18 +138,18 @@
 
     <script>
 
-        let lbTitleEdit = '@Html.Raw("تعديل بيانات الشركة المصنعة")';
+        let lbTitleEdit = '@Html.Raw("تعديل بيانات مكان التخزين")';
         let lbEdit = '@Html.Raw("حفظ التعديلات")';
-        let lbAddNewRole = '@Html.Raw("إضافة شركة مصنعة جديدة")';
+        let lbAddNewRole = '@Html.Raw("إضافة مكان تخزين جديدة")';
         let lbbtnSave = '@Html.Raw("حفظ البيانات")';
 
-        let lbTitleMsgDelete = '@Html.Raw("حذف بيانات شركة")';
-        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف بيانات الشركة المصنعة وكل ما يتعلق به من طلبات و سجلات ؟ ")';
-        let lbconfirmButtonText = '@Html.Raw("نعم , احذف الشركة المصنعة")';
+        let lbTitleMsgDelete = '@Html.Raw("حذف بيانات مكان التخزين")';
+        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف بيانات مكان التخزين وكل ما يتعلق به من طلبات و سجلات ؟ ")';
+        let lbconfirmButtonText = '@Html.Raw("نعم , احذف مكان التخزين")';
         let lbcancelButtonText = '@Html.Raw("إلغـاء")';
 
         let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
-        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف بيانات الشركة المصنعة بنجاح!")';
+        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف بيانات مكان التخزين بنجاح!")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
     </script>

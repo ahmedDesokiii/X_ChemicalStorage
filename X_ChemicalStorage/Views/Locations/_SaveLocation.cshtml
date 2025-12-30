@@ -11,23 +11,118 @@
             </div>
             <div class="modal-body">
                 <form asp-action="Save" asp-controller="Locations" method="post">
-                    <input type="text" hidden class="form-control" asp-for="NewLocation.Id" id="catId" value="0" />
+                    <input type="text" hidden class="form-control" asp-for="NewLocation.Id" id="locId" value="0" />
                     <!-- LocationName -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم الشركة المصنعة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catName" required asp-for="@Model.NewLocation.LocationName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم الشركة المصنعة ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-left-color:red;border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم مكان التخزين &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="locName" required disabled value="المخزن الرئيسي" asp-for="@Model.NewLocation.LocationName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم مكان التخزين ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-left-color:red;border-top-left-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewLocation.LocationName" class="text-danger"></span>
 
-                    
                     <!-- LocationDetails -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; وصف الشركة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catDetails" required asp-for="@Model.NewLocation.LocationDetails" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل وصف الشركة المصنعة  ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; وصف مكان التخزين  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="locDetails" required disabled value="وصف المخزن الرئيسي" asp-for="@Model.NewLocation.LocationDetails" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل وصف مكان التخرين  ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewLocation.LocationDetails" class="text-danger"></span>
                     
-                   
+                    <!-- RoomType -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; نوع تبريد الغرفة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <select id="locRoomType" required onchange="GetStorageTypes()" asp-for="@Model.NewLocation.RoomType" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="" selected disabled>حدد نوع تبريد الغرفة</option>
+                            <option value="normal" >عادية</option>
+                            <option value="chill" >تبريد</option>
+                            <option value="freez" >تجميد</option>
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.RoomType" class="text-danger"></span>
+                    <hr class="my-3" />
+                    <!-- RoomNum -->
+                    <div id="roomNum" class="input-group mt-2 row mx-auto" style="display:none;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الغرفة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <select id="locRoomNum" required asp-for="@Model.NewLocation.RoomNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="0" selected disabled>حدد رقم الغرفة</option>
+                            @for (int i = 1; i <= 15; i++)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.RoomNum" class="text-danger"></span>
+
+                    <!-- CaseNum -->
+                    <div id="caseNum" class="input-group mt-2 row mx-auto" style="display:none;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الدولاب  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        
+                        <select id="locCaseNum" required asp-for="@Model.NewLocation.CaseNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="0" selected disabled> حدد رقم الدولاب <span id="opt0caseName"></span></option>
+                            @for (int i = 1; i <= 15; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.CaseNum" class="text-danger"></span>
+
+                    <!-- ShelfNum -->
+                    <div id="shelfNum" class="input-group mt-2 row mx-auto" style="display:none;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الرف  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                        <select id="" required asp-for="@Model.NewLocation.ShelfNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="" selected disabled>حدد رقم الرف</option>
+                            @for (int i = 1; i <= 20; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.ShelfNum" class="text-danger"></span>
+                    
+                    <!-- RackNum -->
+                    <div id="rackNum" class="input-group mt-2 row mx-auto" style="display:none;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الراك  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                        <select id="" required asp-for="@Model.NewLocation.RackNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="" selected disabled>حدد رقم الراك</option>
+                            @for (int i = 1; i <= 20; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.RackNum" class="text-danger"></span>
+
+
+                    <!-- BoxNum -->
+                    <div id="boxNum" class="input-group mt-2 row mx-auto" style="display:none;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الصندوق  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                        <select id="" required asp-for="@Model.NewLocation.BoxNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="" selected disabled>حدد رقم الصندوق</option>
+                            @for (int i = 1; i <= 20; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.BoxNum" class="text-danger"></span>
+
+                    <!-- TubeNum -->
+                    <div id="tubeNum" class="input-group mt-2 row mx-auto" style="display:none;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الحافظة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                        <select id="" required asp-for="@Model.NewLocation.TubeNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                            <option value="" selected disabled>حدد رقم الحافظة</option>
+                            @for (int i = 1; i <= 20; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <span asp-validation-for="@Model.NewLocation.TubeNum" class="text-danger"></span>
+
+
                     <div class="modal-footer mt-3" style="padding:0 15px 15px 0">
                         <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" />
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغــاء</button>
