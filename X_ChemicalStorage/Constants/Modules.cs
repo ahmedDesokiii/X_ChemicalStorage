@@ -5,6 +5,7 @@
         Suppliers ,
         Categories,
         ManufacuterCompanies,
-        Locations
+        //Locations
+        Substance // Chemical Substance
     }
 }
