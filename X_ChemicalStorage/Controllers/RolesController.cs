@@ -38,7 +38,7 @@
 
                 if (await _roleManager.RoleExistsAsync(model.Name))
                 {
-                    SessionMsg(Helper.Error, "مجموعة مكررة !", "المجموعة مسجلة من قبل !");
+                    SessionMsg(Helper.Error, "Exist Role", "Role already exist !");
                     return View("Index", await _roleManager.Roles.OrderBy(x => x.Name).ToListAsync());
                 }
                 else
@@ -52,9 +52,9 @@
                     var result = await _roleManager.CreateAsync(role);
 
                     if (result.Succeeded)// Succeeded 
-                        SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة مجموعة المستخدم بنجاح!");
+                        SessionMsg(Helper.Success, "Add Role", "The role has been added successfully !");
                     else // Not Successeded
-                        SessionMsg(Helper.Error, "خطأ في الإضافة", "حدث خطأ اثناء اضافة المجموعة!");
+                        SessionMsg(Helper.Error, "Error Adding Role", "An error occurred while adding some data !");
                 }
             }
             else
@@ -67,9 +67,9 @@
                 var Result = await _roleManager.UpdateAsync(roleUpdate);
 
                 if (Result.Succeeded) // Succeeded
-                    SessionMsg(Helper.Success, "تم التعديل", "تم تعديل مجموعة المستخدم بنجاح !");
+                    SessionMsg(Helper.Success, "Edit Role", "The role has been modified successfully !");
                 else  // Not Successeded
-                    SessionMsg(Helper.Error, "خطأ في التعديل", "حدث خطأ اثناء تعديل المجموعة !");
+                    SessionMsg(Helper.Error, "Error Editting Role", "An error occurred while modifying some data !");
             }
 
             return RedirectToAction(nameof(Index), await _roleManager.Roles.OrderBy(x => x.Name).ToListAsync());

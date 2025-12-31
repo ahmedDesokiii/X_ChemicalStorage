@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+//using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace ERPWeb_v02.Controllers
 {
@@ -20,13 +21,20 @@ namespace ERPWeb_v02.Controllers
             _context = context;
             _configuration = configuration;
         }
+        private void SessionMsg(string MsgType, string Title, string Msg)
+        {
+            HttpContext.Session.SetString(Helper.MsgType, MsgType);
+            HttpContext.Session.SetString(Helper.Title, Title);
+            HttpContext.Session.SetString(Helper.Msg, Msg);
+        }
+
         #region All Users
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             //Thread.Sleep(500);
             var userVM = new List<UserViewModel>();
-                userVM =  _context.Users
+                userVM =  await _context.Users
                 .Select(user => new UserViewModel()
                     {
                         Id = user.Id.ToString(),
@@ -37,8 +45,8 @@ namespace ERPWeb_v02.Controllers
                         CurrentState = user.CurrentState,
                         Roles = _userManager.GetRolesAsync(user).Result,
                     })
-               .OrderByDescending(u => u.CurrentState)
-               .ToList();
+               .OrderBy(u => u.CurrentState)
+               .ToListAsync();
             //Thread.Sleep(500);
             return View(userVM);
         }
@@ -46,7 +54,7 @@ namespace ERPWeb_v02.Controllers
 
         #region User Process [Add & Update]
         [HttpGet]
-        public async Task<IActionResult> AddUser(string userId)
+        public async Task<IActionResult> AddUser(string userId = null)
         {
             var roles = await _roleManager.Roles.Select(r => new CheckBoxViewModel { RoleId = r.Id.ToString(), DisplayValue = r.Name }).ToListAsync();
             userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -60,19 +68,29 @@ namespace ERPWeb_v02.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddUser(AddUserViewModel model)
         {
+
             if (ModelState.IsValid)
                 return View(model);
 
+            string[] UserEmail = model.Email.Split('@');
+            model.UserName = UserEmail[0];
 
             if (!model.Roles.Any(r => r.IsSelected))
             {
+                SessionMsg(Helper.Warning, "Select Role", "Select at least 1 role !");
                 ModelState.AddModelError("Select Role", "Select at least 1 role !");
-                return View(model);
+                //return View(model);
+                //return RedirectToAction(nameof(AddUser));
             }
+
+            
+
             if (await _userManager.FindByNameAsync(model.UserName) != null)
             {
+                SessionMsg(Helper.Warning, "Exist UserName", "UserName already exist !");
                 ModelState.AddModelError("Exist UserName", "UserName already exist !");
-                return View(model);
+                //return View(model);
+                //return RedirectToAction(nameof(AddUser));
             }
 
             var user = new ApplicationUser()
@@ -87,15 +105,20 @@ namespace ERPWeb_v02.Controllers
                 Email = model.Email
             };
             var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
+            
+            if (result.Succeeded)// Succeeded 
+                SessionMsg(Helper.Success, "Add User", "The user has been added successfully !");
+            else if (!result.Succeeded)// Not Successeded
             {
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError("Roles", error.Description);
                 }
-                return View(model);
+                SessionMsg(Helper.Error, "Error Adding User", "An error occurred while adding some data !");
+
+                //return View(model);
             }
+           
             await _userManager.AddToRolesAsync(user, model.Roles.Where(r => r.IsSelected).OrderBy(r => r.IsSelected).Select(r => r.DisplayValue));
             //Thread.Sleep(500);
             return RedirectToAction(nameof(Index));
@@ -132,13 +155,19 @@ namespace ERPWeb_v02.Controllers
             var user = await _userManager.FindByIdAsync(model.Id);
 
             if (user == null)
+            {
+                SessionMsg(Helper.Error, "Error Editting User", "An error occurred while modifying some data !");
                 return NotFound();
-
+            }
+            else
+            { 
             user.FullName = model.FullName;
             user.PhoneNumber = model.PhoneNumber;
             user.Email = model.Email;
 
             await _userManager.UpdateAsync(user);
+                SessionMsg(Helper.Success, "Edit User", "The user has been modified successfully !");
+            }
             //Thread.Sleep(500);
             return RedirectToAction(nameof(Index));
         }
