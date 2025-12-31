@@ -67,15 +67,15 @@ namespace X_ChemicalStorage.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required(ErrorMessage = "ادخل اسم المستخدم أو الايميل بشكل صحيح !")]
+            [Required(ErrorMessage = " Enter correct username or email , Required ")]
             public string Email { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Required(ErrorMessage = " ادخل كلمة بشكل صحيح ")]
-            [MinLength(6, ErrorMessage = "ادخل كلمة المرور لا تقل عن 6 حروف ")]
+            [Required(ErrorMessage = " Enter correct password , Required ")]
+            [MinLength(6, ErrorMessage = "Enter password at least 6 digits long ")]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
@@ -131,7 +131,7 @@ namespace X_ChemicalStorage.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "خطأ في ادخال اسم المستخدم أو كلمة المرور !");
+                    ModelState.AddModelError(string.Empty, "! Error  , Incorrect username or password entry");
                     return Page();
                 }
             }

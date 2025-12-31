@@ -2,41 +2,41 @@
 
 
 <!-- Modal -->
-<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" dir="ltr">
     <div class="modal-dialog card card-success card-outline">
         <div class="modal-content">
-            <div class="modal-header bg-danger-subtle" dir="rtl">
+            <div class="modal-header" style="background-color:#758A93" dir="ltr">
                 <span class="fs-4 fw-bold modal-title" id="title"></span>
-                <a href="#" class="btn-close position-absolute  start-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
+                <a href="#" class="btn-close position-absolute  end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
             </div>
             <div class="modal-body">
                 <form asp-action="Save" asp-controller="ManufacuterCompanies" method="post">
                     <input type="text" hidden class="form-control" asp-for="NewManufacuterCompany.Id" id="catId" value="0" />
                     <!-- CategoryName -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم الشركة المصنعة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catName" required asp-for="@Model.NewManufacuterCompany.Name" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم الشركة المصنعة ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-left-color:red;border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-5" id="inputGroup-sizing-default ">Manufacturer Name</span>
+                        <input id="catName" required asp-for="@Model.NewManufacuterCompany.Name" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Manufacturer Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-right-color:red;border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewManufacuterCompany.Name" class="text-danger"></span>
 
                     <!-- CategoryShortCutName -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم مختصر للشركة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catShCutName" required asp-for="@Model.NewManufacuterCompany.ShortCutName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم مختصر للشركة المصنعة ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-5" id="inputGroup-sizing-default "> Manufacturer Nick Name  </span>
+                        <input id="catShCutName" required asp-for="@Model.NewManufacuterCompany.ShortCutName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Manufacturer Nick Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewManufacuterCompany.ShortCutName" class="text-danger"></span>
 
                     <!-- CategoryDetails -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; وصف الشركة  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catDetails" required asp-for="@Model.NewManufacuterCompany.Details" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل وصف الشركة المصنعة  ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-5" id="inputGroup-sizing-default "> Manufacturer Description </span>
+                        <input id="catDetails" required asp-for="@Model.NewManufacuterCompany.Details" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Manufacturer Description  ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewManufacuterCompany.Details" class="text-danger"></span>
                     
                    
                     <div class="modal-footer mt-3" style="padding:0 15px 15px 0">
                         <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" />
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغــاء</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
                     </div>
                 </form>
             </div>

@@ -1,20 +1,20 @@
 ﻿@using X_ChemicalStorage.ViewModels
 @model IEnumerable<UserViewModel>
 @{
-    ViewData["Title"] = "قائمة المستخدمين";
+    ViewData["Title"] = "Users";
     Layout = "~/Views/Shared/_Layout.cshtml";
     int cNo = 0;
     string state = "";
 }
-<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
     <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
-        قائمة المستخدمين
-        <i class="bi bi-people-fill pe-2 fs-1"></i>
+       Users
+        <i class="bi bi-people-fill ps-2 fs-1"></i>
     </span>
 </div>
 <!-- Main content -->
 
-<section class="container-fluid mt-3">
+<section class="container-fluid my-3" dir="ltr">
     <div class="row">
 
         <div class="col-md-1"></div>
@@ -26,7 +26,7 @@
                         <i class="bi bi-plus fs-2 m-0 fw-bold"></i> 
                     </a> *@
                    
-                    <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="إضافة مستخدم جديد" asp-action="AddUser" asp-controller="Users"><i class="bi bi-plus-square-fill"></i></a>
+                    <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New User" asp-action="AddUser" asp-controller="Users"><i class="bi bi-plus-square-fill"></i></a>
 
                 </div>
                 <!-- /.card-header -->
@@ -40,24 +40,24 @@
                     @if (!Model.Any())
                     {
                         <div class="alert  alert-warning mt-5">
-                            <h4 class="alert-heading">لا يوجد مستخدمين !</h4>
-                            <p class="mb-0">لم يتم اضافة مستخدمين للتطبيق حتي الآن</p>
+                            <h4 class="alert-heading">No Users</h4>
+                            <p class="mb-0">No Users have been added to the app yet.</p>
                         </div>
                     }
                     else
                     {
 
-                        <div id="Users" class="tabcontent">
+                        <div id="Users" class="tabcontent mx-3" >
                             <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                 <thead>
                                     <tr class="text-center">
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الاسـم</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">اسم المستخدم</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">التليفون</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">المجموعات</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الحالة</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">UserName</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Phone</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Roles</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Status</th>
+                                        <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -65,36 +65,36 @@
                                     {
                                         cNo++;
                                         if (user.CurrentState == 0)
-                                            state = "غير نشط";
+                                            state = "Inactive";
                                         if (user.CurrentState == 1)
-                                            state = "معلـق";
+                                            state = "Suspended";
                                         if (user.CurrentState == 2)
-                                            state = "نشــط";
+                                            state = "Active";
 
                                         <tr class="text-center">
-                                            <td class="fs-6 px-1 py-1 "><span class="">@cNo</span></td>
-                                            <td class="fs-6 px-1 py-1 "><span class="link-dark fw-bold">@user.FullName</span></td>
-                                            <td class="fs-6 px-1">@user.UserName</td>
-                                            <td class="fs-6 text-center px-1">@user.PhoneNumber</td>
-                                            <td class=" fs-6 px-1 py-1">@string.Join(" , ", user.Roles.ToList())</td>
+                                            <td class="text-center">@cNo</td>
+                                            <td class="text-center"><span class="link-dark fw-bold">@user.FullName</span></td>
+                                            <td class="text-center">@user.UserName</td>
+                                            <td class="text-center">@user.PhoneNumber</td>
+                                            <td class="text-center">@string.Join(" , ", user.Roles.ToList())</td>
                                             
-                                            @if (state.Equals("نشــط"))
+                                            @if (state.Equals("Active"))
                                             {
-                                                <td class="fw-bold fs-6 px-1 py-2 m-0 text-success"><span class="bg-success-subtle p-2 rounded-5">@state</span></td>
+                                                <td class=" link-success"><span class="bg-success-subtle p-2 fw-bold rounded-5">@state</span></td>
                                             }
-                                            else if (state.Equals("معلـق"))
+                                            else if (state.Equals("Suspended"))
                                             {
-                                                <td class="fw-bold fs-6 px-1 py-2 m-0 text-warning"><span class="bg-warning-subtle p-2 rounded-5">@state</span></td>
+                                                <td class="  link-warning"><span class="bg-warning-subtle p-2 fw-bold rounded-5">@state</span></td>
                                             }
-                                            else if (state.Equals("غير نشط"))
+                                            else if (state.Equals("Inactive"))
                                             {
-                                                <td class="fw-bold fs-6 px-1 py-2 m-0 text-danger"><span class="bg-danger-subtle p-2 rounded-5">@state</span></td>
+                                                <td class="  link-danger"><span class="bg-danger-subtle p-2 fw-bold rounded-5">@state</span></td>
                                             }
 
                                             <td class="py-1">
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="مجموعات مستخدم" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-5" title="تعديل مستخدم" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-5" title="حـذف مستخدم" onclick="DeleteUser('@user.Id')" asp-route-Id="@user.Id"><i class="bi bi-trash3-fill"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-4" title="Manage Roles" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i></a>
+                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteUser('@user.Id')" asp-route-userId="@user.Id"><i class="bi bi-trash3-fill"></i></a>
                                             </td>
                                         </tr>
                                     }
@@ -117,13 +117,15 @@
 @section Scripts {
     <script src="~/js/Users.js"></script>
     <script>
-        let lbTitleMsgDelete = '@Html.Raw("حذف مستخدم")';
-        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف المستخدم وكل علاقتها بالمستخدمين ؟ ")';
-        let lbconfirmButtonText = '@Html.Raw("نعم , احذف")';
-        let lbcancelButtonText = '@Html.Raw("إلغـاء")';
 
-        let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
-        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف المستخدم بكل ما يتعلق بها من مستخدمين !")';
+      
+        let lbTitleMsgDelete = '@Html.Raw("Delete User")';
+        let lbTextMsgDelete = '@Html.Raw($"Are you sure !  Do you want to delete the User data and everything related to it, including requests and records? ")';
+        let lbconfirmButtonText = '@Html.Raw("Yes , Remove")';
+        let lbcancelButtonText = '@Html.Raw("Cancle")';
+
+        let lbTitleDeletedOk = '@Html.Raw("Delete User Done")';
+        let lbMsgDeletedOkRole = '@Html.Raw("The User data has been successfully deleted!")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
     </script>
     @if (!string.IsNullOrEmpty(Context.Session.GetString(Helper.MsgType)))

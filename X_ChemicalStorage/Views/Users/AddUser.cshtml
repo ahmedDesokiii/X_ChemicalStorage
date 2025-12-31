@@ -1,137 +1,138 @@
 ﻿@model AddUserViewModel
 @{
-    ViewData["Title"] = "اضافة مستخدم ";
+    ViewData["Title"] = "Add User";
 }
 
-<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+<div class="card border-0 py-3 " style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
     <div class="d-flex text-center mx-auto">
-        <a asp-controller="Users" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">قائمة المستخدمين</a>
-        <i class="bi bi-chevron-double-left fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <a asp-controller="Users" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Users</a>
+        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
         <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
     </div>
 </div>
-<section class="container-fluid row my-3 ">
-    <div class="col-md-1"></div>
-    <form asp-controller="Users" asp-action="AddUser" method="post">
-        <div class="card p-0 col-md-10 mx-auto justify-content-center ">
-            <div class="card-header d-flex bg-info-subtle py-2 justify-content-start">
-
-                <span class="fs-3 fw-bold link-dark px-5">
-                    @ViewData["Title"]
-                </span>
-            </div>
-
-            <div class="card-body row  justify-content-center">
-                <!-- Basic info -->
-                <div class="col-md-6">
-                    <div class="card px-0">
-                        <div class="card-header  fs py-2" style="background-color:#032b42 !important;color:#415E72 !important">
-                            <span class="text-center fw-bold fs-4 m-0">بيانات المستخدم</span>
-                        </div>
-
-                        <div class="card-body py-1">
-                           
-                            
-                            <!-- Name-Ar -->
-                            <div class="input-group mt-2">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;الإسـم كـامل&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="nameAr" required asp-for="@Model.FullName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم المستخدم كامل..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-color:red;border-left-width:3px;">
-                            </div>
-                            <span asp-validation-for="@Model.FullName" class="text-danger"></span>
-
-                            <!-- PhoneNumber -->
-                            <div class="input-group mt-2">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; رقم الموبيل &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="phoneNum" asp-for="@Model.PhoneNumber" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل رقم الموبيل الخاص بالمستخدم ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-color:red;border-left-width:3px;">
-                            </div>
-                            <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
-                            <!-- Gender -->
-                            <div class="input-group mt-2">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; الجنس &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-
-                                <select class="form-select text-center" id="" asp-for="@Model.Gender" aria-required="true" style="border-top-left-radius : 20px ;border-left-width:3px;">
-                                    <option selected value="male">ذكــر</option>
-                                    <option value="female">انثـي</option>
-                                </select>
-                            </div>
-                            <!-- Email -->
-                            <div class="input-group mt-2">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;البريد الالكتروني&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="email" required asp-for="@Model.Email" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل البريد الالكتروني الخاص بك ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-color:red;border-left-width:3px;">
-                            </div>
-                            <span asp-validation-for="@Model.Email" class="text-danger"></span>
-
-                            <!-- Password -->
-                            <div class="input-group mt-2">
-                                <span class="input-group-text bg-info-subtle border-start-0 fw-bold rounded-end-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;كلمة المرور&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="pass" asp-for="@Model.Password" class="form-control text-center" autocomplete="new-password" aria-required="true" placeholder="ادخل كلمة المرور " type="password" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-color:red;border-left-width:3px;">
-                            </div>
-                            <span asp-validation-for="@Model.Password" class="text-danger"></span>
-
-                            <!-- ConfirmPassword -->
-                            <div class="input-group mt-2">
-                                <span class="input-group-text bg-info-subtle border-start-0 fw-bold rounded-end-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;اعادة كلمة المرور&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="confirmPass" asp-for="@Model.ConfirmPassword" class="form-control text-center" autocomplete="new-password" aria-required="true" placeholder="اعد ادخال كلمة المرور" type="password" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;border-left-color:red;border-left-width:3px;">
-                            </div>
-                            <span asp-validation-for="@Model.ConfirmPassword" class="text-danger"></span>
-                            <!-- Password disabled -->
-                            <input hidden asp-for="@Model.PassUser" id="passUser" class="form-control text-center" autocomplete="passUser" aria-required="true" placeholder="" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius:20px;border-left-width:3px;">
-
-                        </div>
-                    </div>
+<section class="container-fluid my-3 "dir="ltr">
+    <div class="row">
+        <div class="col-md-1"></div>
+        <form asp-controller="Users" asp-action="AddUser" method="post">
+            <div class="card p-0 col-md-10 mx-auto justify-content-center ">
+                <div class="card-header d-flex bg-info-subtle py-2 justify-content-start">
+                    <span class="fs-3 fw-bold link-dark px-5">
+                        @ViewData["Title"]
+                    </span>
                 </div>
 
-                <!-- Roles -->
-                <div class="col-md-6">
-                    <div class="card px-0">
-                        <div class="card-header  fs py-2" style="background-color:#032b42 !important;color:#415E72 !important">
-                            <span class="text-center fw-bold fs-4 m-0">مجموعات المستخدم</span>
+                <div class="card-body row  justify-content-center">
+                    <!-- Basic info -->
+                    <div class="col-md-5">
+                        <div class="card px-0">
+                            <div class="card-header  fs py-2" style="background-color:#032b42 !important;color:#415E72 !important">
+                                <span class="text-center fw-bold text-white fs-4 m-0">User Info</span>
+                            </div>
+
+                            <div class="card-body py-1">
+
+
+                                <!-- Name-Ar -->
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default "> &nbsp;&nbsp;&nbsp;&nbsp; FullName &nbsp;&nbsp;&nbsp;</span>
+                                    <input id="nameAr" required asp-for="@Model.FullName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter User FullName ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
+                                </div>
+                                <span asp-validation-for="@Model.FullName" class="text-danger"></span>
+
+                                <!-- PhoneNumber -->
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Phone &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    <input id="phoneNum" asp-for="@Model.PhoneNumber" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter User Phone Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
+                                </div>
+                                <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
+                                <!-- Gender -->
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Gender &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                                    <select class="form-select text-center" id="" asp-for="@Model.Gender" aria-required="true" style="border-top-right-radius : 20px ;border-right-width:3px;">
+                                        <option selected value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
+                                </div>
+                                <!-- Email -->
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Email &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    <input id="email" required asp-for="@Model.Email" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter User Email ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
+                                </div>
+                                <span asp-validation-for="@Model.Email" class="text-danger"></span>
+
+                                <!-- Password -->
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-info-subtle border-start-0 fw-bold rounded-end-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp; Password &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    <input id="pass" asp-for="@Model.Password" class="form-control text-center" autocomplete="new-password" aria-required="true" placeholder="Enter Fixed Password ... " type="password" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
+                                </div>
+                                <span asp-validation-for="@Model.Password" class="text-danger"></span>
+
+                                <!-- ConfirmPassword -->
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-info-subtle border-start-0 fw-bold rounded-end-3" id="inputGroup-sizing-default">&nbsp; Re-Password &nbsp;</span>
+                                    <input id="confirmPass" asp-for="@Model.ConfirmPassword" class="form-control text-center" autocomplete="new-password" aria-required="true" placeholder="Re-Enter Password To Check Confirmed ..." type="password" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
+                                </div>
+                                <span asp-validation-for="@Model.ConfirmPassword" class="text-danger"></span>
+                                <!-- Password disabled -->
+                                <input hidden asp-for="@Model.PassUser" id="passUser" class="form-control text-center" autocomplete="passUser" aria-required="true" placeholder="" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius:20px;border-right-width:3px;">
+                                <br>
+                            </div>
                         </div>
-                        <div class="card-body py-0">
-                            <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th class="bg-danger-subtle text-dark text-center px-2 py-0 fs-6">المجموعة</th>
-                                        <th hidden class="bg-danger-subtle text-dark text-center px-2 py-0 fs-6"></th>
-                                        <th class="bg-danger-subtle text-dark text-center px-2 py-0 fs-6"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for (int i = 0; i < Model.Roles.Count; i++)
-                                    {
-                                        <tr>
-                                            <td class="fs-6 px-2 py-0 text-dark fw-bold text-center">
-                                                <label class="form-check-label" asp-for="@Model.Roles[i].IsSelected">
-                                                    @Model.Roles[i].DisplayValue
-                                                </label>
-                                            </td>
+                    </div>
 
-                                            <td  class="fs-6 px-2 py-0 text-dark text-center">
-                                                <input  type="hidden" asp-for="@Model.Roles[i].DisplayValue" />
-                                            </td>
+                    <!-- Roles -->
+                    <div class="col-md-7">
+                        <div class="card px-0">
+                            <div class="card-header py-2" style="background-color:#032b42 !important;color:#415E72 !important">
+                                <span class="text-center fw-bold fs-4 m-0 text-white">User Roles</span>
+                            </div>
+                            <div class="card-body py-0">
+                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                    <thead>
+                                        <tr class="text-center">
+                                            <th class="text-center bg-info-subtle fs-5 py-1 fw-bold" style="color:#415E72 !important ;">Role</th>
+                                            <th class="text-center bg-info-subtle fs-5 py-1 fw-bold" style="color:#415E72 !important ;">Actions</th>
+                                            @* <th  class="bg-dark" hidden></th> *@
 
-                                            <td class="fs-5 px-2 py-0 text-dark text-center ">
-                                                <input asp-for="@Model.Roles[i].IsSelected" class="form-check-input border-primary" />
-                                            </td>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <span asp-validation-for="@Model.Roles" class="text-danger"></span>
-                </div>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.Roles.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="text-dark fw-bold text-center">
+                                                    <label class="form-check-label" asp-for="@Model.Roles[i].IsSelected">
+                                                        @Model.Roles[i].DisplayValue
+                                                    </label>
+                                                </td>
+                                                <td class="text-dark fw-bold  text-center ">
+                                                    <input asp-for="@Model.Roles[i].IsSelected" class="form-check-input border-primary p-2" />
+                                                    <input type="hidden" asp-for="@Model.Roles[i].DisplayValue" />
+                                                </td>
 
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <span asp-validation-for="@Model.Roles" class="text-danger"></span>
+                    </div>
+
+                </div>
+                <div class="card-footer text-center">
+                    <button onclick="document.getElementById('passUser').value = document.getElementById('pass').value;"
+                            type="submit" title="Save User Data" class="btn btn-info fs-5 px-5 rounded-3 ">
+                        Save Data
+                        <i class="bi bi-bookmark-check-fill fs-3 fw-bold pe-2"></i>
+                    </button>
+                </div>
             </div>
-            <div class="card-footer text-center">
-                <button onclick="document.getElementById('passUser').value = document.getElementById('pass').value;"
-                        type="submit" title="حفظ بيانات المستخدم" class="btn btn-info fs-5 px-5 rounded-3 ">
-                     <i class="bi bi-bookmark-check-fill fs-4 fw-bold ps-2"></i>حفظ البيانات
-                </button>
-            </div>
-        </div>
-    </form>
-    <div class="col-md-1"></div>
+        </form>
+        <div class="col-md-1"></div>
+    </div>
+   
 </section>
 @section Scripts {
     @* <partial name="_ValidationScriptsPartial" /> *@

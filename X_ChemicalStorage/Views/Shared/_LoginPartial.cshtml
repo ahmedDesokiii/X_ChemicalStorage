@@ -10,7 +10,7 @@
         <li class="nav-item">
             @* <a class="nav-link text-primary" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"> @UserManager.GetUserAsync(User).Result.FullName_Ar</a> *@
             <a class="nav-link fs-6 link-offset-1-hover fw-bold mx-2" style="color:#415E72" href="#" title="Update profile data !">
-                @UserManager.GetUserAsync(User).Result.FullName <i class="bi bi-person-circle fw-bold ms-2 fs-4" style="color:#415E72 !important"></i>
+                <i class="bi bi-person-circle fw-bold ms-2 fs-4" style="color:#415E72 !important"></i> @UserManager.GetUserAsync(User).Result.FullName
             </a> 
         </li>
         @*  @if (UserManager.GetUserAsync(User).Result.ProfilePicture != null)

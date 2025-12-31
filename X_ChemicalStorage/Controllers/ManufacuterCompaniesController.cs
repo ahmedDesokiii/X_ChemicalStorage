@@ -60,7 +60,7 @@ namespace X_ChemicalStorage.Controllers
         //}
         #endregion
 
-        #region Add|Edit Center [Create & Update]
+        #region Add|Edit ManufacuterCompanies [Create & Update]
         [Authorize(Permissions.ManufacuterCompanies.Create_ManufacuterCompanies), Authorize(Permissions.ManufacuterCompanies.Edit_ManufacuterCompanies)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
@@ -74,22 +74,22 @@ namespace X_ChemicalStorage.Controllers
                 { //Create
                     //Exist
                     if (_servicesManufacuterCompany.FindBy(model.NewManufacuterCompany.Name) != null)
-                        SessionMsg(Helper.Error, "شركة مصنعة مكررة !", "اسم الشركة المصنعة موجود من قبل");
+                        SessionMsg(Helper.Error, "Exist Manufacturer ", "This Manufacturer already exists !");
 
                     else
                     {
                         if (_servicesManufacuterCompany.Save(model.NewManufacuterCompany))
-                            SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة الشركة المصنعة بنجاح ");
+                            SessionMsg(Helper.Success, "Add Manufacturer", "The Manufacturer has been added successfully !");
                         else
-                            SessionMsg(Helper.Error, "خطأ في الإضافة", "حدوث خطأ اثناء ادخال بعض البيانات !");
+                            SessionMsg(Helper.Error, "Error Adding Manufacturer", "An error occurred while adding some data !");
                     }
                 }
                 else
                 { //Update
                     if (_servicesManufacuterCompany.Save(model.NewManufacuterCompany))
-                        SessionMsg(Helper.Success, "تم التعديل", "تم تعديل بيانات الشركة المصنعة بنجاح !");
+                        SessionMsg(Helper.Success, "Edit Manufacturer", "The Manufacturer has been modified successfully !");
                     else
-                        SessionMsg(Helper.Error, "مشكلة في التعديل", "! حدوث خطأ اثناء تعديل بعض البيانات");
+                        SessionMsg(Helper.Error, "Error Editting Manufacturer", "An error occurred while modifying some data !");
 
                 }
             }

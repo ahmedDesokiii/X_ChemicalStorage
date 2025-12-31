@@ -2,34 +2,34 @@
 
 
 <!-- Modal -->
-<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" dir="ltr">
     <div class="modal-dialog card card-success card-outline">
         <div class="modal-content">
-            <div class="modal-header bg-danger-subtle" dir="rtl">
+            <div class="modal-header" style="background-color:#758A93" dir="ltr">
                 <span class="fs-4 fw-bold modal-title" id="title"></span>
-                <a href="#" class="btn-close position-absolute  start-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
+                <a href="#" class="btn-close position-absolute  end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
             </div>
             <div class="modal-body">
                 <form asp-action="Save" asp-controller="Categories" method="post">
                     <input type="text" hidden class="form-control" asp-for="NewCategory.Id" id="catId" value="0" />
                     <!-- CategoryName -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم الفئة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catName" required asp-for="@Model.NewCategory.Name" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم الفئة ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-left-color:red;border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="catName" required asp-for="@Model.NewCategory.Name" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Category Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-right-color:red;border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewCategory.Name" class="text-danger"></span>
 
                     <!-- CategoryDetails -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; وصف الفئة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="catDetails" required asp-for="@Model.NewCategory.Details" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل وصف الفئة  ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category Details &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="catDetails" required asp-for="@Model.NewCategory.Details" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Category Details ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewCategory.Details" class="text-danger"></span>
                     
                    
                     <div class="modal-footer mt-3" style="padding:0 15px 15px 0">
                         <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" />
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغــاء</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
                     </div>
                 </form>
             </div>

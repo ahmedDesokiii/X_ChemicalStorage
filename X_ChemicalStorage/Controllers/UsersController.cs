@@ -54,8 +54,6 @@ namespace ERPWeb_v02.Controllers
             {
                 Roles = roles
             };
-            
-
             return View(addUserVM);
         }
         [HttpPost]
@@ -68,12 +66,12 @@ namespace ERPWeb_v02.Controllers
 
             if (!model.Roles.Any(r => r.IsSelected))
             {
-                ModelState.AddModelError("تحديد المجموعات", "فضلا , حدد علي الأقل مجموعة واحدة");
+                ModelState.AddModelError("Select Role", "Select at least 1 role !");
                 return View(model);
             }
             if (await _userManager.FindByNameAsync(model.UserName) != null)
             {
-                ModelState.AddModelError("تكرار اسم المستخدم", "اسم المستخدم موجود مسبقاً");
+                ModelState.AddModelError("Exist UserName", "UserName already exist !");
                 return View(model);
             }
 
@@ -231,9 +229,10 @@ namespace ERPWeb_v02.Controllers
 
 
         #region Delete User
-        public async Task<IActionResult> DeleteUser(ProfileFormViewModel model)
+        public async Task<IActionResult> DeleteUser(string userid)
         {
-            var user = await _userManager.FindByIdAsync(model.Id);
+            
+            var user = await _userManager.FindByIdAsync(userid);
 
             if (user == null)
                 return NotFound();
@@ -242,7 +241,7 @@ namespace ERPWeb_v02.Controllers
             user.EmailConfirmed = false;
 
             await _userManager.UpdateAsync(user);
-            Thread.Sleep(500);
+           
             return RedirectToAction(nameof(Index));
         }
         #endregion

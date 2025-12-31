@@ -1,15 +1,15 @@
 ﻿@model PermissionsFormViewModel
 @{
-    ViewData["Title"] = "صـلاحيات المستخدم";
+    ViewData["Title"] = "Manage Role Permissions";
 }
-<div class="card border-0 mb-3 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
-    <div class="d-flex text-center mx-auto bg-info-s">
-        <a asp-controller="Roles" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">قائمة المجموعات</a>
-        <i class="bi bi-chevron-double-left fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <div class="d-flex text-center mx-auto ">
+        <a asp-controller="Roles" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Roles</a>
+        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
         <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
     </div>
 </div>
-<section class="container-fluid mt-5">
+<section class="container-fluid my-3" dir="ltr">
     <div class="col-md-1"></div>
     <form asp-action="ManagePermissions" method="post">
         <div class="card col-md-10 p-0 mx-auto justify-content-center mt-4">
@@ -17,33 +17,25 @@
                 <div class="px-5">
                     <h2 class="text-dark">@Model.RoleName</h2>
                     <h4 class="text-dark">@Model.Details</h4>
-                    <span class="text-dark">إضافة / حذف صلاحيات للمستخدم</span>
+                    <span class="text-dark">Add / Delete Role Permissions</span>
                 </div>
 
                 <button asp-route="@Model"
-                        type="submit" title="حفظ صلاحيات المستخدم" class="btn btn-info fs-5 btn-sm rounded-3  position-absolute  start-0 mt-3 ms-3">
-                    <i class="bi bi-bookmark-check-fill fs-3 fw-bold"></i> <br /> حفظ الصلاحيات
+                        type="submit" title="Save Permissons" class="btn btn-info fs-5 btn-sm rounded-3 px-3 position-absolute  end-0 mt-3 me-3">
+                    <i class="bi bi-bookmark-check-fill fs-3 fw-bold"></i> <br /> Save Permissions Changes
                     
                 </button>
 
-                <div class="row">
-                    <div class="col-md-1"></div>
-                    <div class="col-md-9">
-                    </div>
-                </div>
-                <div>
-                </div>
-
-
             </div>
-            <div class="card-body row w-75 mx-auto p-0 justify-content-center">
+            <div class="card-body row  justify-content-center">
 
                 <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tablePermission">
                     <thead>
                         <tr class="text-center">
-                            <th class="text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
-                            <th class="text-white text-center fs-5" style="background-color:#032b42 !important;">الوحدة</th>
-                            <th class="text-white text-center fs-5" style="background-color:#032b42 !important;">الصلاحية</th>
+                            <th class="text-white text-center fs-5" style="background-color:#032b42 !important;">Module</th>
+                            <th class="text-white text-center fs-5" style="background-color:#032b42 !important;">Permission</th>
+                            <th class="text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
+
 
                         </tr>
                     </thead>
@@ -52,14 +44,14 @@
                         @for (int i = 0; i < Model.RoleCalims.Count; i++)
                         {
                             <tr>
+                                <td class="fw-bold fs-5 px-1  m-0 text-success text-center"><span class="bg-success-subtle p-2 rounded-5">@Model.RoleCalims[i].DisplayValue.Split('.')[1]</span></td>
+                                <td class="fs-6 text-center">@Model.RoleCalims[i].DisplayValue.Split('.')[2]</td>
                                 <td class="text-center">
 
                                     <input hidden asp-for="@Model.RoleCalims[i].DisplayValue" />
                                     <input type="checkbox" asp-for="@Model.RoleCalims[i].IsSelected" class="form-check-input border-1 border-primary fs-5 " />
 
                                 </td>
-                                <td class="fw-bold fs-5 px-1  m-0 text-success text-center"><span class="bg-success-subtle p-2 rounded-5">@Model.RoleCalims[i].DisplayValue.Split('.')[1]</span></td>
-                                <td class="fs-6 text-center">@Model.RoleCalims[i].DisplayValue.Split('.')[2]</td>
                             </tr>
                         }
 

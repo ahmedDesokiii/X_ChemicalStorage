@@ -11,12 +11,12 @@ $('#tableUser').dataTable({
     "responsive": true,
 
     layout: {
-        topStart: {
+        topEnd: {
             search: {
-                placeholder: ''
+                placeholder: 'Search'
             }
         },
-        topEnd: {
+        topStart: {
             pageLength: {
                 menu: [10, 25, 50, 100, 200, 400, 1000]
             }
@@ -30,15 +30,15 @@ $('#tableUser').dataTable({
     language: {
         "autoWidth": true,
         "responsive": true,
-        search: 'بحث', // Customize the search input label
+        search: '', // Customize the search input label
         lengthMenu: ' _MENU_ ', // Customize the "Show X entries" label
-        info: 'إظهار _START_ إلى _END_ من أصل _TOTAL_ سجل', // Customize the info text
-        zeroRecords: 'لم يعثر على أي سجل', // No records message
+        info: 'Show _START_ To _END_ From _TOTAL_ entries', // Customize the info text
+        zeroRecords: 'No records found', // No records message
         paginate: {
-            first: 'الأول',
-            previous: 'السابق',
-            next: 'التالي',
-            last: 'الأخير'
+            first: 'Frist',
+            previous: 'Next',
+            next: 'Prev',
+            last: 'Last'
         }
     }
 });
@@ -85,6 +85,22 @@ $('#tablePermissions').dataTable({
     }
 });
 //User Methods
+
+Edit = (id, name,passUser,passSign) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("UserId").value = id;
+    document.getElementById("UserName").value = name;
+    document.getElementById("passUser").value = passUser;
+    document.getElementById("passSign").value = passSign;
+}
+Rest = () => {
+    document.getElementById("title").innerHTML = lbAddNewUser;
+    document.getElementById("btnSave").value = lbbtnSave;
+    document.getElementById("UserId").value = "";
+    document.getElementById("UserName").value = "";
+
+}
 function DeleteUser(id) {
     Swal.fire({
         title: lbTitleMsgDelete,
@@ -102,22 +118,6 @@ function DeleteUser(id) {
         }
     })
 }
-Edit = (id, name,passUser,passSign) => {
-    document.getElementById("title").innerHTML = lbTitleEdit;
-    document.getElementById("btnSave").value = lbEdit;
-    document.getElementById("UserId").value = id;
-    document.getElementById("UserName").value = name;
-    document.getElementById("passUser").value = passUser;
-    document.getElementById("passSign").value = passSign;
-
-}
-Rest = () => {
-    document.getElementById("title").innerHTML = lbAddNewUser;
-    document.getElementById("btnSave").value = lbbtnSave;
-    document.getElementById("UserId").value = "";
-    document.getElementById("UserName").value = "";
-
-}
 ManageRoles = (id) => {
     document.getElementById("usrId").value = id;
 }
@@ -130,6 +130,14 @@ EditSupplier = (id, name, phone,adress,email) => {
     document.getElementById("suppPhone").value = phone;
     document.getElementById("suppAdress").value = adress;
     document.getElementById("suppEmail").value = email;
+}
+ResetSupplier = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    document.getElementById("suppName").value = "";
+    document.getElementById("suppPhone").value = "";
+    document.getElementById("suppAdress").value = "";
+    document.getElementById("suppEmail").value = "";
 }
 function DeleteSupplier(id) {
     Swal.fire({
@@ -157,6 +165,12 @@ EditCategory = (id, name, details) => {
     document.getElementById("catDetails").value = details;
    
 }
+ResetCategory = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    document.getElementById("catName").value = "";
+    document.getElementById("catDetails").value = "";
+}
 function DeleteCategory(id) {
     Swal.fire({
         title: lbTitleMsgDelete,
@@ -183,6 +197,13 @@ EditManufacuterCompany = (id, name,shName, details) => {
     document.getElementById("catShCutName").value = shName;
     document.getElementById("catDetails").value = details;
 
+}
+ResetManufacuterCompany = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    document.getElementById("catName").value = "";
+    document.getElementById("catShCutName").value = "";
+    document.getElementById("catDetails").value = "";
 }
 function DeleteManufacuterCompany(id) {
     Swal.fire({

@@ -73,22 +73,22 @@ namespace X_ChemicalStorage.Controllers
                 { //Create
                     //Exist
                     if (_servicesSupplier.FindBy(model.NewSupplier.Name) != null)
-                        SessionMsg(Helper.Error, "مورد مكرر !", "اسم المورد موجود من قبل");
+                        SessionMsg(Helper.Error, "Exist Supplier !", "This supplier already exists !");
 
                     else
                     {
                         if (_servicesSupplier.Save(model.NewSupplier))
-                            SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة المورد بنجاح ");
+                            SessionMsg(Helper.Success, "Add Supplier", "The supplier has been added successfully !");
                         else
-                            SessionMsg(Helper.Error, "خطأ في الإضافة", "حدوث خطأ اثناء ادخال بعض البيانات !");
+                            SessionMsg(Helper.Error, "Error Adding Supplier", "An error occurred while adding some data !");
                     }
                 }
                 else
                 { //Update
                     if (_servicesSupplier.Save(model.NewSupplier))
-                        SessionMsg(Helper.Success, "تم التعديل", "تم تعديل بيانات المورد بنجاح !");
+                        SessionMsg(Helper.Success, "Edit Supplier", "The supplier has been modified successfully !");
                     else
-                        SessionMsg(Helper.Error, "مشكلة في التعديل", "! حدوث خطأ اثناء تعديل بعض البيانات");
+                        SessionMsg(Helper.Error, "Error Editting Supplier", "An error occurred while modifying some data !");
 
                 }
             }

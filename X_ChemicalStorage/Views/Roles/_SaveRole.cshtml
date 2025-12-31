@@ -1,32 +1,32 @@
 ﻿@model RoleFormViewModel
 
 <!-- Modal -->
-<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" dir="ltr">
     <div class="modal-dialog card card-success card-outline">
         <div class="modal-content">
-            <div class="modal-header bg-danger-subtle" dir="rtl">
+            <div class="modal-header" style="background-color:#758A93" dir="ltr">
                 <span class="fs-4 fw-bold modal-title" id="title"></span>
-                <a href="#" class="btn-close position-absolute  start-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
+                <a href="#" class="btn-close position-absolute  end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
             </div>
             <div class="modal-body">
                 <form asp-action="_SaveRole" asp-controller="Roles" method="post">
                     <input type="text" hidden class="form-control" asp-for="RoleId" id="roleId" />
                     <!-- RoleName -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; اسم المجموعة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="roleName" required asp-for="@Model.Name" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="ادخل اسم المجموعة ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-left-color:red;border-top-left-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp; Role Name &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="roleName" required asp-for="@Model.Name" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Role Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-right-color:red;border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.Name" class="text-danger"></span>
 
                     <!-- RoleDetails -->
                     <div class="input-group mt-2 mb-3 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; وصف المجموعة &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <textarea id="roleDetails" class="form-control text-center" asp-for="@Model.Details" placeholder=" ادخل وصف المجموعة ..." rows="3" cols="50" style="border-top-left-radius : 20px ;"></textarea>
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp; Role Description &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <textarea id="roleDetails" class="form-control text-center" asp-for="@Model.Details" placeholder=" Enter Role Description ..." rows="3" cols="50" style="border-top-right-radius : 20px ;"></textarea>
                     </div>
 
                     <div class="modal-footer mt-3" style="padding:0 15px 15px 0">
                         <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" />
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغــاء</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
                     </div>
                 </form>
             </div>

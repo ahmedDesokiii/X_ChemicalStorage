@@ -1,12 +1,16 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
-
+/*@import url('https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Yanone+Kaffeesatz:wght@200..700&display=swap');
 * {
-    font-family: "Cairo", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: <weight>;
+    font-family: "Berkshire Swash", serif;
+    font-weight: 400;
     font-style: normal;
-    font-variation-settings: "slnt" 0;
+}
+*/
+@import url('https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Changa:wght@200..800&family=Ubuntu+Condensed&family=Yanone+Kaffeesatz:wght@200..700&display=swap');
+* {
+    font-family: "Ubuntu Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 html {

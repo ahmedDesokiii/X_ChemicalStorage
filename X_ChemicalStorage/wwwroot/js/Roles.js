@@ -11,12 +11,12 @@ $('#tableRole').dataTable({
     "responsive": true,
 
     layout: {
-        topStart: {
+        topEnd: {
             search: {
-                placeholder: ''
+                placeholder: 'Search'
             }
         },
-        topEnd: {
+        topStart: {
             pageLength: {
                 menu: [10, 25, 50, 100, 200, 400, 1000]
             }
@@ -30,15 +30,15 @@ $('#tableRole').dataTable({
     language: {
         "autoWidth": true,
         "responsive": true,
-        search: 'بحث', // Customize the search input label
+        search: '', // Customize the search input label
         lengthMenu: ' _MENU_ ', // Customize the "Show X entries" label
-        info: 'إظهار _START_ إلى _END_ من أصل _TOTAL_ سجل', // Customize the info text
-        zeroRecords: 'لم يعثر على أي سجل', // No records message
+        info: 'Show _START_ To _END_ From _TOTAL_ entries', // Customize the info text
+        zeroRecords: 'No records found', // No records message
         paginate: {
-            first: 'الأول',
-            previous: 'السابق',
-            next: 'التالي',
-            last: 'الأخير'
+            first: 'Frist',
+            previous: 'Next',
+            next: 'Prev',
+            last: 'Last'
         }
     }
 });
@@ -51,14 +51,14 @@ $('#tablePermission').dataTable({
     },
     "autoWidth": true,
     "responsive": true,
-    "pageLength": 100,
+    "pageLength": 25,
     layout: {
-        topStart: {
+        topEnd: {
             search: {
-                placeholder: ''
+                placeholder: 'Search'
             }
         },
-        topEnd: {
+        topStart: {
             pageLength: {
                 menu: [10, 25, 50, 100, 200, 400, 1000]
             }
@@ -72,15 +72,15 @@ $('#tablePermission').dataTable({
     language: {
         "autoWidth": true,
         "responsive": true,
-        search: 'بحث', // Customize the search input label
+        search: '', // Customize the search input label
         lengthMenu: ' _MENU_ ', // Customize the "Show X entries" label
-        info: 'إظهار _START_ إلى _END_ من أصل _TOTAL_ سجل', // Customize the info text
-        zeroRecords: 'لم يعثر على أي سجل', // No records message
+        info: 'Show _START_ To _END_ From _TOTAL_ entries', // Customize the info text
+        zeroRecords: 'No records found', // No records message
         paginate: {
-            first: 'الأول',
-            previous: 'السابق',
-            next: 'التالي',
-            last: 'الأخير'
+            first: 'Frist',
+            previous: 'Next',
+            next: 'Prev',
+            last: 'Last'
         }
     }
 });
@@ -113,7 +113,7 @@ Edit = (id, name, det) => {
 
 }
 
-Rest = () => {
+ResetRole = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;
     document.getElementById("btnSave").value = lbbtnSave;
     document.getElementById("roleId").value = "";

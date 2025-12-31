@@ -73,8 +73,8 @@
                            
                                 <div class="card-body py-0 m-0 d-flex text-center">
                                    
-                                    <a class="text-center my-0 py-0 text-decoration-none link-info fw-bold" style="font-size:25px !important ;" asp-area="" asp-controller="Home" asp-action="Index">
-                                        <img src="~/images/logooo.png" alt="frist Logo" style="height: 100px !important;" class="align-content-center align-items-center" />
+                                    <a class="text-center my-0 py-0 text-decoration-none link-info fw-bold me-4" style="font-size:25px !important ;" asp-area="" asp-controller="Home" asp-action="Index">
+                                        <img src="~/images/logo0.png" alt="frist Logo" style="height: 100px !important;" class="align-content-center align-items-center" />
                                     </a>
                                 </div>
                        </div>
@@ -105,43 +105,43 @@
                                 @if (User.IsInRole(Roles.Admin.ToString()))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-light text-center" style="font-size:17px !important" asp-area="" asp-controller="Home" asp-action="MasterDashboard"><i class="bi bi-speedometer2 fs-4"></i><br>لوحة التحكم</a>
+                                        <a class="nav-link fw-bold link-light text-center " style="font-size:18px !important" asp-area="" asp-controller="Users" asp-action="Index"><i class="bi bi-people-fill fs-4"></i><br>Users</a>
                                     </li>
                                 }
                                 @if (User.IsInRole(Roles.Admin.ToString()))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-light text-center " style="font-size:17px !important" asp-area="" asp-controller="Users" asp-action="Index"><i class="bi bi-people-fill fs-4"></i><br>المستخدمين</a>
+                                        <a class="nav-link fw-bold link-light text-center " style="font-size:18px !important" asp-area="" asp-controller="Roles" asp-action="Index"><i class="bi bi-collection-fill fs-4"></i><br>Roles</a>
                                     </li>
                                 }
                                 @if (User.IsInRole(Roles.Admin.ToString()))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-light text-center " style="font-size:17px !important" asp-area="" asp-controller="Roles" asp-action="Index"><i class="bi bi-collection-fill fs-4"></i><br>المجموعـات</a>
+                                        <a class="nav-link fw-bold link-light text-center" style="font-size:18px !important" asp-area="" asp-controller="Home" asp-action="MasterDashboard"><i class="bi bi-speedometer2 fs-4"></i><br>Dashboard</a>
                                     </li>
                                 }
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Suppliers" asp-action="Index"><i class="bi bi-people fs-4"></i><br>الموردين</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Suppliers" asp-action="Index"><i class="bi bi-people fs-4"></i><br>Suppliers</a>
                                     </li>
                                 }
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Categories.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Categories" asp-action="Index"><i class="bi bi-diagram-3-fill fs-4"></i><br>فئات الأصناف</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Categories" asp-action="Index"><i class="bi bi-diagram-3-fill fs-4"></i><br>Categories</a>
                                     </li>
                                 }
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="ManufacuterCompanies" asp-action="Index"><i class="bi bi-buildings-fill fs-4"></i><br>الشركات المصنعة</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="ManufacuterCompanies" asp-action="Index"><i class="bi bi-buildings-fill fs-4"></i><br>Manufacturers</a>
                                     </li>
                                 }
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Locations.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Locations" asp-action="Index"><i class="bi bi-pin-map-fill fs-4"></i><br>أماكن التخزين</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Locations" asp-action="Index"><i class="bi bi-pin-map-fill fs-4"></i><br>Locations</a>
                                     </li>
                                 }
                                 

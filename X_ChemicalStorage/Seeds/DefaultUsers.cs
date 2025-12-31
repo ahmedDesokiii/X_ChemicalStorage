@@ -17,7 +17,7 @@ namespace X_ChemicalStorage.Seeds
                 NormalizedEmail = "user@test.com".ToUpper(),
                 EmailConfirmed = true,
                 PhoneNumber = "01000000000",
-                FullName = "مستخدم",
+                FullName = "User",
             };
             if (userManager.Users.All(u => u.Id != defaultUser.Id))
             {
@@ -43,7 +43,7 @@ namespace X_ChemicalStorage.Seeds
                 NormalizedEmail = "admin@test.com".ToUpper(),
                 EmailConfirmed = true,
                 PhoneNumber = "02000000000",
-                FullName = "مدير النظام",
+                FullName = "Admin",
             };
             if (userManager.Users.All(u => u.Id != defaultUser.Id))
             {

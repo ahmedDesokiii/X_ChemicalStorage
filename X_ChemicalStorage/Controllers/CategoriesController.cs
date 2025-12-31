@@ -74,22 +74,22 @@ namespace X_ChemicalStorage.Controllers
                 { //Create
                     //Exist
                     if (_servicesCategory.FindBy(model.NewCategory.Name) != null)
-                        SessionMsg(Helper.Error, "فئة مكرره !", "اسم الفئة موجود من قبل");
+                        SessionMsg(Helper.Error, "Exist Category ", "This category already exists !");
 
                     else
                     {
                         if (_servicesCategory.Save(model.NewCategory))
-                            SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة الفئة بنجاح ");
+                            SessionMsg(Helper.Success, "Add Category", "The category has been added successfully !");
                         else
-                            SessionMsg(Helper.Error, "خطأ في الإضافة", "حدوث خطأ اثناء ادخال بعض البيانات !");
+                            SessionMsg(Helper.Error, "Error Adding Category", "An error occurred while adding some data !");
                     }
                 }
                 else
                 { //Update
                     if (_servicesCategory.Save(model.NewCategory))
-                        SessionMsg(Helper.Success, "تم التعديل", "تم تعديل بيانات الفئة بنجاح !");
+                        SessionMsg(Helper.Success, "Edit Category", "The category has been modified successfully !");
                     else
-                        SessionMsg(Helper.Error, "مشكلة في التعديل", "! حدوث خطأ اثناء تعديل بعض البيانات");
+                        SessionMsg(Helper.Error, "Error Editting Category", "An error occurred while modifying some data !");
 
                 }
             }

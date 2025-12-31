@@ -1,17 +1,17 @@
 ﻿@model UserRolesViewModel
 @{
-    ViewData["Title"] = "تعديل مجموعات المستخدم";
+    ViewData["Title"] = "Manage User Roles";
 }
-<div class="card border-0 mb-3 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
     <div class="d-flex text-center mx-auto">
-        <a asp-controller="Users" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">قائمة المستخدمين</a>
-        <i class="bi bi-chevron-double-left fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <a asp-controller="Users" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Users</a>
+        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
         <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
     </div>
 </div>
 
 
-<section class="container-fluid mt-3">
+<section class="container-fluid my-3" dir="ltr">
     <div class="row">
         <div class="col-md-1"></div>
         <form method="post">
@@ -27,8 +27,8 @@
                         <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                             <thead>
                                 <tr class="text-center">
-                                    <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">المجموعة</th>
-                                    <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                    <th class="text-center bg-info-subtle fs-5 py-1 fw-bold" style="color:#415E72 !important ;">Role</th>
+                                    <th class="text-center bg-info-subtle fs-5 py-1 fw-bold" style="color:#415E72 !important ;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -54,8 +54,9 @@
                     </div>
                 </div>
                 <div class="card-footer text-center">
-                    <button type="submit" title="حفظ تعديل المجموعات" class="btn btn-info fs-5 px-5 rounded-3 ">
-                        <i class="bi bi-bookmark-check-fill fs-4 fw-bold ps-2"></i>حفظ التعديلات
+                    <button type="submit" title="Save Roles Changes" class="btn btn-info fs-5 px-5 rounded-3 ">
+                        Save Changes
+                        <i class="bi bi-bookmark-check-fill fs-3 fw-bold pe-2"></i>
                     </button>
                 </div>
             </div>
