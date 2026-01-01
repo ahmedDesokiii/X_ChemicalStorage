@@ -47,7 +47,7 @@ namespace ERPWeb_v02.Controllers
                     })
                .OrderBy(u => u.CurrentState)
                .ToListAsync();
-            //Thread.Sleep(500);
+            Thread.Sleep(500);
             return View(userVM);
         }
         #endregion

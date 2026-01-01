@@ -69,7 +69,7 @@ namespace X_ChemicalStorage.Constants
                 allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
                 allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
                 allLocationsPermissions.AddRange(Generate_Locations_PermissionsList(Modules.Locations.ToString()));
-                allManufacuterCompaniesPermissions.AddRange(Generate_ManufacuterCompanies_PermissionsList(Modules.ManufacuterCompanies.ToString()));
+                allManufacuterCompaniesPermissions.AddRange(Generate_ManufacuterCompanies_PermissionsList(Modules.Manufacuters.ToString()));
                 allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).Concat(allManufacuterCompaniesPermissions).Concat(allLocationsPermissions).ToList();
         
             return allPermissions;

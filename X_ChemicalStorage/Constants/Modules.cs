@@ -4,8 +4,8 @@
     {
         Suppliers ,
         Categories,
-        ManufacuterCompanies,
-        //Locations
-        Substance // Chemical Substance
+        Manufacuters,
+        Locations,
+        Substances // Chemical Substance
     }
 }
