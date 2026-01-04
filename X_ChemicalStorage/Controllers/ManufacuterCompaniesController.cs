@@ -25,7 +25,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of ManufacuterCompanies
-        [Authorize(Permissions.ManufacuterCompanies.View_ManufacuterCompanies)]
+        [Authorize(Permissions.Manufacuters.View_Manufacuters)]
         public IActionResult Index()
         {
             var ManufacuterCompanies = new ManufacuterCompanyViewModel
@@ -39,7 +39,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Delete ManufacuterCompanies [Delete & Delete Log]
         //Delete
-        [Authorize(Permissions.ManufacuterCompanies.Delete_ManufacuterCompanies)]
+        [Authorize(Permissions.Manufacuters.Delete_Manufacuters)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -61,7 +61,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit ManufacuterCompanies [Create & Update]
-        [Authorize(Permissions.ManufacuterCompanies.Create_ManufacuterCompanies), Authorize(Permissions.ManufacuterCompanies.Edit_ManufacuterCompanies)]
+        [Authorize(Permissions.Manufacuters.Create_Manufacuters), Authorize(Permissions.Manufacuters.Edit_Manufacuters)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult Save(ManufacuterCompanyViewModel model)

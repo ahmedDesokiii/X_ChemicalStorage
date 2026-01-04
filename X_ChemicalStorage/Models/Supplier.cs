@@ -16,6 +16,9 @@ namespace X_ChemicalStorage.Models
         [EmailAddress(ErrorMessage = "ادخل بريد الكتروني مناسب")]
         public string? Email { get; set; }
         public string? Adress { get; set; }
+
+        public ICollection<Substance> Substances { get; set; } = new List<Substance>();
+
         public int? CurrentState { get; set; }
     }
 }

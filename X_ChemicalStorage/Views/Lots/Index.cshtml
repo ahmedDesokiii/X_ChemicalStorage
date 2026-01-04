@@ -1,14 +1,14 @@
-﻿@model CategoryViewModel
+﻿@model LotViewModel
 
 @{
-    ViewData["Title"] = "Categories";
+    ViewData["Title"] = "Lots";
     int cNo = 0;
 
 }
 <div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
-    <span class="text-center fw-bold fs-1  " style="color:#415E72 !important ">
-       Categories
-        <i class="bi bi-diagram-3-fill ps-2 fs-1"></i>
+    <span class="text-center fw-bold fs-1" style="color:#415E72 !important ">
+        Inventory Lots
+        <i class="bi bi-archive-fill ps-2 fs-1"></i>
     </span>
 </div>
 <!-- Main content -->
@@ -20,9 +20,9 @@
         <div class="col-md-10">
             <div class="card p-0">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
-                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Create_Categories).Result.Succeeded)
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
                     {
-                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New Category" onclick="ResetCategory()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
+                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New Lot" onclick="ResetLot()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
                     }
                 </div>
                 <!-- /.card-header -->
@@ -33,11 +33,11 @@
                         <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
                     </div> *@
                     <!-- Tab content -->
-                    @if (!Model.CategoriesList.Any())
+                    @if (!Model.LotsList.Any())
                     {
                         <div class="alert  alert-warning mt-5">
-                            <h4 class="alert-heading">No Categories</h4>
-                            <p class="mb-0">No Categories have been added to the app yet.</p>
+                            <h4 class="alert-heading">No Lots</h4>
+                            <p class="mb-0">No Lots have been added to the app yet.</p>
                         </div>
                     }
                     else
@@ -54,27 +54,27 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var cat in Model.CategoriesList)
+                                    @foreach (var lot in Model.LotsList)
                                     {
                                         cNo++;
 
                                         <tr class="text-center">
                                             <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
-                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@cat.Name</span></td>
-                                            <td class="fs-6 text-center px-1">@cat.Details</td>
-                                            
+                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                            <td class="fs-6 text-center px-1">@lot.Unit</td>
+
                                             <td class="py-1">
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Details_Categories).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Categories" asp-action="SelectedCategory" asp-route-Id="@cat.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Edit_Categories).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Edit_Lots).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditCategory('@cat.Id','@cat.Name','@cat.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditLot('@lot.Id','@lot.LotNumber','@lot.Unit')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Delete_Categories).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteCategory('@cat.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLot('@lot.Id')"><i class="bi bi-trash3-fill"></i></a>
                                                 }
                                             </td>
                                         </tr>
@@ -96,7 +96,7 @@
 </section>
 <!-- /.content -->
 
-<partial name="_SaveCategory" model="new CategoryViewModel()" />
+<partial name="_SaveLot" model="new LotViewModel()" />
 
 @section Scripts {
     <script src="~/js/Users.js"></script>
@@ -132,18 +132,18 @@
 
     <script>
 
-        let lbTitleEdit = '@Html.Raw("Edit Category")';
+        let lbTitleEdit = '@Html.Raw("Edit Lot")';
         let lbEdit = '@Html.Raw("Save Changes")';
-        let lbAddNewRole = '@Html.Raw("Add New Category")';
+        let lbAddNewRole = '@Html.Raw("Add New Lot")';
         let lbbtnSave = '@Html.Raw("Save Data")';
 
-        let lbTitleMsgDelete = '@Html.Raw("Delete Category")';
-        let lbTextMsgDelete = '@Html.Raw($"Are you sure !  Do you want to delete the Category data and everything related to it, including requests and records? ")';
+        let lbTitleMsgDelete = '@Html.Raw("Delete Lot")';
+        let lbTextMsgDelete = '@Html.Raw($"Are you sure !  Do you want to delete the Lot data and everything related to it, including requests and records? ")';
         let lbconfirmButtonText = '@Html.Raw("Yes , Remove")';
         let lbcancelButtonText = '@Html.Raw("Cancle")';
 
-        let lbTitleDeletedOk = '@Html.Raw("Delete Category Done")';
-        let lbMsgDeletedOkRole = '@Html.Raw("The Category data has been successfully deleted!")';
+        let lbTitleDeletedOk = '@Html.Raw("Delete Lot Done")';
+        let lbMsgDeletedOkRole = '@Html.Raw("The Lot data has been successfully deleted!")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
     </script>

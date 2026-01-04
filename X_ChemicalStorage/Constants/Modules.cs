@@ -6,6 +6,8 @@
         Categories,
         Manufacuters,
         Locations,
-        Substances // Chemical Substance
+        Substances, // Chemical Substance
+        Lots // Inventory Lots
+
     }
 }

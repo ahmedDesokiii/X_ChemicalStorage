@@ -29,12 +29,12 @@ namespace ERPWeb_v02.Controllers
         }
 
         #region All Users
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             //Thread.Sleep(500);
             var userVM = new List<UserViewModel>();
-                userVM =  await _context.Users
+                userVM =   _context.Users
                 .Select(user => new UserViewModel()
                     {
                         Id = user.Id.ToString(),
@@ -46,7 +46,7 @@ namespace ERPWeb_v02.Controllers
                         Roles = _userManager.GetRolesAsync(user).Result,
                     })
                .OrderBy(u => u.CurrentState)
-               .ToListAsync();
+               .ToList();
             Thread.Sleep(500);
             return View(userVM);
         }

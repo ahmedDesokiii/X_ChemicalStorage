@@ -84,8 +84,8 @@ $('#tablePermissions').dataTable({
         }
     }
 });
-//User Methods
 
+//User Methods
 Edit = (id, name,passUser,passSign) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
@@ -101,7 +101,7 @@ Rest = () => {
     document.getElementById("UserName").value = "";
 
 }
-function DeleteUser(id) {
+DeleteUser = (id) => {
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
@@ -121,6 +121,7 @@ function DeleteUser(id) {
 ManageRoles = (id) => {
     document.getElementById("usrId").value = id;
 }
+
 //Supplier Methods
 EditSupplier = (id, name, phone,adress,email) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
@@ -139,7 +140,7 @@ ResetSupplier = () => {
     document.getElementById("suppAdress").value = "";
     document.getElementById("suppEmail").value = "";
 }
-function DeleteSupplier(id) {
+DeleteSupplier = (id) => {
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
@@ -156,6 +157,7 @@ function DeleteSupplier(id) {
         }
     })
 }
+
 //Category Methods
 EditCategory = (id, name, details) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
@@ -171,7 +173,7 @@ ResetCategory = () => {
     document.getElementById("catName").value = "";
     document.getElementById("catDetails").value = "";
 }
-function DeleteCategory(id) {
+DeleteCategory = (id) =>{
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
@@ -188,6 +190,7 @@ function DeleteCategory(id) {
         }
     })
 }
+
 //ManufacuterCompany Methods
 EditManufacuterCompany = (id, name,shName, details) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
@@ -205,7 +208,7 @@ ResetManufacuterCompany = () => {
     document.getElementById("catShCutName").value = "";
     document.getElementById("catDetails").value = "";
 }
-function DeleteManufacuterCompany(id) {
+DeleteManufacuterCompany = (id) => {
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
@@ -222,16 +225,39 @@ function DeleteManufacuterCompany(id) {
         }
     })
 }
+
 //Location Methods
-EditLocation = (id, name, shName, details) => {
+EditLocation = (id, locRoomType, locRoomNum, locCaseNum, locSelfNum, locRackNum, locBoxNum, locTubeNum) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
     document.getElementById("locId").value = id;
-    document.getElementById("locName").value = name;
-    document.getElementById("locDetails").value = name;
+    //document.getElementById("locName").value = name;
+    //document.getElementById("locDetails").value = shName;
+
+    document.getElementById("locRoomType").selectedIndex = locRoomType;
+    document.getElementById("locRoomNum").selectedIndex = locRoomNum;
+    document.getElementById("locCaseNum").selectedIndex = locCaseNum;
+    document.getElementById("locSelfNum").selectedIndex = locSelfNum;
+    document.getElementById("locRackNum").selectedIndex = locRackNum;
+    document.getElementById("locBoxNum").selectedIndex = locBoxNum;
+    document.getElementById("locTubeNum").selectedIndex = locTubeNum;
     
 }
-function DeleteLocation(id) {
+ResetLocation = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    //document.getElementById("locName").value = "";
+    //document.getElementById("locDetails").value = "";
+    document.getElementById("locRoomType").selectedIndex = 0;
+    document.getElementById("locRoomNum").selectedIndex = 0;
+    document.getElementById("locCaseNum").selectedIndex = 0;
+    document.getElementById("locSelfNum").selectedIndex = 0;
+    document.getElementById("locRackNum").selectedIndex = 0;
+    document.getElementById("locBoxNum").selectedIndex = 0;
+    document.getElementById("locTubeNum").selectedIndex = 0;
+    GetStorageTypes();
+}
+DeleteLocation = (id) => {
     Swal.fire({
         title: lbTitleMsgDelete,
         text: lbTextMsgDelete,
@@ -253,7 +279,7 @@ GetStorageTypes = () => {
     //var caseName = document.getElementById("locCase");
     //var caseNum = document.getElementById("locCase");
     
-    if(roomType.selectedIndex == 0) { // normal
+    if (roomType.selectedIndex == 0) { // reset
         document.getElementById("roomNum").style.display = "none";
         document.getElementById("caseNum").style.display = "none";
         document.getElementById("shelfNum").style.display = "none";
@@ -268,12 +294,6 @@ GetStorageTypes = () => {
         document.getElementById("rackNum").style.display = "none";
         document.getElementById("boxNum").style.display = "none";
         document.getElementById("tubeNum").style.display = "none";
-
-        document.getElementById("caseName").innerHTML = "دولاب";
-        document.getElementById("opt0caseName").innerHTML = "الدولاب";
-        document.getElementById("optcaseName").innerHTML = "الدولاب";
-        document.getElementById("lblcaseName").innerHTML = "الدولاب";
-
     }
     else if (roomType.selectedIndex == 2) { //chill
         document.getElementById("roomNum").style.display = "flex";
@@ -282,8 +302,6 @@ GetStorageTypes = () => {
         document.getElementById("rackNum").style.display = "flex";
         document.getElementById("boxNum").style.display = "none";
         document.getElementById("tubeNum").style.display = "none";
-
-
     }
     else if (roomType.selectedIndex == 3) { // freez
         document.getElementById("roomNum").style.display = "flex";
@@ -292,7 +310,43 @@ GetStorageTypes = () => {
         document.getElementById("rackNum").style.display = "flex";
         document.getElementById("boxNum").style.display = "flex";
         document.getElementById("tubeNum").style.display = "flex";
-
     }
-    //document.getElementById("roomNum").style.display = "block";
+    else { // reset
+        document.getElementById("roomNum").style.display = "none";
+        document.getElementById("caseNum").style.display = "none";
+        document.getElementById("shelfNum").style.display = "none";
+        document.getElementById("rackNum").style.display = "none";
+        document.getElementById("boxNum").style.display = "none";
+        document.getElementById("tubeNum").style.display = "none";
+    }
+}
+
+//ManufacuterCompany Methods
+EditLot = (id, name, shName, details) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    
+
+}
+ResetLot = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    
+}
+DeleteLot = (id) => {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/Lots/Delete?Id=${id}`;
+        }
+    })
 }

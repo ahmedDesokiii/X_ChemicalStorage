@@ -1,28 +1,28 @@
 ﻿@model LocationViewModel
 
 @{
-    ViewData["Title"] = "قائمة أماكن التخزين";
+    ViewData["Title"] = "Locations";
     int cNo = 0;
 
 }
-<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 0 80px ">
-    <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
-        قائمة أماكن التخزين
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <span class="text-center fw-bold fs-1 " style="color:#415E72 !important ">
+        Locations
         <i class="bi bi-pin-map-fill pe-2 fs-1"></i>
     </span>
 </div>
 <!-- Main content -->
 
-<section class="container-fluid mt-3">
+<section class="container-fluid mt-3 " dir="ltr">
     <div class="row">
 
         <div class="col-md-1"></div>
         <div class="col-md-10">
             <div class="card p-0">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
-                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.ManufacuterCompanies.Create_ManufacuterCompanies).Result.Succeeded)
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Create_Locations).Result.Succeeded)
                     {
-                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="إضافة مكان تخزين جديدة" onclick="Rest()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
+                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New Location" onclick="ResetLocation()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
                     }
                 </div>
                 <!-- /.card-header -->
@@ -36,8 +36,8 @@
                     @if (!Model.LocationsList.Any())
                     {
                         <div class="alert  alert-warning mt-5">
-                            <h4 class="alert-heading">لا يوجد أماكن تخزين !</h4>
-                            <p class="mb-0">لم يتم اضافة مكان تخزين  للتطبيق حتي الآن</p>
+                            <h4 class="alert-heading">No Locations</h4>
+                            <p class="mb-0">No Locations have been added to the app yet.</p>
                         </div>
                     }
                     else
@@ -48,10 +48,15 @@
                                 <thead>
                                     <tr class="text-center">
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الاسـم</th>
-                                        
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">الوصف</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Bulding</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">RomeType</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Room#</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Case#</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Shelf#</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Rack#</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Box#</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Tube#</th>
+                                        <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -65,22 +70,24 @@
                                             <td class="fs-6 text-center px-1">@loc.LocationDetails</td>
                                             <td class="fs-6 text-center px-1">@loc.RoomNum</td>
                                             <td class="fs-6 text-center px-1">@loc.RoomType</td>
+                                            <td class="fs-6 text-center px-1">@loc.CaseNum</td>
                                             <td class="fs-6 text-center px-1">@loc.ShelfNum</td>
                                             <td class="fs-6 text-center px-1">@loc.RackNum</td>
                                             <td class="fs-6 text-center px-1">@loc.BoxNum</td>
+                                            <td class="fs-6 text-center px-1">@loc.TubeNum</td>
 
                                             <td class="py-1">
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Details_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="تفاصيل مكان التخزين" asp-controller="ManufacuterCompanies" asp-action="SelectedManufacuterCompany" asp-route-Id="@loc.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="ManufacuterCompanies" asp-action="SelectedLocation" asp-route-Id="@loc.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Edit_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="تعديل مكان التخزين" onclick="EditManufacuterCompany('@loc.Id','@loc.LocationName','@loc.LocationDetails')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditLocation('@loc.Id','@loc.RoomType','@loc.RoomNum','@loc.CaseNum','@loc.ShelfNum','@loc.RackNum','@loc.BoxNum','@loc.TubeNum')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Delete_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف مكان التخزين" onclick="DeleteCategory('@loc.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLocation('@loc.Id')"><i class="bi bi-trash3-fill"></i></a>
                                                 }
                                             </td>
                                         </tr>
@@ -138,18 +145,18 @@
 
     <script>
 
-        let lbTitleEdit = '@Html.Raw("تعديل بيانات مكان التخزين")';
-        let lbEdit = '@Html.Raw("حفظ التعديلات")';
-        let lbAddNewRole = '@Html.Raw("إضافة مكان تخزين جديدة")';
-        let lbbtnSave = '@Html.Raw("حفظ البيانات")';
+        let lbTitleEdit = '@Html.Raw("Edit Location")';
+        let lbEdit = '@Html.Raw("Save Changes")';
+        let lbAddNewRole = '@Html.Raw("Add New Location")';
+        let lbbtnSave = '@Html.Raw("Save Data")';
 
-        let lbTitleMsgDelete = '@Html.Raw("حذف بيانات مكان التخزين")';
-        let lbTextMsgDelete = '@Html.Raw($"هل تريد حذف بيانات مكان التخزين وكل ما يتعلق به من طلبات و سجلات ؟ ")';
-        let lbconfirmButtonText = '@Html.Raw("نعم , احذف مكان التخزين")';
-        let lbcancelButtonText = '@Html.Raw("إلغـاء")';
+        let lbTitleMsgDelete = '@Html.Raw("Delete Location")';
+        let lbTextMsgDelete = '@Html.Raw($"Are you sure !  Do you want to delete the Location data and everything related to it, including requests and records? ")';
+        let lbconfirmButtonText = '@Html.Raw("Yes , Remove")';
+        let lbcancelButtonText = '@Html.Raw("Cancle")';
 
-        let lbTitleDeletedOk = '@Html.Raw("تم الحذف")';
-        let lbMsgDeletedOkRole = '@Html.Raw("تم حذف بيانات مكان التخزين بنجاح!")';
+        let lbTitleDeletedOk = '@Html.Raw("Delete Location Done")';
+        let lbMsgDeletedOkRole = '@Html.Raw("The Location data has been successfully deleted!")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
     </script>

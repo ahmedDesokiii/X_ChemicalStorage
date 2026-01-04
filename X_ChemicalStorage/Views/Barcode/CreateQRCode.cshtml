@@ -1,0 +1,27 @@
+﻿@model X_ChemicalStorage.Models.QRCodeModel
+
+<h2>Generate QR Code</h2>
+<section class="container-fluid mx-auto"> 
+    <div class="row">
+        <div class="col-md-4">
+            <form asp-action="CreateQRCode" method="post">
+                <div class="form-group">
+                    <label asp-for="QRCodeText"></label>
+                    <input asp-for="QRCodeText" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary">Generate QR Code</button>
+            </form>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.QRImageURL))
+    {
+        <div class="row mt-2">
+            <div class="col-md-4">
+                <h4>Generated QR Code:</h4>
+                <img src="@Model.QRImageURL" alt="Generated QR Code" class="img-thumbnail" />
+            </div>
+        </div>
+    }
+
+</section>

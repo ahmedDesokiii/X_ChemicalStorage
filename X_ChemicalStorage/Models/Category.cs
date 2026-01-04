@@ -11,6 +11,8 @@ namespace X_ChemicalStorage.Models
         [MinLength(3, ErrorMessage = "لا يقل الفئة عن 3 خانات")]
         public string? Name { get; set; }
         public string? Details { get; set; }
+        public ICollection<Substance> Substances { get; set; } = new List<Substance>();
+
         public int? CurrentState { get; set; }
     }
 }

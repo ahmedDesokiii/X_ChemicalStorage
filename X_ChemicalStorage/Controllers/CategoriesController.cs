@@ -60,7 +60,7 @@ namespace X_ChemicalStorage.Controllers
         //}
         #endregion
 
-        #region Add|Edit Center [Create & Update]
+        #region Add|Edit Category [Create & Update]
         [Authorize(Permissions.Categories.Create_Categories), Authorize(Permissions.Categories.Edit_Categories)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
