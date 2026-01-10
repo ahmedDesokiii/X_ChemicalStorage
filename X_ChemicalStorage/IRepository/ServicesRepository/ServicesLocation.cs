@@ -48,6 +48,12 @@
                     result.LocationDetails = model.LocationDetails;
                     result.RoomNum = model.RoomNum;
                     result.RoomType = model.RoomType;
+                    result.CaseNum = model.CaseNum;
+                    result.ShelfNum = model.ShelfNum;
+                    result.RackNum = model.RackNum;
+                    result.BoxNum = model.BoxNum;
+                    result.TubeNum = model.TubeNum;
+
                     result.CurrentState = (int)Helper.eCurrentState.Active;
                     _context.Locations.Update(result);
                 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Analyzer.Utilities;
+using System.ComponentModel.DataAnnotations.Schema;
 using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Models
@@ -16,7 +17,6 @@ namespace X_ChemicalStorage.Models
         public string? Physical_State { get; set; } // Physical State (e.g., solid, liquid, gas)
         public string? GHS_Classification { get; set; } // GHS Classification
         public string? Hazard_Statements { get; set; } // Hazard Statements
-        public string? Unit { get; set; } 
         public double? Size { get; set; } // Hazard Statements
         public double? Concentration { get; set; } // concentration
         public string? VendorName { get; set; } // Vendor Name
@@ -25,6 +25,10 @@ namespace X_ChemicalStorage.Models
         public int? CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
+        // Foreign Keys
+        public int? UnitId { get; set; }
+        [ForeignKey("UnitId")]
+        public Unit? Unit { get; set; }
         // Foreign Keys
         public int? LocationId { get; set; } // Location Details
         [ForeignKey("LocationId")]

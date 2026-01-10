@@ -73,6 +73,8 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 #region Scoped Services
 builder.Services.AddScoped<IServicesRepository<Supplier>, ServicesSupplier>();
 builder.Services.AddScoped<IServicesRepository<Category>, ServicesCategory>();
+builder.Services.AddScoped<IServicesRepository<Unit>, ServicesUnit>();
+builder.Services.AddScoped<IServicesRepository<Item>, ServicesItem>();
 builder.Services.AddScoped<IServicesRepository<Location>, ServicesLocation>();
 builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();

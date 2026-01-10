@@ -6,9 +6,7 @@ namespace X_ChemicalStorage.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        [Required(ErrorMessage = " فضلا , ادخل اسم المكان بشكل صحيح")]
-        [MaxLength(100, ErrorMessage = "لا تزيد اسم المكان عن 100 خانة")]
-        [MinLength(3, ErrorMessage = "لا يقل اسم المكان عن 3 خانات")]
+        [Required, MaxLength(100), MinLength(3)]
         public string? LocationName { get; set; }
         public string? LocationDetails { get; set; }
 
@@ -22,7 +20,13 @@ namespace X_ChemicalStorage.Models
 
         public int? CurrentState { get; set; }
 
-        public ICollection<Substance> Substances { get; set; } = new List<Substance>();
+        //public ICollection<Substance> Substances { get; set; } = new List<Substance>();
+        public ICollection<Item> Items { get; set; } = new List<Item>();
+       
+        
+        
+        
+        
         /*
         public string? Building { get; set; } // Building Name
         public int? Room_Number { get; set; } // Room Number

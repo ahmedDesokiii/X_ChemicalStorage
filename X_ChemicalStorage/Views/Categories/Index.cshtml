@@ -70,7 +70,7 @@
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Edit_Categories).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditCategory('@cat.Id','@cat.Name','@cat.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick = "EditCategory('@cat.Id','@cat.Name','@cat.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Delete_Categories).Result.Succeeded)
                                                 {
@@ -96,7 +96,7 @@
 </section>
 <!-- /.content -->
 
-<partial name="_SaveCategory" model="new CategoryViewModel()" />
+<partial name="_SaveCategory"/>
 
 @section Scripts {
     <script src="~/js/Users.js"></script>

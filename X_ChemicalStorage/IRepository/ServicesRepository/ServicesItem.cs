@@ -1,38 +1,44 @@
 ﻿namespace X_ChemicalStorage.IRepository.ServicesRepository
 {
-    public class ServicesLot : IServicesRepository<Lot>
+    public class ServicesItem : IServicesRepository<Item>
     {
         private readonly ApplicationDbContext _context;
 
-        public ServicesLot(ApplicationDbContext context)
+        public ServicesItem(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        #region List Lots
-        public List<Lot> GetAll()
+        #region List Items
+        public List<Item> GetAll()
         {
             try
             {
-                return _context.Lots.Where(x => x.CurrentState > 0).ToList();
+                return _context.Items
+                                     .Include(item=>item.Location)
+                                     .Include(item=>item.Category)
+                                     .Include(item=>item.Unit)
+
+                                     .Where(x => x.CurrentState > 0)
+                                     .ToList();
             }
             catch
             {
-                return new List<Lot>();
+                return new List<Item>();
             }
         }
         #endregion
 
-        #region Find Lot by ...
+        #region Find Item by ...
         //FindCenterBy => Id | Name 
-        public Lot FindBy(int Id) => _context.Lots.FirstOrDefault(x => x.Id.Equals(Id) && x.CurrentState > 0);
-        public Lot FindBy(string Number) => _context.Lots.FirstOrDefault(x => x.LotNumber.Equals(Number.Trim()) && x.CurrentState > 0);
-
+        public Item FindBy(int Id) => _context.Items.FirstOrDefault(x => x.Id.Equals(Id) && x.CurrentState > 0);
+        public Item FindBy(string Name) => _context.Items.FirstOrDefault(x => x.Name.Equals(Name.Trim()) && x.CurrentState > 0);
+        
         #endregion
 
-        #region Save Lot (Add & Update)
-        // Add | Update Lot
-        public bool Save(Lot model)
+        #region Save Item (Add & Update)
+        // Add | Update Item
+        public bool Save(Item model)
         {
             try
             {
@@ -40,23 +46,20 @@
                 if (result == null)
                 {
                     model.CurrentState = (int)Helper.eCurrentState.Active;
-                    _context.Lots.Add(model);
+                    _context.Items.Add(model);
                 }
                 else
                 {
-                    result.LotNumber = model.LotNumber;
-                    result.TotalQuantity = model.TotalQuantity;
-                    result.AvilableQuantity = model.AvilableQuantity;
-                    result.ReceivedDate = model.ReceivedDate;
-                    result.ManufactureDate = model.ManufactureDate;
-                    result.ExpiryDate = model.ExpiryDate;
-                    result.BarcodeType = model.BarcodeType;
-                    result.BarcodeValue = model.BarcodeValue;
-                    result.SDS_link = model.SDS_link;
+                    result.Code = model.Code;
+                    result.Name = model.Name;
+                    result.Limit = model.Limit;
+                    result.SDS = model.SDS;
+                    result.CategoryId = model.CategoryId;
+                    result.UnitId = model.UnitId;
                     result.LocationId = model.LocationId;
-                    
+
                     result.CurrentState = (int)Helper.eCurrentState.Active;
-                    _context.Lots.Update(result);
+                    _context.Items.Update(result);
                 }
                 _context.SaveChanges();
                 return true;
@@ -68,7 +71,7 @@
         }
         #endregion
 
-        #region Delete Lot
+        #region Delete Item
         public bool Delete(int Id)
         {
             try
@@ -77,7 +80,7 @@
                 if (result != null)
                 {
                     result.CurrentState = (int)Helper.eCurrentState.Delete;
-                    _context.Lots.Update(result);
+                    _context.Items.Update(result);
                     _context.SaveChanges();
                     return true;
                 }
@@ -90,13 +93,13 @@
         }
         #endregion
 
-        #region Lot Details
-        // Lot Details
-        public Lot Details(int Id)
+        #region Item Details
+        // Item Details
+        public Item Details(int Id)
         {
             try
             {
-                return _context.Lots.FirstOrDefault(x => x.Id.Equals(Id) && x.CurrentState > 0);
+                return _context.Items.FirstOrDefault(x => x.Id.Equals(Id) && x.CurrentState > 0);
             }
             catch
             {

@@ -4,6 +4,8 @@
     {
         Suppliers ,
         Categories,
+        Units,
+        Items,
         Manufacuters,
         Locations,
         Substances, // Chemical Substance

@@ -120,21 +120,21 @@
                                         <a class="nav-link fw-bold link-light text-center" style="font-size:18px !important" asp-area="" asp-controller="Home" asp-action="MasterDashboard"><i class="bi bi-speedometer2 fs-4"></i><br>Dashboard</a>
                                     </li>
                                 }
-                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View).Result.Succeeded))
+                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Items.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Lots" asp-action="Index"><i class="bi bi-box-seam-fill fs-4"></i><br>Inventory<br class="p-0 m-0"> Catalog</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Items" asp-action="Index"><i class="bi bi-droplet-half fs-4"></i><br>Inv - Catalog</a>
                                     </li>
                                 }
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Lots" asp-action="Index"><i class="bi bi-archive-fill fs-4"></i><br>Inventory <br class="p-0 m-0"> Lots</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Lots" asp-action="Index"><i class="bi bi-archive-fill fs-4"></i><br>Inv - Lots</a>
                                     </li>
                                 }
 
                                 <li class="nav-item dropdown ps-2 py-0 my-0">
-                                    <a class="nav-link dropdown-toggle link-secondary fw-bold text-center m-0" style="font-size:18px !important" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link dropdown-toggle link-secondary fw-bold text-center m-0 pb-0" style="font-size:18px !important" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-file-break-fill fs-4"></i><br>Services
                                     </a>
                                     <ul class="dropdown-menu m-0 py-0" aria-labelledby="navbarDropdown">
@@ -148,6 +148,12 @@
                                         {
                                             <li class="dropdown-item text-start py-0 rounded-2">
                                                 <a class="nav-link fw-bold link-dark" style="font-size:16px !important" asp-area="" asp-controller="Categories" asp-action="Index"><i class="bi bi-diagram-3-fill fs-5 px-2"></i>Categories</a>
+                                            </li>
+                                        }
+                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Units.View).Result.Succeeded))
+                                        {
+                                            <li class="dropdown-item text-start py-0 rounded-2">
+                                                <a class="nav-link fw-bold link-dark" style="font-size:16px !important" asp-area="" asp-controller="Units" asp-action="Index"><i class="bi bi-bounding-box fs-5 px-2"></i>Units</a>
                                             </li>
                                         }
                                         @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Manufacuters.View).Result.Succeeded))

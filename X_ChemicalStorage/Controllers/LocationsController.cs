@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using X_ChemicalStorage.IRepository;
+using X_ChemicalStorage.IRepository.ServicesRepository;
 
 namespace X_ChemicalStorage.Controllers
 {
@@ -73,24 +74,23 @@ namespace X_ChemicalStorage.Controllers
                 if (model?.NewLocation?.Id == 0)
                 { //Create
                     //Exist
-                    if (_servicesLocation.FindBy(model.NewLocation.LocationName) != null)
-                        SessionMsg(Helper.Error, "فئة مكرره !", "اسم الفئة موجود من قبل");
+                    //if (_servicesLocation.FindBy(model.NewLocation.RoomNum.ToString() != null)
+                    //    SessionMsg(Helper.Error, "Exist Location ", "This Location Name already exists !");
 
-                    else
-                    {
+                    //else
+                    //{
                         if (_servicesLocation.Save(model.NewLocation))
-                            SessionMsg(Helper.Success, "تم الإضافة !", "تم اضافة الفئة بنجاح ");
+                            SessionMsg(Helper.Success, "Add Location", "The Location has been added successfully !");
                         else
-                            SessionMsg(Helper.Error, "خطأ في الإضافة", "حدوث خطأ اثناء ادخال بعض البيانات !");
-                    }
+                            SessionMsg(Helper.Error, "Error Adding Location", "An error occurred while adding some data !");
+                    //}
                 }
                 else
                 { //Update
                     if (_servicesLocation.Save(model.NewLocation))
-                        SessionMsg(Helper.Success, "تم التعديل", "تم تعديل بيانات الفئة بنجاح !");
+                        SessionMsg(Helper.Success, "Edit Location", "The Location has been modified successfully !");
                     else
-                        SessionMsg(Helper.Error, "مشكلة في التعديل", "! حدوث خطأ اثناء تعديل بعض البيانات");
-
+                        SessionMsg(Helper.Error, "Error Editting Location", "An error occurred while modifying some data !");
                 }
             }
             return RedirectToAction("index", "Locations");

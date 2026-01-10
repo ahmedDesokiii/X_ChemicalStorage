@@ -10,6 +10,10 @@ namespace X_ChemicalStorage.Controllers
         {
             return View();
         }
+        public IActionResult ManageRolls()
+        {
+            return View();
+        }
 
         // ... existing code
 

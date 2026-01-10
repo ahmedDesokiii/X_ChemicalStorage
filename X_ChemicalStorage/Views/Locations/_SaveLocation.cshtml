@@ -9,41 +9,40 @@
             <span class="fs-4 fw-bold modal-title" id="title"></span>
             <a href="#" class="btn-close position-absolute  end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
         </div>
-
             <div class="modal-body">
                 <form asp-action="Save" asp-controller="Locations" method="post">
                     <input type="text" hidden class="form-control" asp-for="NewLocation.Id" id="locId" value="0" />
                     <!-- LocationName -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Building</span>
-                        <input id="locName" required disabled value="Main Storage" asp-for="@Model.NewLocation.LocationName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-right-color:red;border-top-right-radius : 20px ;">
+                        <input id="locName"  readonly value="Main Storage" asp-for="NewLocation.LocationName" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-right-color:red;border-top-right-radius : 20px ;">
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.LocationName" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.LocationName" class="text-danger"></span>
 
                     <!-- LocationDetails -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Building Details</span>
-                        <input id="locDetails" required disabled value="Details of Main Storage" asp-for="@Model.NewLocation.LocationDetails" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Building Details ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <input id="locDetails" readonly value="Details of Main Storage" asp-for="NewLocation.LocationDetails" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Building Details ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.LocationDetails" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.LocationDetails" class="text-danger"></span>
                     
                     <!-- RoomType -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Room Type</span>
-                        <select id="locRoomType" required onchange="GetStorageTypes()" asp-for="@Model.NewLocation.RoomType" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <select id="locRoomType" required onchange="GetStorageTypes()" asp-for="NewLocation.RoomType" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             <option value="" selected disabled>Select Room Type</option>
-                            <option value="normal" >Normal</option>
-                            <option value="chill">Chill</option>
-                            <option value="freez">Freez</option>
+                            <option value="Normal" >Normal</option>
+                            <option value="Chill">Chill</option>
+                            <option value="Freez">Freez</option>
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.RoomType" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.RoomType" class="text-danger"></span>
                     <br class="my-3" />
                     
                     <!-- RoomNum -->
                     <div id="roomNum" class="input-group mt-2 row mx-auto" style="display:none;">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Room Number</span>
-                        <select id="locRoomNum" required asp-for="@Model.NewLocation.RoomNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <select id="locRoomNum" required asp-for="NewLocation.RoomNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             <option value="0" selected disabled>Select Room Number</option>
                             @for (int i = 1; i <= 10; i++)
                                     {
@@ -51,7 +50,7 @@
                                     }
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.RoomNum" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.RoomNum" class="text-danger"></span>
 
                     <!-- CaseNum -->
                     <div id="caseNum" class="input-group mt-2 row mx-auto" style="display:none;">
@@ -65,63 +64,63 @@
                             }
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.CaseNum" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.CaseNum" class="text-danger"></span>
 
                     <!-- ShelfNum -->
                     <div id="shelfNum" class="input-group mt-2 row mx-auto" style="display:none;">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Shelf Number</span>
 
-                        <select id="locSelfNum" required asp-for="@Model.NewLocation.ShelfNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            <option value="" selected disabled>Select Shelf Number</option>
+                        <select id="locSelfNum" required asp-for="NewLocation.ShelfNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <option value="0" selected disabled>Select Shelf Number</option>
                             @for (int i = 1; i <= 10; i++)
                             {
                                 <option value="@i">@i</option>
                             }
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.ShelfNum" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.ShelfNum" class="text-danger"></span>
                     
                     <!-- RackNum -->
                     <div id="rackNum" class="input-group mt-2 row mx-auto" style="display:none;">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Rack Number</span>
 
                         <select id="locRackNum" required asp-for="@Model.NewLocation.RackNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            <option value="" selected disabled>Select Rack Number</option>
+                            <option value="0" selected disabled>Select Rack Number</option>
                             @for (int i = 1; i <= 10; i++)
                             {
                                 <option value="@i">@i</option>
                             }
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.RackNum" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.RackNum" class="text-danger"></span>
 
                     <!-- BoxNum -->
                     <div id="boxNum" class="input-group mt-2 row mx-auto" style="display:none;">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Box Number</span>
 
                         <select id="locBoxNum" required asp-for="@Model.NewLocation.BoxNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            <option value="" selected disabled>Select Box Number</option>
+                            <option value="0" selected disabled>Select Box Number</option>
                             @for (int i = 1; i <= 10; i++)
                             {
                                 <option value="@i">@i</option>
                             }
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.BoxNum" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.BoxNum" class="text-danger"></span>
 
                     <!-- TubeNum -->
                     <div id="tubeNum" class="input-group mt-2 row mx-auto" style="display:none;">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Tube Number</span>
 
                         <select id="locTubeNum" required asp-for="@Model.NewLocation.TubeNum" class="form-select text-center" autocomplete="on" aria-required="true" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            <option value="" selected disabled>Select Tube Number</option>
+                            <option value="0" selected disabled>Select Tube Number</option>
                             @for (int i = 1; i <= 10; i++)
                             {
                                 <option value="@i">@i</option>
                             }
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewLocation.TubeNum" class="text-danger"></span>
+                    <span asp-validation-for="NewLocation.TubeNum" class="text-danger"></span>
 
 
                     <div class="modal-footer mt-3" style="padding:0 15px 15px 0">

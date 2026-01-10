@@ -1,0 +1,187 @@
+﻿@model ItemViewModel
+
+@{
+    ViewData["Title"] = "Iventory Catalog";
+    int cNo = 0;
+    
+
+}
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <span class="text-center fw-bold fs-1  " style="color:#415E72 !important ">
+        Iventory Catalog
+        <i class="bi bi-droplet-half ps-2 fs-1"></i>
+    </span>
+</div>
+<!-- Main content -->
+
+<section class="container-fluid mt-3 " dir="ltr">
+    <div class="row">
+
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="card p-0">
+                <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Create_Items).Result.Succeeded)
+                    {
+                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New Item" onclick="ResetItem()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
+                    }
+                </div>
+                <!-- /.card-header -->
+
+                <div class="card-body p-0">
+                    <!-- Tab links -->
+                    @*  <div class="tab">
+                        <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
+                    </div> *@
+                    <!-- Tab content -->
+                    @if (!Model.ItemsList.Any())
+                    {
+                        <div class="alert  alert-warning mt-5">
+                            <h4 class="alert-heading">No Items</h4>
+                            <p class="mb-0">No Items have been added to the app yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+
+                        <div id="Users" class="tabcontent mx-2">
+                            <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Code</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SDS</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Category</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Unit</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
+                                        <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ItemsList)
+                                    {
+                                        cNo++;
+                                       
+                                        <tr class="text-center">
+                                            <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
+                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@item.Code</span></td>
+                                            <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@item.Name</span></td>
+                                            @if(item.SDS == true)
+                                            {
+                                                <td class="text-center ">
+                                                    <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
+                                                        Valid
+                                                    </span>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-center ">
+                                                    <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
+                                                       Invalid
+                                                    </span>
+                                                </td>
+                                            }
+                                            <td class="fs-6 text-center px-1">@item.Category.Name</td>
+                                            <td class="fs-6 text-center px-1">@item.Unit.Name</td>
+                                            <td class="fs-6 text-center px-1">@item.Lots.Count</td>
+                                            <td class="text-center ">
+                                                <span class="fw-bold py-2 px-3 bg-warning-subtle link-warning rounded-5">
+                                                    @item.Limit
+                                                </span>
+                                            </td>
+                                            <td class="fs-6 text-center px-1">
+                                                <a class="link-primary fw-bold text-decoration-none" title="Storage Details !" data-bs-toggle="modal" data-bs-target="#LocationModal">
+                                                    @item.Location.LocationName
+                                                </a>
+                                            </td>
+                                           
+                                            <td class="py-1">
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                                                {
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                }
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
+                                                {
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.Limit','@item.SDS','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                }
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
+                                                {
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+            <!-- /.card -->
+        </div>
+        <div class="col-md-1"></div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>
+<!-- /.content -->
+
+<partial name="_SaveItem"  />
+
+@section Scripts {
+    <script src="~/js/Users.js"></script>
+    @if (!string.IsNullOrEmpty(Context.Session.GetString(Helper.MsgType)))
+    {
+        if (Context.Session.GetString(Helper.MsgType) == Helper.Success)
+        {
+            <script>
+
+                Swal.fire({
+                    title: '@Context.Session.GetString(Helper.Title)',
+                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                    confirmButtonText: 'Ok',
+                    icon: 'success'
+                });
+            </script>
+
+        }
+        else
+        {
+            <script>
+
+                Swal.fire({
+                    title: '@Context.Session.GetString(Helper.Title)',
+                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                    confirmButtonText: 'Ok',
+                    icon: 'error'
+                });
+            </script>
+        }
+        Context.Session.SetString(Helper.MsgType, "");
+    }
+
+    <script>
+
+        let lbTitleEdit = '@Html.Raw("Edit Item")';
+        let lbEdit = '@Html.Raw("Save Changes")';
+        let lbAddNewRole = '@Html.Raw("Add New Item")';
+        let lbbtnSave = '@Html.Raw("Save Data")';
+
+        let lbTitleMsgDelete = '@Html.Raw("Delete Item")';
+        let lbTextMsgDelete = '@Html.Raw($"Are you sure !  Do you want to delete the Item data and everything related to it, including requests and records? ")';
+        let lbconfirmButtonText = '@Html.Raw("Yes , Remove")';
+        let lbcancelButtonText = '@Html.Raw("Cancle")';
+
+        let lbTitleDeletedOk = '@Html.Raw("Delete Item Done")';
+        let lbMsgDeletedOkRole = '@Html.Raw("The Item data has been successfully deleted!")';
+        let lbSuccess = '@Html.Raw(Helper.Success)';
+
+    </script>
+}
+

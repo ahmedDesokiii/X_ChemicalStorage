@@ -4,7 +4,21 @@
     ViewData["Title"] = "Access denied";
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <span class="text-center fw-bold fs-1  " style="color:#415E72 !important ">
+        @ViewData["Title"]
+        <i class="bi bi-shield-x ps-2 fs-1"></i>
+    </span>
+</div>
+<section class="text-center py-3 container-fluid justify-content-center mx-auto" dir="ltr">
+    <i class="bi bi-shield-x link-danger fs-1"></i>
+    <br />
+    <div class="link-warning fs-1">
+        @ViewData["Title"]
+    </div>
+    <p class="text-primary py-1">
+        Sorry , You don't have permission to access this page.
+        <br class="m-0 p-0">Please , contact the application administrators and try again !
+    </p>
+</section>
+

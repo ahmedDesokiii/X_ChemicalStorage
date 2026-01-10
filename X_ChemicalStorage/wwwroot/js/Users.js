@@ -191,6 +191,89 @@ DeleteCategory = (id) =>{
     })
 }
 
+//Unit Methods
+EditUnit = (id, name, details) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("unitId").value = id;
+    document.getElementById("unitName").value = name;
+    document.getElementById("unitDetails").value = details;
+
+}
+ResetUnit = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    document.getElementById("unitName").value = "";
+    document.getElementById("unitDetails").value = "";
+}
+DeleteUnit = (id) => {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/Units/Delete?Id=${id}`;
+        }
+    })
+}
+
+//Item Methods
+EditItem = (id, code,name,limit, sds , categoryId , unitId , locationId) => {
+    document.getElementById("title").innerHTML = lbTitleEdit;
+    document.getElementById("btnSave").value = lbEdit;
+    document.getElementById("itemId").value = id;
+    document.getElementById("itemCode").value = code;
+    document.getElementById("itemName").value = name;
+    document.getElementById("itemLimit").value = limit;
+    document.getElementById("itemSDS").value = sds;
+    document.getElementById("itemCategory").value = categoryId;
+    document.getElementById("itemUnit").value = unitId;
+    document.getElementById("itemLocation").value = locationId;
+
+    if (sds == 'True') {
+        document.getElementById("sdsYes").checked = true;
+    } else {
+        document.getElementById("sdsNo").checked = true;
+    }
+}
+ResetItem = () => {
+    document.getElementById("title").innerHTML = lbAddNewRole;
+    document.getElementById("btnSave").value = lbbtnSave;
+    document.getElementById("itemCode").value = "";
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemSDS").value = "";
+    document.getElementById("itemCategory").selectedIndex = 0;
+    document.getElementById("itemUnit").selectedIndex = 0;
+    document.getElementById("itemLocation").selectedIndex = 0;
+    document.getElementById("sdsYes").checked = false;
+    document.getElementById("sdsNo").checked = false;
+}
+DeleteItem = (id) => {
+    Swal.fire({
+        title: lbTitleMsgDelete,
+        text: lbTextMsgDelete,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#57595B',
+        confirmButtonText: lbconfirmButtonText,
+        cancelButtonText: lbcancelButtonText,
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/Items/Delete?Id=${id}`;
+        }
+    })
+}
+
+
 //ManufacuterCompany Methods
 EditManufacuterCompany = (id, name,shName, details) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
@@ -234,14 +317,14 @@ EditLocation = (id, locRoomType, locRoomNum, locCaseNum, locSelfNum, locRackNum,
     //document.getElementById("locName").value = name;
     //document.getElementById("locDetails").value = shName;
 
-    document.getElementById("locRoomType").selectedIndex = locRoomType;
-    document.getElementById("locRoomNum").selectedIndex = locRoomNum;
-    document.getElementById("locCaseNum").selectedIndex = locCaseNum;
-    document.getElementById("locSelfNum").selectedIndex = locSelfNum;
-    document.getElementById("locRackNum").selectedIndex = locRackNum;
-    document.getElementById("locBoxNum").selectedIndex = locBoxNum;
-    document.getElementById("locTubeNum").selectedIndex = locTubeNum;
-    
+    document.getElementById("locRoomType").value = locRoomType;
+    document.getElementById("locRoomNum").value = locRoomNum;
+    document.getElementById("locCaseNum").value = locCaseNum;
+    document.getElementById("locSelfNum").value = locSelfNum;
+    document.getElementById("locRackNum").value = locRackNum;
+    document.getElementById("locBoxNum").value = locBoxNum;
+    document.getElementById("locTubeNum").value = locTubeNum;
+    GetStorageTypes();
 }
 ResetLocation = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;
@@ -294,6 +377,10 @@ GetStorageTypes = () => {
         document.getElementById("rackNum").style.display = "none";
         document.getElementById("boxNum").style.display = "none";
         document.getElementById("tubeNum").style.display = "none";
+        document.getElementById("locRackNum").selectedIndex = 0;
+        document.getElementById("locBoxNum").selectedIndex = 0;
+        document.getElementById("locTubeNum").selectedIndex = 0;
+
     }
     else if (roomType.selectedIndex == 2) { //chill
         document.getElementById("roomNum").style.display = "flex";
@@ -302,6 +389,8 @@ GetStorageTypes = () => {
         document.getElementById("rackNum").style.display = "flex";
         document.getElementById("boxNum").style.display = "none";
         document.getElementById("tubeNum").style.display = "none";
+        document.getElementById("locBoxNum").selectedIndex = 0;
+        document.getElementById("locTubeNum").selectedIndex = 0;
     }
     else if (roomType.selectedIndex == 3) { // freez
         document.getElementById("roomNum").style.display = "flex";

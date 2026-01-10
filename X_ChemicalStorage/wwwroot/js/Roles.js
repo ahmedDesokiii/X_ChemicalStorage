@@ -51,7 +51,7 @@ $('#tablePermission').dataTable({
     },
     "autoWidth": true,
     "responsive": true,
-    "pageLength": 25,
+    "pageLength": 1000,
     layout: {
         topEnd: {
             search: {

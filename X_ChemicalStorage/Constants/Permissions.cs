@@ -33,6 +33,30 @@ namespace X_ChemicalStorage.Constants
                  $"Permissions.{module}.Delete Category",
             };
         }
+        public static List<string> Generate_Units_PermissionsList(string module)
+        {
+            return new List<string>()
+            {
+                 $"Permissions.{module}.Units",
+                 $"Permissions.{module}.View Units List",
+                 $"Permissions.{module}.Create New Unit",
+                 $"Permissions.{module}.Details Unit",
+                 $"Permissions.{module}.Edit Unit ",
+                 $"Permissions.{module}.Delete Unit",
+            };
+        }
+        public static List<string> Generate_Items_PermissionsList(string module)
+        {
+            return new List<string>()
+            {
+                 $"Permissions.{module}.Items",
+                 $"Permissions.{module}.View Items List",
+                 $"Permissions.{module}.Create New Item",
+                 $"Permissions.{module}.Details Item",
+                 $"Permissions.{module}.Edit Item ",
+                 $"Permissions.{module}.Delete Item",
+            };
+        }
         public static List<string> Generate_Locations_PermissionsList(string module)
         {
             return new List<string>()
@@ -74,6 +98,8 @@ namespace X_ChemicalStorage.Constants
         {
             var allSuppliersPermissions = new List<string>();
             var allCategoriesPermissions = new List<string>();
+            var allUnitsPermissions = new List<string>();
+            var allItemsPermissions = new List<string>();
             var allLocationsPermissions = new List<string>();
             var allManufacutersPermissions = new List<string>();
             var allLotsPermissions = new List<string>();
@@ -81,10 +107,19 @@ namespace X_ChemicalStorage.Constants
 
                 allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
                 allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
+                allUnitsPermissions.AddRange(Generate_Units_PermissionsList(Modules.Units.ToString()));
+                allItemsPermissions.AddRange(Generate_Items_PermissionsList(Modules.Items.ToString()));
                 allLocationsPermissions.AddRange(Generate_Locations_PermissionsList(Modules.Locations.ToString()));
                 allManufacutersPermissions.AddRange(Generate_Manufacuters_PermissionsList(Modules.Manufacuters.ToString()));
                 allLotsPermissions.AddRange(Generate_Lots_PermissionsList(Modules.Lots.ToString()));
-                allPermissions = allSuppliersPermissions.Concat(allCategoriesPermissions).Concat(allManufacutersPermissions).Concat(allLocationsPermissions).Concat(allLotsPermissions).ToList();
+                allPermissions = allSuppliersPermissions
+                                .Concat(allCategoriesPermissions)
+                                .Concat(allUnitsPermissions)
+                                .Concat(allItemsPermissions)
+                                .Concat(allManufacutersPermissions)
+                                .Concat(allLocationsPermissions)
+                                .Concat(allLotsPermissions)
+                                .ToList();
         
             return allPermissions;
         }
@@ -109,6 +144,28 @@ namespace X_ChemicalStorage.Constants
             public const string Details_Categories = "Permissions.Categories.Details Category";
             public const string Edit_Categories = "Permissions.Categories.Edit Category ";
             public const string Delete_Categories = "Permissions.Categories.Delete Category";
+        }
+        #endregion
+        #region Units Modules
+        public static class Units
+        {
+            public const string View = "Permissions.Units.Units";
+            public const string View_Units = "Permissions.Units.View Units List";
+            public const string Create_Units = "Permissions.Units.Create New Unit";
+            public const string Details_Units = "Permissions.Units.Details Unit";
+            public const string Edit_Units = "Permissions.Units.Edit Unit ";
+            public const string Delete_Units = "Permissions.Units.Delete Unit";
+        }
+        #endregion
+        #region Items Modules
+        public static class Items
+        {
+            public const string View = "Permissions.Items.Items";
+            public const string View_Items = "Permissions.Items.View Items List";
+            public const string Create_Items = "Permissions.Items.Create New Item";
+            public const string Details_Items = "Permissions.Items.Details Item";
+            public const string Edit_Items = "Permissions.Items.Edit Item ";
+            public const string Delete_Items = "Permissions.Items.Delete Item";
         }
         #endregion
         #region Locations Modules

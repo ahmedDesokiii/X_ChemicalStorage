@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using X_ChemicalStorage.Data;
 
@@ -11,9 +12,11 @@ using X_ChemicalStorage.Data;
 namespace X_ChemicalStorage.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260109121851_UnitsEntity")]
+    partial class UnitsEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -268,49 +271,6 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CurrentState")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Limit")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LocationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("SDS")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("UnitId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("UnitId");
-
-                    b.ToTable("Items");
-                });
-
             modelBuilder.Entity("X_ChemicalStorage.Models.Location", b =>
                 {
                     b.Property<int>("Id")
@@ -379,9 +339,6 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ItemId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("LocationId")
                         .HasColumnType("int");
 
@@ -397,14 +354,20 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<string>("SDS_link")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SubstanceId")
+                        .HasColumnType("int");
+
                     b.Property<double?>("TotalQuantity")
                         .HasColumnType("float");
 
+                    b.Property<string>("Unit")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ItemId");
-
                     b.HasIndex("LocationId");
+
+                    b.HasIndex("SubstanceId");
 
                     b.ToTable("Lots");
                 });
@@ -434,6 +397,83 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ManufacuterCompanies");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Substance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CAS_Number")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Chemical_Formula")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Concentration")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("CurrentState")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GHS_Classification")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Hazard_Statements")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IUPAC_Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ManufacturerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Physical_State")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Size")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Substance_Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Synonym")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Unit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VendorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("ManufacturerId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("Substances");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
@@ -541,60 +581,80 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.Lot", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId");
+
+                    b.HasOne("X_ChemicalStorage.Models.Substance", "Substance")
+                        .WithMany("Lots")
+                        .HasForeignKey("SubstanceId");
+
+                    b.Navigation("Location");
+
+                    b.Navigation("Substance");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Substance", b =>
                 {
                     b.HasOne("X_ChemicalStorage.Models.Category", "Category")
-                        .WithMany("Items")
+                        .WithMany("Substances")
                         .HasForeignKey("CategoryId");
 
                     b.HasOne("X_ChemicalStorage.Models.Location", "Location")
-                        .WithMany("Items")
+                        .WithMany("Substances")
                         .HasForeignKey("LocationId");
 
-                    b.HasOne("X_ChemicalStorage.Models.Unit", "Unit")
-                        .WithMany("Items")
+                    b.HasOne("X_ChemicalStorage.Models.ManufacuterCompany", "Manufacturer")
+                        .WithMany("Substances")
+                        .HasForeignKey("ManufacturerId");
+
+                    b.HasOne("X_ChemicalStorage.Models.Supplier", "Supplier")
+                        .WithMany("Substances")
+                        .HasForeignKey("SupplierId");
+
+                    b.HasOne("X_ChemicalStorage.Models.Unit", null)
+                        .WithMany("Substances")
                         .HasForeignKey("UnitId");
 
                     b.Navigation("Category");
 
                     b.Navigation("Location");
 
-                    b.Navigation("Unit");
-                });
+                    b.Navigation("Manufacturer");
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.Lot", b =>
-                {
-                    b.HasOne("X_ChemicalStorage.Models.Item", "Item")
-                        .WithMany("Lots")
-                        .HasForeignKey("ItemId");
-
-                    b.HasOne("X_ChemicalStorage.Models.Location", "Location")
-                        .WithMany()
-                        .HasForeignKey("LocationId");
-
-                    b.Navigation("Item");
-
-                    b.Navigation("Location");
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Category", b =>
                 {
-                    b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
-                {
-                    b.Navigation("Lots");
+                    b.Navigation("Substances");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Location", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("Substances");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.ManufacuterCompany", b =>
+                {
+                    b.Navigation("Substances");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Substance", b =>
+                {
+                    b.Navigation("Lots");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
+                {
+                    b.Navigation("Substances");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("Substances");
                 });
 #pragma warning restore 612, 618
         }

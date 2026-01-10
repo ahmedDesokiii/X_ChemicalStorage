@@ -1,0 +1,15 @@
+﻿@inject IAuthorizationService AuthorizationService
+@inject UserManager<ApplicationUser> userManager
+@model UnitViewModel
+@{
+    ViewData["Title"] = Model?.NewUnit?.Name;
+}
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <div class="d-flex text-center mx-auto">
+        <a asp-controller="Units" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Units</a>
+        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
+    </div>
+</div>
+<section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
+</section>

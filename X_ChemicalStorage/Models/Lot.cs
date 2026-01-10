@@ -10,8 +10,7 @@ namespace X_ChemicalStorage.Models
 
         public double? TotalQuantity { get; set; }
         public double? AvilableQuantity { get; set; }
-        public string? Unit { get; set; }
-
+        
         public DateTime? ReceivedDate { get; set; }
         public DateTime? ManufactureDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
@@ -25,9 +24,13 @@ namespace X_ChemicalStorage.Models
         [ForeignKey("LocationId")]
         public Location? Location { get; set; }
         // Foreign Keys
-        public int? SubstanceId { get; set; } 
-        [ForeignKey("SubstanceId")]
-        public Substance? Substance { get; set; }
+        //public int? SubstanceId { get; set; } 
+        //[ForeignKey("SubstanceId")]
+        //public Substance? Substance { get; set; }
+
+         public int? ItemId { get; set; } 
+        [ForeignKey("ItemId")]
+        public Item? Item { get; set; }
 
 
         public int? CurrentState { get; set; }

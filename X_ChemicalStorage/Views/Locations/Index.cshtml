@@ -43,7 +43,7 @@
                     else
                     {
 
-                        <div id="Users" class="tabcontent">
+                        <div id="Users" class="tabcontent mx-2">
                             <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                 <thead>
                                     <tr class="text-center">
@@ -67,9 +67,8 @@
                                         <tr class="text-center">
                                             <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
                                             <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@loc.LocationName</span></td>
-                                            <td class="fs-6 text-center px-1">@loc.LocationDetails</td>
-                                            <td class="fs-6 text-center px-1">@loc.RoomNum</td>
                                             <td class="fs-6 text-center px-1">@loc.RoomType</td>
+                                            <td class="fs-6 text-center px-1">@loc.RoomNum</td>
                                             <td class="fs-6 text-center px-1">@loc.CaseNum</td>
                                             <td class="fs-6 text-center px-1">@loc.ShelfNum</td>
                                             <td class="fs-6 text-center px-1">@loc.RackNum</td>
@@ -109,7 +108,7 @@
 </section>
 <!-- /.content -->
 
-<partial name="_SaveLocation" model="new LocationViewModel()" />
+<partial name="_SaveLocation" />
 
 @section Scripts {
     <script src="~/js/Users.js"></script>
