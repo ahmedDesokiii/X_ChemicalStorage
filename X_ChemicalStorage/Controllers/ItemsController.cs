@@ -60,9 +60,7 @@ namespace X_ChemicalStorage.Controllers
                                     {
                                         Value = l.Id.ToString(),
                                         Text = l.Name
-                                    }).ToList(),
-                //LocationData = new Location() ,
-                
+                                    }).ToList()
             };
 
             
