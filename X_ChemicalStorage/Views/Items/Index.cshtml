@@ -9,7 +9,7 @@
 <div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
     <span class="text-center fw-bold fs-1  " style="color:#415E72 !important ">
         Iventory Catalog
-        <i class="bi bi-droplet-half ps-2 fs-1"></i>
+        <i class="bi bi-memory ps-2 fs-1"></i>
     </span>
 </div>
 <!-- Main content -->
@@ -94,7 +94,8 @@
                                                 </span>
                                             </td>
                                             <td class="fs-6 text-center px-1">
-                                                <a class="link-primary fw-bold text-decoration-none" title="Storage Details !" data-bs-toggle="modal" data-bs-target="#LocationModal">
+                                                @* <a class="link-primary fw-bold text-decoration-none" title="Storage Details" data-bs-toggle="modal" data-bs-target="#LocationModal"> *@
+                                                <a class="link-primary fw-bold text-decoration-none" title="Storage Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">
                                                     @item.Location.LocationName
                                                 </a>
                                             </td>

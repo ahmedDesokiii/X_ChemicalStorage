@@ -1,6 +1,6 @@
 ﻿namespace X_ChemicalStorage.IRepository.ServicesRepository
 {
-    public class ServicesItem : IServicesRepository<Item>
+    public class ServicesItem : IServicesRepository<Item> , IServicesItem
     {
         private readonly ApplicationDbContext _context;
 
@@ -104,6 +104,39 @@
             catch
             {
                 return null;
+            }
+        }
+        #endregion
+
+        #region Location Details
+        public Location? GetLocationDetailsOfItem(int Id)
+        {
+            try
+            {
+                return _context.Locations.FirstOrDefault(x => x.Id.Equals(Id) && x.CurrentState > 0);
+            }
+            catch
+            {
+                return new Location();
+            }
+        }
+        #endregion
+
+        #region List Lots Of Item
+        public List<Lot> GetLotsOfItem(int id)
+        {
+            try
+            {
+                return _context.Lots
+                                     .Include(item => item.Location)
+                                     .Include(item => item.Item)
+
+                                     .Where(x => x.CurrentState > 0 && x.ItemId == id)
+                                     .ToList();
+            }
+            catch
+            {
+                return new List<Lot>();
             }
         }
         #endregion

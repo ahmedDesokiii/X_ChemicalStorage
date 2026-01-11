@@ -19,6 +19,10 @@
     <!-- custom theame -->
     <link rel="icon" type="image/x-icon" href="~/images/logooo.ico">
     <link href="~/css/bootstrap.min_lumen.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+
+
     <!-- custom arabic font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&display=swap">
     
@@ -123,7 +127,7 @@
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Items.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Items" asp-action="Index"><i class="bi bi-droplet-half fs-4"></i><br>Inv - Catalog</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Items" asp-action="Index"><i class="bi bi-memory fs-4"></i><br>Inv - Catalog</a>
                                     </li>
                                 }
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View).Result.Succeeded))
@@ -135,7 +139,7 @@
 
                                 <li class="nav-item dropdown ps-2 py-0 my-0">
                                     <a class="nav-link dropdown-toggle link-secondary fw-bold text-center m-0 pb-0" style="font-size:18px !important" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-file-break-fill fs-4"></i><br>Services
+                                        <i class="bi bi-database-fill-gear fs-4"></i><br>Services
                                     </a>
                                     <ul class="dropdown-menu m-0 py-0" aria-labelledby="navbarDropdown">
                                         @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
@@ -165,7 +169,7 @@
                                         @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Locations.View).Result.Succeeded))
                                         {
                                             <li class="dropdown-item text-start py-0 rounded-2">
-                                                <a class="nav-link fw-bold link-dark" style="font-size:16px !important" asp-area="" asp-controller="Locations" asp-action="Index"><i class="bi bi-pin-map-fill fs-5 px-2"></i>Locations</a>
+                                                <a class="nav-link fw-bold link-dark" style="font-size:16px !important" asp-area="" asp-controller="Locations" asp-action="Index"><i class="bi bi-building-fill fs-5 px-2"></i>Locations</a>
                                             </li>
                                         }
                                     </ul>

@@ -7,12 +7,15 @@ namespace X_ChemicalStorage.Controllers
     public class ItemsController : Controller
     {
         private readonly IServicesRepository<Item> _servicesItem ;
+        private readonly IServicesItem _servicesOfItem ;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public ItemsController(IServicesRepository<Item> servicesItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        
+        public ItemsController(IServicesRepository<Item> servicesItem, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _servicesItem = servicesItem;
+            _servicesOfItem = servicesOfItem;
             _userManager = userManager;
             _context = context;
         }
@@ -48,17 +51,20 @@ namespace X_ChemicalStorage.Controllers
                                     .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                                     {
                                         Value = l.Id.ToString(),
-                                        Text = "Room[ "+ l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
+                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
                                     }).ToList(),
                 ListUnits = _context.Units
                                     .Where(l => l.CurrentState > 0)
-                                    .Include(l=>l.Items)
+                                    .Include(l => l.Items)
                                     .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                                     {
                                         Value = l.Id.ToString(),
                                         Text = l.Name
                                     }).ToList(),
+                //LocationData = new Location() ,
+                
             };
+
             
             return View(Items);
         }
@@ -133,7 +139,9 @@ namespace X_ChemicalStorage.Controllers
             ItemViewModel model = new()
             {
                 NewItem = _servicesItem.FindBy(id),
-                ItemsList = _servicesItem.GetAll()
+                ItemsList = _servicesItem.GetAll(),
+                LotsList = _servicesOfItem.GetLotsOfItem(id),
+                LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
             return View(model);
         }
