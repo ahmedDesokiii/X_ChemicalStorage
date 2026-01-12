@@ -16,7 +16,7 @@ namespace X_ChemicalStorage.Models
         public string? Adress { get; set; }
 
         //public ICollection<Substance> Substances { get; set; } = new List<Substance>();
-
+        public ICollection<SupplierLot> SupplierLots { get; set; }
         public int? CurrentState { get; set; }
     }
 }

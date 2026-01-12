@@ -74,43 +74,6 @@
             </div>
             <div class="col-md-6">
                 <div class="card p-0">
-                    <div class="card-header py-1 d-flex align-items-center justify-content-start bg-success-subtle">
-                        <i class="bi bi-pin-angle-fill link-success fs-4 pe-3"></i>
-                        <span class="fs-4 fw-bold link-success">Item Location</span>
-                    </div>
-                    <!-- /.card-header -->
-
-                    <div class="card-body px-3">
-                        <!-- Building Name -->
-                        <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Building Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.LocationName" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                        </div>
-                        <!-- Room Type -->
-                        <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.RoomType" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Room Type ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                        </div>
-                        <!-- Room Number -->
-                        <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Number Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.RoomNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Room Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                        </div>
-                    </div>
-                    <!-- /.card-body -->
-                </div>
-                <!-- /.card -->
-                <!-- /.card -->
-            </div>
-            <div class="col-md-1"></div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
-        <br>
-        <div class="row">
-            <div class="col-md-1"></div>
-            <div class="col-md-4">
-                <div class="card p-0">
                     <div class="card-header py-1 d-flex align-items-center justify-content-start bg-warning-subtle">
                         <i class="bi bi-pin-angle-fill link-warning fs-4 pe-3"></i>
                         <span class="fs-4 fw-bold link-warning">Item Lots</span>
@@ -156,8 +119,113 @@
                 </div>
                 <!-- /.card -->
             </div>
+            <div class="col-md-1"></div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+        <br>
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-4">
+                <div class="card p-0">
+                    <div class="card-header py-1 d-flex align-items-center justify-content-start bg-success-subtle">
+                        <i class="bi bi-pin-angle-fill link-success fs-4 pe-3"></i>
+                        <span class="fs-4 fw-bold link-success">Item Location</span>
+                    </div>
+                    <!-- /.card-header -->
+
+                    <div class="card-body px-3">
+                        <!-- Building Name -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Building Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.LocationName" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Type -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.RoomType" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Room Type ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.RoomNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Room Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Case Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.CaseNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Case Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Shelf Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.ShelfNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Shelf Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Rack Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.RackNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Rack Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Box Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.BoxNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Box Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Room Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tube Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.TubeNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Tube Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
             <div class="col-md-6">
-               
+                <div class="card p-0">
+                    <div class="card-header py-1 d-flex align-items-center justify-content-start bg-dark-subtle">
+                        <i class="bi bi-pin-angle-fill link-dark fs-4 pe-3"></i>
+                        <span class="fs-4 fw-bold link-dark ">Item Transactions</span>
+                    </div>
+                    <!-- /.card-header -->
+
+                    <div class="card-body px-3">
+                        @if (!Model.LotsList.Any())
+                        {
+                            <div class="alert  alert-dark mt-5">
+                                <h4 class="alert-heading">No Transactions in this item</h4>
+                                <p class="mb-0">No lots have been added to this transactions yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="Users" class="tabcontent mx-2">
+                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                    <thead>
+                                        <tr class="text-center fs-5">
+                                            <th class="bg-warning-subtle text-center"></th>
+                                            <th class="bg-warning-subtle text-center"><span class="fw-bold">Lot Number</span></th>
+                                            <th class="bg-warning-subtle text-center"><span class="fw-bold">Barcode</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var lot in Model.LotsList)
+                                        {
+
+                                            <tr class="text-center">
+                                                <td class=" text-center px-1"><span class="">@cNo</span></td>
+                                                <td class=" text-center px-1"><span class="link-dark ">@lot.LotNumber</span></td>
+                                                <td class=" text-center px-1"><span class="link-dark ">@lot.BarcodeValue</span></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
             </div>
             <div class="col-md-1"></div>
             <!-- /.col -->

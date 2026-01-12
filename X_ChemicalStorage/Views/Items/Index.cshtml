@@ -48,12 +48,14 @@
                             <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                 <thead>
                                     <tr class="text-center">
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
+                                        @* <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th> *@
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Code</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SDS</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Category</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Unit</th>
+                                        <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Total<br class="m-0 p-0">Quantity</th>
+                                        <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Avilable<br class="m-0 p-0">Quantity</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
@@ -66,7 +68,7 @@
                                         cNo++;
                                        
                                         <tr class="text-center">
-                                            <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
+                                            @* <td class="fs-6 text-center px-1"><span class="">@cNo</span></td> *@
                                             <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@item.Code</span></td>
                                             <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@item.Name</span></td>
                                             @if(item.SDS == true)
@@ -87,6 +89,8 @@
                                             }
                                             <td class="fs-6 text-center px-1">@item.Category.Name</td>
                                             <td class="fs-6 text-center px-1">@item.Unit.Name</td>
+                                            <td class="fs-6 text-center px-1"><span class="fw-bold">@item.TotalQuantity</span></td>
+                                            <td class="fs-6 text-center px-1"><span class="fw-bold">@item.AvilableQuantity</span></td>
                                             <td class="fs-6 text-center px-1">@item.Lots.Count</td>
                                             <td class="text-center ">
                                                 <span class="fw-bold py-2 px-3 bg-warning-subtle link-warning rounded-5">
@@ -107,7 +111,7 @@
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.Limit','@item.SDS','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
                                                 {

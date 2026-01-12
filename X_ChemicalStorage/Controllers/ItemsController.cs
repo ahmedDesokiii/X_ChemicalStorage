@@ -97,32 +97,29 @@ namespace X_ChemicalStorage.Controllers
         [AutoValidateAntiforgeryToken]
         public IActionResult Save(ItemViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var userId = _userManager.GetUserId(User);
+            var userId = _userManager.GetUserId(User);
 
-                if (model?.NewItem?.Id == 0)
-                { //Create
-                    //Exist
-                    if (_servicesItem.FindBy(model.NewItem.Name) != null )
-                        SessionMsg(Helper.Error, "Exist Item ", "This Item Name already exists !");
-                    
-                    else
-                    {
-                        if (_servicesItem.Save(model.NewItem))
-                            SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
-                        else
-                            SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
-                    }
-                }
+            if (model?.NewItem?.Id == 0)
+            { //Create
+              //Exist
+                if (_servicesItem.FindBy(model.NewItem.Name) != null)
+                    SessionMsg(Helper.Error, "Exist Item ", "This Item Name already exists !");
+
                 else
-                { //Update
+                {
                     if (_servicesItem.Save(model.NewItem))
-                        SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
+                        SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
                     else
-                        SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
-
+                        SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
                 }
+            }
+            else
+            { //Update
+                if (_servicesItem.Save(model.NewItem))
+                    SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
+                else
+                    SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
+
             }
             return RedirectToAction("index", "Items");
         }

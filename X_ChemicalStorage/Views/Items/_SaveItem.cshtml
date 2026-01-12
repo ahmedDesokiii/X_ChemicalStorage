@@ -26,14 +26,6 @@
                     </div>
                     <span asp-validation-for="@Model.NewItem.Name" class="text-danger"></span>
 
-                 
-                    <!-- ItemLimit -->
-                    <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemLimit" required asp-for="@Model.NewItem.Limit" class="form-control text-danger text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Limit ..." type="number" min="0"  aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                    </div>
-                    <span asp-validation-for="@Model.NewItem.Limit" class="text-danger"></span>
-
                     <!-- Category -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -42,6 +34,18 @@
                         </select>    
                     </div>
                     <span asp-validation-for="@Model.NewItem.CategoryId" class="text-danger"></span>
+                    <!-- ItemQuantity -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="itemQnty" required asp-for="@Model.NewItem.TotalQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                    </div>
+                    <span asp-validation-for="@Model.NewItem.TotalQuantity" class="text-danger"></span>
+                    <!-- ItemLimit -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="itemLimit" required asp-for="@Model.NewItem.Limit" class="form-control text-danger text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Limit ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                    </div>
+                    <span asp-validation-for="@Model.NewItem.Limit" class="text-danger"></span>
 
                     <!-- Unit -->
                     <div class="input-group mt-2 row mx-auto">
@@ -50,6 +54,7 @@
                             <option selected disabled> Choose Unit </option>
                         </select>
                     </div>
+                   
                     <span asp-validation-for="@Model.NewItem.UnitId" class="text-danger"></span>
 
                     <!-- Location -->

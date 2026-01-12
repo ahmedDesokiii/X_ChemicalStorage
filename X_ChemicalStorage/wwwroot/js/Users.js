@@ -225,12 +225,13 @@ DeleteUnit = (id) => {
 }
 
 //Item Methods
-EditItem = (id, code,name,limit, sds , categoryId , unitId , locationId) => {
+EditItem = (id, code,name,qnty,limit, sds , categoryId , unitId , locationId) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
     document.getElementById("itemId").value = id;
     document.getElementById("itemCode").value = code;
     document.getElementById("itemName").value = name;
+    document.getElementById("itemQnty").value = qnty;
     document.getElementById("itemLimit").value = limit;
     document.getElementById("itemSDS").value = sds;
     document.getElementById("itemCategory").value = categoryId;

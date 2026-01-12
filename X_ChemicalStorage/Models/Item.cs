@@ -12,6 +12,8 @@ namespace X_ChemicalStorage.Models
         public string? Name { get; set; } // item Name
         public bool? SDS { get; set; } //  Safty Data Sheet 
         public int Limit { get; set; } = 1; // Minimum Limit
+        public double? TotalQuantity { get; set; } = 0;
+        public double? AvilableQuantity { get; set; } = 0;
 
         //public string? BarcodeType { get; set; } // Barcode Type
 
@@ -31,6 +33,7 @@ namespace X_ChemicalStorage.Models
         
 
         public ICollection<Lot> Lots { get; set; } = new List<Lot>();
+        public ICollection<ItemTransaction> ItemTransactions { get; set; } = new List<ItemTransaction>();
 
         public int? CurrentState { get; set; }
     }

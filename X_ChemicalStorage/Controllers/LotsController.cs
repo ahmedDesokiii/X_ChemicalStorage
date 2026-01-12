@@ -73,7 +73,7 @@ namespace X_ChemicalStorage.Controllers
                 if (model?.NewLot?.Id == 0)
                 { //Create
                     //Exist
-                    if (_servicesLot.FindBy(model.NewLot.LotNumber) != null)
+                    if (_servicesLot.FindBy(model.NewLot.LotNumber.ToString()) != null)
                         SessionMsg(Helper.Error, "Exist Lot ", "This Lot already exists !");
 
                     else

@@ -46,6 +46,7 @@
                 if (result == null)
                 {
                     model.CurrentState = (int)Helper.eCurrentState.Active;
+                    model.AvilableQuantity = model.TotalQuantity;
                     _context.Items.Add(model);
                 }
                 else
@@ -53,6 +54,8 @@
                     result.Code = model.Code;
                     result.Name = model.Name;
                     result.Limit = model.Limit;
+                    result.TotalQuantity = model.TotalQuantity;
+                    result.AvilableQuantity = model.TotalQuantity;
                     result.SDS = model.SDS;
                     result.CategoryId = model.CategoryId;
                     result.UnitId = model.UnitId;

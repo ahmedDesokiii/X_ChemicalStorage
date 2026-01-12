@@ -52,7 +52,7 @@
                     result.ExpiryDate = model.ExpiryDate;
                     result.BarcodeType = model.BarcodeType;
                     result.BarcodeValue = model.BarcodeValue;
-                    result.SDS_link = model.SDS_link;
+                    result.SDS = model.SDS;
                     result.LocationId = model.LocationId;
                     
                     result.CurrentState = (int)Helper.eCurrentState.Active;
