@@ -14,7 +14,11 @@
         {
             try
             {
-                return _context.Lots.Where(x => x.CurrentState > 0).ToList();
+                return _context.Lots
+                    .Include(x=>x.Item)
+                    .Include(x=>x.Location)
+                    .Include(x=>x.SupplierLots)
+                    .Where(x => x.CurrentState > 0 && x.TotalQuantity > 0).ToList();
             }
             catch
             {
@@ -50,8 +54,7 @@
                     result.ReceivedDate = model.ReceivedDate;
                     result.ManufactureDate = model.ManufactureDate;
                     result.ExpiryDate = model.ExpiryDate;
-                    result.BarcodeType = model.BarcodeType;
-                    result.BarcodeValue = model.BarcodeValue;
+                    result.Quantity = model.Quantity;
                     result.SDS = model.SDS;
                     result.LocationId = model.LocationId;
                     

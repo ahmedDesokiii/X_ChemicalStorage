@@ -54,8 +54,8 @@
                     result.Code = model.Code;
                     result.Name = model.Name;
                     result.Limit = model.Limit;
-                    result.TotalQuantity = model.TotalQuantity;
-                    result.AvilableQuantity = model.TotalQuantity;
+                    //result.TotalQuantity = model.TotalQuantity;
+                    //result.AvilableQuantity = model.TotalQuantity;
                     result.SDS = model.SDS;
                     result.CategoryId = model.CategoryId;
                     result.UnitId = model.UnitId;

@@ -232,6 +232,7 @@ EditItem = (id, code,name,qnty,limit, sds , categoryId , unitId , locationId) =>
     document.getElementById("itemCode").value = code;
     document.getElementById("itemName").value = name;
     document.getElementById("itemQnty").value = qnty;
+    document.getElementById("itemQnty").readOnly = true;
     document.getElementById("itemLimit").value = limit;
     document.getElementById("itemSDS").value = sds;
     document.getElementById("itemCategory").value = categoryId;
@@ -249,7 +250,9 @@ ResetItem = () => {
     document.getElementById("btnSave").value = lbbtnSave;
     document.getElementById("itemCode").value = "";
     document.getElementById("itemName").value = "";
-    document.getElementById("itemSDS").value = "";
+    document.getElementById("itemSDS").value = "1";
+    document.getElementById("itemQnty").value = "0";
+    document.getElementById("itemQnty").readOnly = false;
     document.getElementById("itemCategory").selectedIndex = 0;
     document.getElementById("itemUnit").selectedIndex = 0;
     document.getElementById("itemLocation").selectedIndex = 0;

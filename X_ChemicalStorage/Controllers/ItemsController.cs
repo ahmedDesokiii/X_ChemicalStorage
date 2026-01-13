@@ -11,7 +11,6 @@ namespace X_ChemicalStorage.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        
         public ItemsController(IServicesRepository<Item> servicesItem, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _servicesItem = servicesItem;
