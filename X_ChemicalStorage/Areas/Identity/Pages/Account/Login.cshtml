@@ -11,7 +11,7 @@
             <div class="text-center fs-1 text-white">
                 <span class="text-center fs-1 fw-bold " style="color:#415E72 !important ">
                    
-                    <i class="bi bi-check-circle pe-2 fs-3"></i>
+                    <i class="bi bi-box-arrow-in-right pe-2 fs-2"></i>
                     Log in
                 </span>
             </div>
@@ -29,13 +29,15 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                     <!-- UserName -->
                     <div class="input-group mt-3">
-                        <input asp-for="Input.Email" id="userName" required class="form-control text-center me-1 px-1" aria-required="true" placeholder=" ! Enter Username or Email " type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;" >
+                        <i class="bi bi-person-circle mx-2 fs-3 link-dark"></i>
+                        <input asp-for="Input.Email" id="userName" required class="form-control text-center me-1 px-1" aria-required="true" placeholder=" ! Enter Username or Email " type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;"> 
                         <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-start-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Username&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     </div>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
 
                     <!-- Password -->
                     <div class="input-group mt-3">
+                        <i class="bi bi-shield-lock-fill mx-2 fs-3 link-dark"></i>
                         <input asp-for="Input.Password" required id="pass" class="form-control text-center me-1 px-2" placeholder="! Enter fixed password " type="password" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;">
                         <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-start-3 px-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Password&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     </div>

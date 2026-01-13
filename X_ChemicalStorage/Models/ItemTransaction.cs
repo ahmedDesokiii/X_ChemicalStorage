@@ -10,7 +10,7 @@ namespace X_ChemicalStorage.Models
         public DateTime? Move_Date { get; set; } = DateTime.Now;
         public bool? Move_State { get; set; }
         public string? Move_Statement { get; set; } = string.Empty;
-
+        public double? Move_Quantity { get; set; } = 0;
         public int? ItemId { get; set; } 
         [ForeignKey("ItemId")]
         public Item? Item { get; set; }

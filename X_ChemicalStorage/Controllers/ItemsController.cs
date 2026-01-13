@@ -136,6 +136,7 @@ namespace X_ChemicalStorage.Controllers
                 NewItem = _servicesItem.FindBy(id),
                 ItemsList = _servicesItem.GetAll(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
                 LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
             return View(model);

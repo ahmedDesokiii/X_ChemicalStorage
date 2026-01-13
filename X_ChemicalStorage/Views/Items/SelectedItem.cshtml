@@ -3,7 +3,8 @@
 @model ItemViewModel
 @{
     ViewData["Title"] = Model?.NewItem?.Name;
-    int cNo = 1;
+    int cNo = 0;
+    int tNo = 0;
     }
 <div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
     <div class="d-flex text-center mx-auto">
@@ -36,16 +37,22 @@
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             <input  disabled asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
+                        <!-- Item Category -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.Category.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Category Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Item Total Quantity -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.TotalQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Quantity ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
                         <!-- Item Limit -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             <input  disabled asp-for="@Model.NewItem.Limit" class="form-control text-center link-danger fw-bold" autocomplete="on" aria-required="true" placeholder="Item Limit ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
-                        <!-- Item Category -->
-                        <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input  disabled asp-for="@Model.NewItem.Category.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Category Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                        </div>
+                       
                         <!-- Item Unit -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -102,7 +109,7 @@
                                     <tbody>
                                         @foreach (var lot in Model.LotsList)
                                         {
-
+                                            cNo++;
                                             <tr class="text-center">
                                                 <td class=" text-center px-1"><span class="">@cNo</span></td>
                                                 <td class=" text-center px-1"><span class="link-dark ">@lot.LotNumber</span></td>
@@ -189,11 +196,11 @@
                     <!-- /.card-header -->
 
                     <div class="card-body px-3">
-                        @if (!Model.LotsList.Any())
+                        @if (!Model.ItemTransactionsList.Any())
                         {
                             <div class="alert  alert-dark mt-5">
                                 <h4 class="alert-heading">No Transactions in this item</h4>
-                                <p class="mb-0">No lots have been added to this transactions yet.</p>
+                                <p class="mb-0">No transactions have been added to this item yet.</p>
                             </div>
                         }
                         else
@@ -202,19 +209,28 @@
                                 <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                     <thead>
                                         <tr class="text-center fs-5">
-                                            <th class="bg-warning-subtle text-center"></th>
-                                            <th class="bg-warning-subtle text-center"><span class="fw-bold">Lot Number</span></th>
-                                            <th class="bg-warning-subtle text-center"><span class="fw-bold">Barcode</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Trans. #</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Trans. Date</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Statement</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Quantity</span></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var lot in Model.LotsList)
+                                        @foreach (var trans in Model.ItemTransactionsList)
                                         {
-
+                                            tNo++;
                                             <tr class="text-center">
-                                                <td class=" text-center px-1"><span class="">@cNo</span></td>
-                                                <td class=" text-center px-1"><span class="link-dark ">@lot.LotNumber</span></td>
-                                                <td class=" text-center px-1"><span class="link-dark ">@lot.BarcodeValue</span></td>
+                                                <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@trans.Move_Num</span></td>
+                                                <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@Convert.ToDateTime(trans.Move_Date).ToShortDateString()</span></td>
+                                                <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@trans.Move_Statement</span></td>
+                                                @if (trans.Move_State == true)
+                                                {
+                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-caret-up-fill link-success fs-3 px-3"></i>@trans.Move_Quantity</span></td>
+                                                }
+                                                else
+                                                {
+                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-caret-down-fill link-danger fs-3 px-3"></i>@trans.Move_Quantity</span></td>
+                                                }
                                             </tr>
                                         }
                                     </tbody>

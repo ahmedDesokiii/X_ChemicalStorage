@@ -4,5 +4,6 @@
     {
         public List<Lot> GetLotsOfItem(int id);
         public Location? GetLocationDetailsOfItem(int Id);
+        public List<ItemTransaction> GetItemTransactionsOfItem(int id);
     }
 }

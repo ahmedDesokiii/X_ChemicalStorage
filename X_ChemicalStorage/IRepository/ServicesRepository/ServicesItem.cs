@@ -143,6 +143,23 @@
             }
         }
         #endregion
+        #region List Lots Of Item
+        public List<ItemTransaction> GetItemTransactionsOfItem(int id)
+        {
+            try
+            {
+                return _context.ItemTransactions
+                                     .Include(item => item.Item)
+
+                                     .Where(x => x.CurrentState > 0 && x.ItemId == id)
+                                     .ToList();
+            }
+            catch
+            {
+                return new List<ItemTransaction>();
+            }
+        }
+        #endregion
     }
 }
 

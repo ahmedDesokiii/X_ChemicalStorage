@@ -39,7 +39,7 @@
                     }
                     else
                     {
-                        <div id="Roles" class="tabcontent mx-2">
+                        <div id="Roles" class="tabcontent mx-2 ">
                             <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableRole">
                                 <thead>
                                     <tr class="text-center">
@@ -54,9 +54,9 @@
                                     {
                                         index++;
                                         <tr class="text-center">
-                                            <td class="text-center">@index</td>
-                                            <td class="text-center"><span class="bg-success-subtle fw-bold p-2 link-success rounded-5">@role.Name</span></td>
-                                            <td class="text-center">@role.Details</td>
+                                            <td class="text-center" style="width:50px;">@index</td>
+                                            <td class="text-center" style="width:150px;"><span class="bg-success-subtle fw-bold p-2 link-success rounded-5">@role.Name</span></td>
+                                            <td class="text-center" style="width:250px;">@role.Details</td>
                                             <td class="text-center py-1">
                                                 <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Manage Role Permissions" asp-controller="Roles" asp-action="ManagePermissions" asp-route-roleId="@role.Id"><i class="bi bi-shield-lock"></i></a>
                                                 <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" Edit" onclick="Edit('@role.Id','@role.Name','@role.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
