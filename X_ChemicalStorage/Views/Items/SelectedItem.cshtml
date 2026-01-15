@@ -24,8 +24,20 @@
                         <span class="fs-4 fw-bold link-primary">Item Details</span>
                     </div>
                     <!-- /.card-header -->
-                    <div class="card-body px-3">
-                       
+                    <div class="card-body">
+                        <!-- Item Image -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <img src="~/images/item.png" class="mx-auto w-50" />
+                        </div>
+                        <!-- Item Barcode -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <div class="card col-md-8 py-5" style="border-top-right-radius : 20px ;">
+                                <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                    ...
+                                </div>
+                            </div>
+                        </div>
                         
                         <!-- Item Code -->
                         <div class="input-group mt-2 row mx-auto">
@@ -101,21 +113,124 @@
                                 <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                     <thead>
                                         <tr class="text-center fs-5">
-                                            <th class="bg-warning-subtle text-center"></th>
-                                            <th class="bg-warning-subtle text-center"><span class="fw-bold">Lot Number</span></th>
-                                            <th class="bg-warning-subtle text-center"><span class="fw-bold">Barcode</span></th>
+                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold"></span></th>
+                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Lot Number</span></th>
+                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Expiry Date</span></th>
+                                            <th class="bg-warning text-white text-center fs-6"><span class="fw-bold">Total<br class="m-0 p-0">Quantity</span></th>
+                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Lot SDS</span></th>
+                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Location</span></th>
+                                            <th class="bg-warning text-secondary text-center fs-5"><span class="fw-bold">Actions</span></th>
+
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var lot in Model.LotsList)
                                         {
                                             cNo++;
-                                            <tr class="text-center">
-                                                <td class=" text-center px-1"><span class="">@cNo</span></td>
-                                                <td class=" text-center px-1"><span class="link-dark ">@lot.LotNumber</span></td>
-                                                <td class=" text-center px-1"><span class="link-dark ">@lot.LotNumber</span></td>
-                                            </tr>
+                                            @if (Convert.ToDateTime(lot.ExpiryDate).Date < DateTime.Now.Date)
+                                            {
+                                                <tr class="text-center ">
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@cNo</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="fw-bold link-danger">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
+                                                    @if (lot.SDS == true)
+                                                    {
+                                                        <td class="text-center bg-danger-subtle">
+                                                            <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
+                                                                Valid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center bg-danger-subtle">
+                                                            <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
+                                                                Invalid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+
+                                                    <td class="py-1 bg-danger-subtle">
+                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                        {
+                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                        }
+                                                        
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else if (Convert.ToDateTime(lot.ExpiryDate).Date.AddDays(-30) <= DateTime.Now.Date)
+                                            {
+                                                <tr class="text-center ">
+                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@cNo</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
+                                                    @if (lot.SDS == true)
+                                                    {
+                                                        <td class="text-center bg-info-subtle">
+                                                            <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
+                                                                Valid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center bg-info-subtle">
+                                                            <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
+                                                                Invalid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+
+                                                    <td class="py-1 bg-info-subtle">
+                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                        {
+                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else if (Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date)
+                                            {
+                                                <tr class="text-center ">
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@cNo</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="fw-bold link-success">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
+                                                    @if (lot.SDS == true)
+                                                    {
+                                                        <td class="text-center ">
+                                                            <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
+                                                                Valid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center ">
+                                                            <span class="fw-bold py-2 px-3  bg-success-subtle link-danger rounded-5">
+                                                                Invalid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+
+                                                    
+                                                    <td class="py-1 ">
+                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                        {
+                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
                                         }
+                                    
                                     </tbody>
                                 </table>
                             </div>
@@ -142,6 +257,11 @@
                     <!-- /.card-header -->
 
                     <div class="card-body px-3">
+
+                        <!-- Location Image -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <img src="~/images/storage.png" class="mx-auto w-25" />
+                        </div>
                         <!-- Building Name -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Building Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -205,8 +325,8 @@
                         }
                         else
                         {
-                            <div id="Users" class="tabcontent mx-2">
-                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                            <div id="Roles" class="tabcontent mx-2">
+                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableRole">
                                     <thead>
                                         <tr class="text-center fs-5">
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Trans. #</span></th>

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-
 namespace X_ChemicalStorage.Models
 {
     public class Lot
@@ -7,7 +6,6 @@ namespace X_ChemicalStorage.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int? LotNumber { get; set; }
-
         public double? Quantity { get; set; }
         public double? TotalQuantity { get; set; }
         public double? AvilableQuantity { get; set; }
@@ -25,7 +23,6 @@ namespace X_ChemicalStorage.Models
         public Item? Item { get; set; }
 
         public ICollection<SupplierLot> SupplierLots { get; set; }
-
         public int? CurrentState { get; set; }
     }
 }

@@ -18,7 +18,9 @@
                     .Include(x=>x.Item)
                     .Include(x=>x.Location)
                     .Include(x=>x.SupplierLots)
-                    .Where(x => x.CurrentState > 0 && x.TotalQuantity > 0).ToList();
+                    .Where(x => x.CurrentState > 0 && x.TotalQuantity > 0)
+                    .OrderBy(x=>x.ExpiryDate)
+                    .ToList();
             }
             catch
             {

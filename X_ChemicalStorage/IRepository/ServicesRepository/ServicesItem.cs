@@ -131,11 +131,12 @@
             try
             {
                 return _context.Lots
-                                     .Include(item => item.Location)
-                                     .Include(item => item.Item)
-
-                                     .Where(x => x.CurrentState > 0 && x.ItemId == id)
-                                     .ToList();
+                    .Include(x => x.Item)
+                    .Include(x => x.Location)
+                    .Include(x => x.SupplierLots)
+                    .Where(x => x.CurrentState > 0 && x.TotalQuantity > 0 && x.ItemId == id)
+                    .OrderBy(x => x.ExpiryDate).ThenBy(x=>x.ItemId).ThenBy(x=>x.LotNumber)
+                    .ToList();
             }
             catch
             {
@@ -143,14 +144,13 @@
             }
         }
         #endregion
-        #region List Lots Of Item
+        #region List Transactions Of Item
         public List<ItemTransaction> GetItemTransactionsOfItem(int id)
         {
             try
             {
                 return _context.ItemTransactions
                                      .Include(item => item.Item)
-
                                      .Where(x => x.CurrentState > 0 && x.ItemId == id)
                                      .ToList();
             }
