@@ -17,14 +17,16 @@ namespace X_ChemicalStorage.Controllers
     {
         private readonly IWebHostEnvironment _env;
         private readonly IServicesRepository<Item> _servicesItem ;
+        private readonly IServicesRepository<Lot> _servicesLot ;
         private readonly IServicesItem _servicesOfItem ;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
-        
-        public ItemsController(IWebHostEnvironment env, IServicesRepository<Item> servicesItem, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+
+        public ItemsController(IWebHostEnvironment env, IServicesRepository<Item> servicesItem, IServicesRepository<Lot> servicesLot, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _env = env;
             _servicesItem = servicesItem;
+            _servicesLot = servicesLot;
             _servicesOfItem = servicesOfItem;
             _userManager = userManager;
             _context = context;
@@ -182,12 +184,13 @@ namespace X_ChemicalStorage.Controllers
         public IActionResult SelectedItem(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+            var todayUtc = DateTime.UtcNow.Date;
             ItemViewModel model = new()
             {
                 NewItem = _servicesItem.FindBy(id),
                 ItemsList = _servicesItem.GetAll(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id),
+                ExpieredLots = _servicesLot.GetAll().Where(x => x.ItemId == id && x.ExpiryDate < todayUtc && x.CurrentState>0).ToList(),
                 ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
             };
             model.LocationData = _servicesOfItem.GetLocationDetailsOfItem(id);

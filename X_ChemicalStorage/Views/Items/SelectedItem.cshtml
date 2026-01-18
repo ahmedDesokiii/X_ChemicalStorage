@@ -317,6 +317,87 @@
             </div>
             <div class="col-md-6">
                 <div class="card p-0">
+                    <div class="card-header py-1 d-flex align-items-center justify-content-start bg-danger-subtle">
+                        <i class="bi bi-pin-angle-fill link-danger fs-4 pe-3"></i>
+                        <span class="fs-4 fw-bold link-danger">Expiered Lots</span>
+                    </div>
+                    <!-- /.card-header -->
+
+                    <div class="card-body px-3">
+                        @if (!Model.ExpieredLots.Any())
+                        {
+                            <div class="alert  alert-danger mt-5">
+                                <h4 class="alert-heading">No Expiered Lots in this item</h4>
+                                <p class="mb-0">No expiered lots have been added to this item yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="Users" class="tabcontent mx-2">
+                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                    <thead>
+                                        <tr class="text-center fs-5">
+                                            <th class=" text-white text-center fs-5" style="background-color:#901E3E !important;"><span class="fw-bold"></span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#901E3E !important;"><span class="fw-bold">Lot Number</span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#901E3E !important;"><span class="fw-bold">Expiry Date</span></th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#901E3E !important;"><span class="fw-bold">Total<br class="m-0 p-0">Quantity</span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#901E3E !important;"><span class="fw-bold">Lot SDS</span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#901E3E !important;"><span class="fw-bold">Location</span></th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var lot in Model.ExpieredLots)
+                                        {
+                                            cNo++;
+                                            
+                                                <tr class="text-center ">
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@cNo</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="fw-bold link-danger">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
+                                                    @if (lot.SDS == true)
+                                                    {
+                                                        <td class="text-center bg-danger-subtle">
+                                                            <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
+                                                                Valid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center bg-danger-subtle">
+                                                            <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
+                                                                Invalid
+                                                            </span>
+                                                        </td>
+                                                    }
+                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+                                                </tr>
+                                        }
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <div class="col-md-1"></div>
+            <!-- /.col -->
+        </div>
+        <br>
+
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-4">
+               
+            </div>
+            <div class="col-md-6">
+                <div class="card p-0">
                     <div class="card-header py-1 d-flex align-items-center justify-content-start bg-dark-subtle">
                         <i class="bi bi-pin-angle-fill link-dark fs-4 pe-3"></i>
                         <span class="fs-4 fw-bold link-dark ">Item Transactions</span>

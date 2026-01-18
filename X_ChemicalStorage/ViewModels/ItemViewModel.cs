@@ -8,6 +8,7 @@ namespace X_ChemicalStorage.ViewModels
         public List<Item>? ItemsList { get; set; } = new List<Item>();
 
         public List<Lot>? LotsList { get; set; } = new List<Lot>();
+        public List<Lot>? ExpieredLots { get; set; } = new List<Lot>();
         public List<ItemTransaction>? ItemTransactionsList { get; set; } = new List<ItemTransaction>();
         public Location? LocationData { get; set; } = new Location();
 
