@@ -55,6 +55,7 @@ namespace X_ChemicalStorage.Constants
                  $"Permissions.{module}.Details Item",
                  $"Permissions.{module}.Edit Item ",
                  $"Permissions.{module}.Delete Item",
+                 $"Permissions.{module}.Print Item Barcode",
             };
         }
         public static List<string> Generate_Locations_PermissionsList(string module)
@@ -87,6 +88,7 @@ namespace X_ChemicalStorage.Constants
             {
                  $"Permissions.{module}.Lots",
                  $"Permissions.{module}.View Lots List",
+                 $"Permissions.{module}.View ExpieryLots List",
                  $"Permissions.{module}.Create New Lot",
                  $"Permissions.{module}.Details Lot",
                  $"Permissions.{module}.Edit Lot ",
@@ -166,6 +168,8 @@ namespace X_ChemicalStorage.Constants
             public const string Details_Items = "Permissions.Items.Details Item";
             public const string Edit_Items = "Permissions.Items.Edit Item ";
             public const string Delete_Items = "Permissions.Items.Delete Item";
+            public const string Print_ItemBarcode = "Permissions.Items.Print Item Barcode";
+
         }
         #endregion
         #region Locations Modules
@@ -195,6 +199,7 @@ namespace X_ChemicalStorage.Constants
         {
             public const string View = "Permissions.Lots.Lots";
             public const string View_Lots = "Permissions.Lots.View Lots List";
+            public const string View_ExpieryLots = "Permissions.Lots.View ExpieryLots List";
             public const string Create_Lots = "Permissions.Lots.Create New Lot";
             public const string Details_Lots = "Permissions.Lots.Details Lot";
             public const string Edit_Lots = "Permissions.Lots.Edit Lot ";

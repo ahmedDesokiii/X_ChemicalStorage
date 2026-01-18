@@ -56,7 +56,6 @@
                     result.ReceivedDate = model.ReceivedDate;
                     result.ManufactureDate = model.ManufactureDate;
                     result.ExpiryDate = model.ExpiryDate;
-                    result.Quantity = model.Quantity;
                     result.SDS = model.SDS;
                     result.LocationId = model.LocationId;
                     

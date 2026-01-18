@@ -7,14 +7,19 @@ namespace X_ChemicalStorage.Controllers
     public class LotsController : Controller
     {
         private readonly IServicesRepository<Lot> _servicesLot ;
+        private readonly IServicesRepository<Item> _servicesItem ;
+        private readonly IInventoryService _inventoryService;
         private readonly UserManager<ApplicationUser> _userManager;
+
         private readonly ApplicationDbContext _context;
 
-        public LotsController(IServicesRepository<Lot> servicesLot, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        
+        public LotsController(IServicesRepository<Lot> servicesLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager)
         {
             _servicesLot = servicesLot;
+            _servicesItem = servicesItem;
+            _inventoryService = inventoryService;
             _userManager = userManager;
-            _context = context;
         }
 
         private void SessionMsg(string MsgType, string Title, string Msg)
@@ -28,9 +33,12 @@ namespace X_ChemicalStorage.Controllers
         [Authorize(Permissions.Lots.View_Lots)]
         public IActionResult Index()
         {
+            var todayUtc = DateTime.UtcNow.Date;
             var Lots = new LotViewModel
             {
                 LotsList = _servicesLot.GetAll(),
+                ExpiryLotsList = _servicesLot.GetAll().Where(x=>x.ExpiryDate < todayUtc).ToList(),
+                ItemsList = _servicesItem.GetAll(),
                 NewLot = new Lot()
             };
             return View(Lots);
@@ -111,6 +119,46 @@ namespace X_ChemicalStorage.Controllers
             return View(model);
         }
         #endregion
-        
+
+        #region Receiving → Lot Creation 
+        [HttpGet]
+        public IActionResult CreateLot(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            LotViewModel model = new()
+            {
+                NewLot = _servicesLot.FindBy(id),
+                LotsList = _servicesLot.GetAll()
+            };
+            return View(model);
+        }
+        #endregion
+
+
+        // View
+        public IActionResult Scan()
+        {
+            return View();
+        }
+
+        // AJAX
+        [HttpGet]
+        public async Task<IActionResult> GetLotsByBarcode(string barcode)
+        {
+            var lots = await _inventoryService.GetLotsByBarcodeAsync(barcode);
+
+            if (!lots.Any())
+                return NotFound("لا توجد Lots متاحة");
+
+            return Json(lots);
+        }
+
+        [HttpPost]
+        public IActionResult Submit(int lotId, int quantity)
+        {
+            // خصم الكمية ومعالجة العملية
+            return Ok();
+        }
     }
 }

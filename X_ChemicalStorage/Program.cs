@@ -39,6 +39,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+
 //Services To ReloadPage after update any process 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
@@ -76,6 +77,7 @@ builder.Services.AddScoped<IServicesRepository<Category>, ServicesCategory>();
 builder.Services.AddScoped<IServicesRepository<Unit>, ServicesUnit>();
 builder.Services.AddScoped<IServicesRepository<Item>, ServicesItem>();
 builder.Services.AddScoped<IServicesItem, ServicesItem>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IServicesRepository<Location>, ServicesLocation>();
 builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();

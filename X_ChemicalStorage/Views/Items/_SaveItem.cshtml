@@ -10,19 +10,30 @@
                 <a href="#" class="btn-close position-absolute  end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
             </div>
             <div class="modal-body">
-                <form asp-action="Save" asp-controller="Items" method="post">
+                <form  method="post">
                     <input type="text" hidden class="form-control" asp-for="NewItem.Id" id="itemId" value="0" />
-                    <!-- ItemCode -->
+                    <!-- Item Barcode -->
                     <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
+                            <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                <img src="~/barcodes/0bfaec93.png" height="100" />
+                                @* <br class="p-0 m-0">
+                                <span class="link-dark " style="font-size:10px">@Model.NewItem?.Code</span> *@
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ItemCode -->
+                    <div class="input-group mt-2 row mx-auto" >
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemCode" required asp-for="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <input id="itemCode" disabled required asp-for="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.Code" class="text-danger"></span>
 
                     <!-- ItemName -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemName" required asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <input id="itemName" required asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" autofocus>
                     </div>
                     <span asp-validation-for="@Model.NewItem.Name" class="text-danger"></span>
 
@@ -56,6 +67,23 @@
                     </div>
                    
                     <span asp-validation-for="@Model.NewItem.UnitId" class="text-danger"></span>
+
+                    <!-- StorageConditions -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Storage Condition &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <select id="itemStorageCondition" class="form-select text-center col-md-8" required asp-for="NewItem.StorageCondition" style="border-top-right-radius : 20px ;">
+                            <option value="" selected disabled> Choose Storage Condition </option>
+                            <option value="room temp"> Room Temp </option>
+                            <option value="2-8C"> 2&deg;C - 8&deg;C  </option>
+                            <option value="freezer20"> Freezer-20  </option>
+                            <option value="freezer20"> Freezer-80  </option>
+                            <option value="freezer20"> Freezer-150  </option>
+                            <option value="freezer20"> Liquid Nitrogen Tank  </option>
+                            <option value="freezer20"> Hazardous  </option>
+                        </select>
+                    </div>
+
+                    <span asp-validation-for="@Model.NewItem.StorageCondition" class="text-danger"></span>
 
                     <!-- Location -->
                     <div class="input-group mt-2 row mx-auto">
@@ -106,7 +134,11 @@
 
 
                     <div class="modal-footer mt-4" style="padding:0 15px 15px 0">
-                        <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" />
+                        <button class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " type="submit" title="Print Barcode" asp-controller="Items" asp-action="SaveAndPrint">
+                            <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
+                            <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
+                        </button>
+                        <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" asp-action="Save" asp-controller="Items" />
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
                     </div>
                 </form>

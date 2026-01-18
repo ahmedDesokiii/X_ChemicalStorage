@@ -6,7 +6,7 @@ namespace X_ChemicalStorage.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int? LotNumber { get; set; }
-        public double? Quantity { get; set; }
+        //public double? Quantity { get; set; }
         public double? TotalQuantity { get; set; }
         public double? AvilableQuantity { get; set; }
         public DateTime? ReceivedDate { get; set; }

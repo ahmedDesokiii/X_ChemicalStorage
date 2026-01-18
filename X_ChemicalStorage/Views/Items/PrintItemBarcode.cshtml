@@ -1,0 +1,43 @@
+﻿
+@{
+    Layout = null;   // IMPORTANT: no layout for printing
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Print Barcode </title>
+
+    <style>
+        media print {
+            page {
+                size: 50mm 25mm;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        body {
+            width: 50mm;
+            height: 25mm;
+            /* display: flex; */
+            justify-content: center;
+            align-items: center;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body onload="window.print(); window.close();" >
+    <img src="@ViewBag.BarcodePath" alt="Barcode" />
+
+    
+</body>
+</html>

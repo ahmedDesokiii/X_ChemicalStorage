@@ -1,18 +1,29 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using X_ChemicalStorage.IRepository;
+using ZXing;
+using ZXing.Common;
+using ZXing.ImageSharp;
+using ZXing.QrCode;
 
 namespace X_ChemicalStorage.Controllers
 {
     public class ItemsController : Controller
     {
+        private readonly IWebHostEnvironment _env;
         private readonly IServicesRepository<Item> _servicesItem ;
         private readonly IServicesItem _servicesOfItem ;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
-
-        public ItemsController(IServicesRepository<Item> servicesItem, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        
+        public ItemsController(IWebHostEnvironment env, IServicesRepository<Item> servicesItem, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
+            _env = env;
             _servicesItem = servicesItem;
             _servicesOfItem = servicesOfItem;
             _userManager = userManager;
@@ -90,7 +101,7 @@ namespace X_ChemicalStorage.Controllers
         //}
         #endregion
 
-        #region Add|Edit Item [Create & Update]
+        #region Add|Edit Item [Create & Update] without print
         [Authorize(Permissions.Items.Create_Items), Authorize(Permissions.Items.Edit_Items)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
@@ -103,10 +114,10 @@ namespace X_ChemicalStorage.Controllers
               //Exist
                 if (_servicesItem.FindBy(model.NewItem.Name) != null)
                     SessionMsg(Helper.Error, "Exist Item ", "This Item Name already exists !");
-
+                    
                 else
                 {
-                    if (_servicesItem.Save(model.NewItem))
+                    if (_servicesItem.Save(model.NewItem))  
                         SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
                     else
                         SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
@@ -116,6 +127,48 @@ namespace X_ChemicalStorage.Controllers
             { //Update
                 if (_servicesItem.Save(model.NewItem))
                     SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
+                else
+                    SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
+
+            }
+            return RedirectToAction("index", "Items");
+        }
+        #endregion
+
+        #region Add|Edit Item [Create & Update] without print
+        [Authorize(Permissions.Items.Create_Items), Authorize(Permissions.Items.Edit_Items)]
+        [HttpPost]
+        [AutoValidateAntiforgeryToken]
+        public IActionResult SaveAndPrint(ItemViewModel model)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (model?.NewItem?.Id == 0)
+            { //Create
+              //Exist
+                if (_servicesItem.FindBy(model.NewItem.Name) != null)
+                    SessionMsg(Helper.Error, "Exist Item ", "This Item Name already exists !");
+
+                else
+                {
+                    if (_servicesItem.Save(model.NewItem))
+                    {
+                        SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
+                        //To print Barcode After Save Item
+                        return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage });
+                    }
+                    else
+                        SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
+                }
+            }
+            else
+            { //Update
+                if (_servicesItem.Save(model.NewItem))
+                {
+                    SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
+                    //To print Barcode After Save Item
+                    //return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage });
+                }
                 else
                     SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
 
@@ -136,11 +189,49 @@ namespace X_ChemicalStorage.Controllers
                 ItemsList = _servicesItem.GetAll(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id),
                 ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
-                LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
+            model.LocationData = _servicesOfItem.GetLocationDetailsOfItem(id);
+            
             return View(model);
         }
         #endregion
-        
+
+        #region Receiving → Lot Creation 
+        [HttpGet]
+        public IActionResult CreateLot(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ItemViewModel model = new()
+            {
+
+                NewItem = _servicesItem.FindBy(id),
+                ItemsList = _servicesItem.GetAll(),
+                LotsList = _servicesOfItem.GetLotsOfItem(id),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
+                ListLocations = _context.Locations
+                                    .Where(l => l.CurrentState > 0)
+                                    .Include(l => l.Items)
+                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                                    {
+                                        Value = l.Id.ToString(),
+                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
+                                    }).ToList(),
+                LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
+            };
+            
+            return View(model);
+        }
+        #endregion
+
+        #region Print Barcode
+        public IActionResult PrintItemBarcode(string barcodeFile , string code)
+        {
+            //ViewBag.BarcodePath = "/barcodes/" + barcodeFile;
+            ViewBag.BarcodePath = barcodeFile;
+            ViewBag.Code = code;
+            return View();
+        }
+        #endregion
     }
 }

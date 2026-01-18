@@ -13,8 +13,33 @@
         <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
     </div>
 </div>
-<section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
+<section class="text-center pb-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
     <section class="container-fluid mt-3 " dir="ltr">
+        <div class="row mb-2">
+            <div class="col-md-1"></div>
+
+            <div class=" d-flex col-md-4" >
+                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
+                {
+                    <a class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@Model.NewItem.BarcodeImage" asp-route-Code="@Model.NewItem.Code">
+                        <img src="~/images/barcode.png" alt="Save" height="40" class="mx-2">
+                        <span class="fw-bold fs-6 pt-2 pe-3">Print Barcode</span>
+                    </a>
+                }
+                
+            </div>
+            <div class=" d-flex col-md-6">
+                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
+                {
+                    <a class="btn btn-outline-warning btn-sm  d-flex rounded rounded-3 " title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@Model.NewItem.Id" >
+                        <i class="bi bi-cart-plus-fill mx-2 fs-4"></i>
+                        <span class="fw-bold fs-6 pt-2 pe-3">Create New Lot</span>
+                    </a>
+                }
+            </div>
+        </div>
+        
+        
         <div class="row">
             <div class="col-md-1"></div>
             <div class="col-md-4">
@@ -32,9 +57,9 @@
                         <!-- Item Barcode -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <div class="card col-md-8 py-5" style="border-top-right-radius : 20px ;">
+                            <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
                                 <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                    ...
+                                    <img src="@Model?.NewItem?.BarcodeImage" />
                                 </div>
                             </div>
                         </div>
@@ -119,8 +144,7 @@
                                             <th class="bg-warning text-white text-center fs-6"><span class="fw-bold">Total<br class="m-0 p-0">Quantity</span></th>
                                             <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Lot SDS</span></th>
                                             <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Location</span></th>
-                                            <th class="bg-warning text-secondary text-center fs-5"><span class="fw-bold">Actions</span></th>
-
+                                            
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -153,13 +177,7 @@
                                                     
                                                     <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
 
-                                                    <td class="py-1 bg-danger-subtle">
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                        {
-                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
-                                                        }
-                                                        
-                                                    </td>
+                                                   
                                                 </tr>
                                             }
                                             else if (Convert.ToDateTime(lot.ExpiryDate).Date.AddDays(-30) <= DateTime.Now.Date)
@@ -187,12 +205,7 @@
                                                     }
                                                     <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
 
-                                                    <td class="py-1 bg-info-subtle">
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                        {
-                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
-                                                        }
-                                                    </td>
+                                                   
                                                 </tr>
                                             }
                                             else if (Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date)
@@ -221,12 +234,7 @@
                                                     <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
 
                                                     
-                                                    <td class="py-1 ">
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                        {
-                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
-                                                        }
-                                                    </td>
+                                                    
                                                 </tr>
                                             }
                                         }
@@ -333,6 +341,7 @@
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Trans. Date</span></th>
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Statement</span></th>
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Quantity</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Total Quantity</span></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -351,6 +360,8 @@
                                                 {
                                                     <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-caret-down-fill link-danger fs-3 px-3"></i>@trans.Move_Quantity</span></td>
                                                 }
+                                                <td class=" text-center px-1 pb-0 pt-2"><span class="link-primary fw-bold ">@trans.Total_Quantity</span></td>
+
                                             </tr>
                                         }
                                     </tbody>

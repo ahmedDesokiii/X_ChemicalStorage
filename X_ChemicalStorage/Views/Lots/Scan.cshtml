@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Scan Item";
+}
+
+<input type="text"
+       id="barcodeInput"
+       class="form-control"
+       placeholder="Scan Item Barcode"
+       autofocus />
+
+<select id="lotSelect"
+        class="form-control mt-3"
+        disabled>
+    <option value="">-- اختر Lot --</option>
+</select>
+
+<input type="number"
+       id="qtyInput"
+       class="form-control mt-3"
+       placeholder="أدخل الكمية"
+       min="1"
+       disabled />
+
+<button id="submitBtn"
+        class="btn btn-primary mt-3"
+        disabled>
+    حفظ
+</button>
+
+<script>
+    let maxQty = 0;
+
+    // Scan Barcode
+    document.getElementById("barcodeInput").addEventListener("change", function () {
+        fetch(`/Lots/GetLotsByBarcode?barcode=${this.value}`)
+            .then(res => res.json())
+            .then(data => {
+                let select = document.getElementById("lotSelect");
+                select.innerHTML = '<option value="">-- اختر Lot --</option>';
+                select.disabled = false;
+
+                data.forEach(lot => {
+                    let opt = document.createElement("option");
+                    opt.value = lot.id;
+                    opt.text = lot.displayText;
+                    opt.dataset.qty = lot.availableQty;
+                    select.appendChild(opt);
+                });
+            });
+
+        this.value = "";
+    });
+
+    // Select Lot
+    document.getElementById("lotSelect").addEventListener("change", function () {
+        let opt = this.options[this.selectedIndex];
+        maxQty = opt.dataset.qty;
+
+        let qty = document.getElementById("qtyInput");
+        qty.disabled = false;
+        qty.max = maxQty;
+        qty.value = "";
+        qty.placeholder = `Max: ${maxQty}`;
+    });
+
+    // Quantity
+    document.getElementById("qtyInput").addEventListener("input", function () {
+        if (this.value > maxQty)
+            this.value = maxQty;
+
+        document.getElementById("submitBtn").disabled = !this.value;
+    });
+</script>

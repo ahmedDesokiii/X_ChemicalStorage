@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using X_ChemicalStorage.Models;
 
 namespace X_ChemicalStorage.Data
 {
@@ -40,6 +41,8 @@ namespace X_ChemicalStorage.Data
                 .HasForeignKey(sl => sl.LotId);
 
         }
+        //public DbSet<PrintSetting> PrintSettings { get; set; }
+
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Unit> Units { get; set; }

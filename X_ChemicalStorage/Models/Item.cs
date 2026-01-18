@@ -8,14 +8,14 @@ namespace X_ChemicalStorage.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string? Code { get; set; } // item Code
+        public string? Code { get; set; } // item Code // الكود الذي سيولد منه الباركود
         public string? Name { get; set; } // item Name
         public bool? SDS { get; set; } //  Safty Data Sheet 
         public int Limit { get; set; } = 1; // Minimum Limit
         public double? TotalQuantity { get; set; } = 0;
         public double? AvilableQuantity { get; set; } = 0;
-
-        //public string? BarcodeType { get; set; } // Barcode Type
+        public string? StorageCondition { get; set; } // Storage Condition Details 
+        public string? BarcodeImage { get; set; } // مسار صورة الباركود
 
         // Foreign Keys
         public int? CategoryId { get; set; }

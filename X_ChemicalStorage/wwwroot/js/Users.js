@@ -51,14 +51,14 @@ $('#tablePermissions').dataTable({
     },
     "autoWidth": true,
     "responsive": true,
-    "pageLength": 200,
+
     layout: {
-        topStart: {
+        topEnd: {
             search: {
-                placeholder: ''
+                placeholder: 'Search'
             }
         },
-        topEnd: {
+        topStart: {
             pageLength: {
                 menu: [10, 25, 50, 100, 200, 400, 1000]
             }
@@ -72,15 +72,15 @@ $('#tablePermissions').dataTable({
     language: {
         "autoWidth": true,
         "responsive": true,
-        search: 'بحث', // Customize the search input label
+        search: '', // Customize the search input label
         lengthMenu: ' _MENU_ ', // Customize the "Show X entries" label
-        info: 'إظهار _START_ إلى _END_ من أصل _TOTAL_ سجل', // Customize the info text
-        zeroRecords: 'لم يعثر على أي سجل', // No records message
+        info: 'Show _START_ To _END_ From _TOTAL_ entries', // Customize the info text
+        zeroRecords: 'No records found', // No records message
         paginate: {
-            first: 'الأول',
-            previous: 'السابق',
-            next: 'التالي',
-            last: 'الأخير'
+            first: 'Frist',
+            previous: 'Next',
+            next: 'Prev',
+            last: 'Last'
         }
     }
 });
@@ -225,7 +225,7 @@ DeleteUnit = (id) => {
 }
 
 //Item Methods
-EditItem = (id, code,name,qnty,limit, sds , categoryId , unitId , locationId) => {
+EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId , unitId , locationId) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
     document.getElementById("itemId").value = id;
@@ -235,6 +235,7 @@ EditItem = (id, code,name,qnty,limit, sds , categoryId , unitId , locationId) =>
     document.getElementById("itemQnty").readOnly = true;
     document.getElementById("itemLimit").value = limit;
     document.getElementById("itemSDS").value = sds;
+    document.getElementById("itemStorageCondition").value = storagecon;
     document.getElementById("itemCategory").value = categoryId;
     document.getElementById("itemUnit").value = unitId;
     document.getElementById("itemLocation").value = locationId;
@@ -248,11 +249,12 @@ EditItem = (id, code,name,qnty,limit, sds , categoryId , unitId , locationId) =>
 ResetItem = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;
     document.getElementById("btnSave").value = lbbtnSave;
-    document.getElementById("itemCode").value = "";
+    document.getElementById("itemCode").value = "generation in progress automatic ... !";
     document.getElementById("itemName").value = "";
     document.getElementById("itemSDS").value = "1";
     document.getElementById("itemQnty").value = "0";
     document.getElementById("itemQnty").readOnly = false;
+    document.getElementById("itemStorageCondition").selectedIndex = 0;
     document.getElementById("itemCategory").selectedIndex = 0;
     document.getElementById("itemUnit").selectedIndex = 0;
     document.getElementById("itemLocation").selectedIndex = 0;

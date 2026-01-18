@@ -130,12 +130,13 @@
                                         <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Items" asp-action="Index"><i class="bi bi-pc fs-4"></i><br>Inv - Catalog</a>
                                     </li>
                                 }
-                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View).Result.Succeeded))
-                                {
+
+                                    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View).Result.Succeeded))
+                                    {
                                     <li class="nav-item ps-2">
                                         <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Lots" asp-action="Index"><i class="bi bi-archive-fill fs-4"></i><br>Inv - Lots</a>
                                     </li>
-                                }
+                                    }
 
                                 <li class="nav-item dropdown ps-2 py-0 my-0">
                                     <a class="nav-link dropdown-toggle link-secondary fw-bold text-center m-0 pb-0" style="font-size:18px !important" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
