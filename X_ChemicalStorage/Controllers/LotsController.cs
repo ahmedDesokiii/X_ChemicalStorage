@@ -10,16 +10,16 @@ namespace X_ChemicalStorage.Controllers
         private readonly IServicesRepository<Item> _servicesItem ;
         private readonly IInventoryService _inventoryService;
         private readonly UserManager<ApplicationUser> _userManager;
-
         private readonly ApplicationDbContext _context;
 
-        
-        public LotsController(IServicesRepository<Lot> servicesLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager)
+       
+        public LotsController(IServicesRepository<Lot> servicesLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _servicesLot = servicesLot;
             _servicesItem = servicesItem;
             _inventoryService = inventoryService;
             _userManager = userManager;
+            _context = context;
         }
 
         private void SessionMsg(string MsgType, string Title, string Msg)
@@ -104,6 +104,45 @@ namespace X_ChemicalStorage.Controllers
             return RedirectToAction("index", "Lots");
         }
         #endregion
+        #region Add|Edit Lot [Create & Update]
+        [Authorize(Permissions.Lots.Create_Lots), Authorize(Permissions.Lots.Edit_Lots)]
+        [HttpPost]
+        [AutoValidateAntiforgeryToken]
+        public IActionResult SaveAndPrint(LotViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var userId = _userManager.GetUserId(User);
+
+                if (model?.NewLot?.Id == 0)
+                { //Create
+                    //Exist
+                    if (_servicesLot.FindBy(model.NewLot.LotNumber.ToString()) != null)
+                        SessionMsg(Helper.Error, "Exist Lot ", "This Lot already exists !");
+
+                    else
+                    {
+                        if (_servicesLot.Save(model.NewLot)) { 
+                            SessionMsg(Helper.Success, "Add Lot", "The Lot has been added successfully !");
+                            return RedirectToAction("PrintItemBarcode", "Lots", new { barcodeFile = model.NewLot.BarcodeImage });
+                        }
+                            
+                        else
+                            SessionMsg(Helper.Error, "Error Adding Lot", "An error occurred while adding some data !");
+                    }
+                }
+                else
+                { //Update
+                    if (_servicesLot.Save(model.NewLot))
+                        SessionMsg(Helper.Success, "Edit Lot", "The Lot has been modified successfully !");
+                    else
+                        SessionMsg(Helper.Error, "Error Editting Lot", "An error occurred while modifying some data !");
+
+                }
+            }
+            return RedirectToAction("index", "Lots");
+        }
+        #endregion
 
         #region Details Of Lot 
         [HttpGet]
@@ -160,5 +199,16 @@ namespace X_ChemicalStorage.Controllers
             // خصم الكمية ومعالجة العملية
             return Ok();
         }
+
+        #region Print Lot Barcode
+        public IActionResult PrintLotBarcode(string barcodeFile, string itemCode , string expiryDate)
+        {
+            ViewBag.BarcodePath = barcodeFile;
+            ViewBag.ItemCode = itemCode;
+            ViewBag.LotNum = itemCode;
+            ViewBag.ExpiryDate = expiryDate;
+            return View();
+        }
+        #endregion
     }
 }

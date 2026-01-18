@@ -5,7 +5,7 @@ namespace X_ChemicalStorage.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public int? LotNumber { get; set; }
+        public string? LotNumber { get; set; }
         //public double? Quantity { get; set; }
         public double? TotalQuantity { get; set; }
         public double? AvilableQuantity { get; set; }
@@ -13,6 +13,7 @@ namespace X_ChemicalStorage.Models
         public DateTime? ManufactureDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public bool? SDS { get; set; }
+        public string? BarcodeImage { get; set; } // مسار صورة الباركود
 
         // Foreign Keys
         public int? LocationId { get; set; } // Location Details

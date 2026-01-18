@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     Layout = null;
 }
 
@@ -7,14 +6,16 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Item Sticker</title>
+    <title>Lot Sticker</title>
     <link href="~/css/sticker.css" rel="stylesheet" />
 </head>
 <body>
 
     <div class="sticker">
         <img src="@ViewBag.BarcodePath" alt="Barcode" />
-        <div class="item-code">@ViewBag.Code</div>
+        <div class="item-code">@ViewBag.ItemCode</div>
+        <div class="item-name">@ViewBag.LotNum</div>
+        <div class="item-name">@ViewBag.ExpiryDate</div>
     </div>
 
     <script>

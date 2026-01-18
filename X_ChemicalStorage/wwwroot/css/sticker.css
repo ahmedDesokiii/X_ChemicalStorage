@@ -1,0 +1,41 @@
+﻿.sticker {
+    width: 5cm;
+    height: 2.5cm;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    line-height: 1.1;
+}
+
+    /* الباركود */
+    .sticker img {
+        width: 100%;
+    }
+
+/* كود الصنف */
+.item-code {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* اسم الصنف */
+.item-name {
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* السعر + الكمية */
+.info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    padding: 0 4px;
+    font-weight: bold;
+}
+
+@media print {
+    body {
+        margin: 0;
+    }
+}

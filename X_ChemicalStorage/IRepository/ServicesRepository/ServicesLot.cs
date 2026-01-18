@@ -1,12 +1,19 @@
-﻿namespace X_ChemicalStorage.IRepository.ServicesRepository
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using ZXing;
+using ZXing.Common;
+
+namespace X_ChemicalStorage.IRepository.ServicesRepository
 {
     public class ServicesLot : IServicesRepository<Lot>
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public ServicesLot(ApplicationDbContext context)
+        public ServicesLot(ApplicationDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         #region List Lots
@@ -45,6 +52,36 @@
                 var result = FindBy(model.Id);
                 if (result == null)
                 {
+                    model.LotNumber = Guid.NewGuid().ToString("N").Substring(0, 8);
+                    //Generate Barcode !
+                    var writer = new BarcodeWriterPixelData
+                    {
+                        Format = BarcodeFormat.CODE_128,
+                        Options = new EncodingOptions
+                        {
+                            Width = 300,
+                            Height = 120,
+                            Margin = 2
+                        }
+                    };
+
+                    var pixelData = writer.Write(model.LotNumber);
+
+                    using var image = Image.LoadPixelData<Rgba32>(
+                        pixelData.Pixels,
+                        pixelData.Width,
+                        pixelData.Height);
+
+                    string folderPath = Path.Combine(_env.WebRootPath, "barcodes");
+                    if (!Directory.Exists(folderPath))
+                        Directory.CreateDirectory(folderPath);
+
+                    string fileName = model.LotNumber + ".png";
+                    string filePath = Path.Combine(folderPath, fileName);
+                    image.Save(filePath);
+
+                    model.BarcodeImage = "/lotbarcodes/" + fileName;
+
                     model.CurrentState = (int)Helper.eCurrentState.Active;
                     _context.Lots.Add(model);
                 }
