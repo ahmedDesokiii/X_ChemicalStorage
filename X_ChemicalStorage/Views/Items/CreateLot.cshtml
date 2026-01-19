@@ -16,7 +16,6 @@
     </div>
 </div>
 <form  method="post">
-    <input type="text" hidden class="form-control" asp-for="NewLot.Id" id="lotId" value="0" />
     <section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
         <section class="container-fluid mt-3 " dir="ltr">
             <div class="row">
@@ -34,6 +33,8 @@
                                 @* <img src="~/images/item.png" class="mx-auto w-50" /> *@
                             </div>
                             <!---------------------------- Item Data ----------------------------------->
+                            <input hidden asp-for="@Model.NewLot.ItemId" value="@Model.NewItem.Id" class="form-control text-center fw-bold" style="border-top-right-radius : 20px ;">
+
                             <!-- Item Barcode -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -46,17 +47,16 @@
                             <!-- Item Code -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input disabled value="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                                <input readonly  value="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
-                            <!-- Item Code -->
+                            <!-- Item Name -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input disabled value="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                                <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                         
                             <!-- /.card-body -->
                         </div>
-                        <!-- /.card -->
                         <!-- /.card -->
                     </div>
                 </div>
@@ -70,20 +70,31 @@
                         <div class="card-body mx-auto ">
                             <!-- Item Image -->
                             <div class="input-group mt-2 row mx-auto">
-                                <img src="~/images/lot.png" class="mx-auto w-25 " />
+                                @* <img src="~/images/lot.png" class="mx-auto w-25 " /> *@
                             </div>
                         
                             <!---------------------------- Lot Data ----------------------------------->
+                            <!-- Lot Barcode -->
+                            <div class="input-group mt-2 row mx-auto">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
+                                    <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                        <img src="~/lotbarcodes/184799d5.png" height="100" />
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Lot Number -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input asp-for="@Model.NewLot.LotNumber" class="form-control text-center " autocomplete="on" aria-required="true" placeholder="Lot Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" autofocus>
+                                <input id="lotNum" readonly required  class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Generate Lot Barcode ...!" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" >
                             </div>
+                            
                         
                             <!-- Lot Quantity -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center "  placeholder="Max Quantity Avilable : @Model.NewItem.AvilableQuantity " type="number" min="0" max="@Model?.NewItem?.AvilableQuantity"  style="border-top-right-radius : 20px ;">
+                                <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Max Quantity Avilable : @Model.NewItem.AvilableQuantity " type="number" min="0" max="@Model?.NewItem?.AvilableQuantity" style="border-top-right-radius : 20px ;" autofocus>
                             </div>
                             <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
                         
@@ -100,12 +111,10 @@
                                 @* <input value="@Model.NewItem.LocationId" class="form-control text-center fw-bold col-md-6" type="text" style="border-top-right-radius : 20px ;"> *@
                                 <span class="col-md-8"></span>
                                 <div class="row mt-1">
-                                    <select id="itemLocation" class="form-select text-start " required asp-items="@Model.ListLocations" asp-for="NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
+                                    <select id="lotLocation" class="form-select text-start " required asp-items="@Model.ListLocations" asp-for="@Model.NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
                                         <option selected disabled class="text-center "> Choose Location </option>
                                     </select>
                                 </div>
-
-
                             </div>
                             <span asp-validation-for="@Model.NewLot.LocationId" class="text-danger"></span>
                             <!-- Lot Manufacture Date -->
@@ -155,14 +164,14 @@
 
                         <!-- /.card-body -->
                     </div>
-                        <div class="card-footer mt-4 d-flex mx-auto py-3 bg-transparent" style="padding:0 15px 15px 0">
-                            <button class="btn btn-outline-primary btn-sm mx-2 d-flex rounded rounded-3 " type="submit" title="Print Barcode" asp-controller="Lots" asp-action="SaveAndPrint">
-                                <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
-                                <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
-                            </button>
-                            <input type="submit" class="btn btn-success mx-2" value="Save changes" id="btnSave" asp-action="Save" asp-controller="Lots" />
-                            <button type="button" class="btn btn-secondary mx-2" data-bs-dismiss="modal">Cancle</button>
-                        </div>
+                    <div class="card-footer mt-4 d-flex mx-auto py-3 bg-transparent" style="padding:0 15px 15px 0">
+                        <button class="btn btn-outline-primary btn-sm mx-2 d-flex rounded rounded-3 " type="submit" title="Print lot Barcode" asp-controller="Lots" asp-action="SaveAndPrint">
+                            <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
+                            <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
+                        </button>
+                        <input type="submit" class="btn btn-success mx-2" value="Save changes Only" id="btnSave" asp-action="Save" asp-controller="Lots" />
+                        
+                    </div>
                     <!-- /.card -->
                     <!-- /.card -->
                 </div>

@@ -53,6 +53,7 @@ namespace X_ChemicalStorage.Data
         public virtual DbSet<SupplierLot> SupplierLots { get; set; } // DbSet for the join table
 
         public virtual DbSet<ItemTransaction> ItemTransactions { get; set; }
+        public virtual DbSet<LotTransaction> LotTransactions { get; set; }
         public virtual DbSet<ManufacuterCompany> ManufacuterCompanies { get; set; }
 
        

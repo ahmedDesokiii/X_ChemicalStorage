@@ -191,7 +191,7 @@ namespace X_ChemicalStorage.Controllers
                 ItemsList = _servicesItem.GetAll(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id),
                 ExpieredLots = _servicesLot.GetAll().Where(x => x.ItemId == id && x.ExpiryDate < todayUtc && x.CurrentState>0).ToList(),
-                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id).OrderBy(x=>x.Move_Num).ToList(),
             };
             model.LocationData = _servicesOfItem.GetLocationDetailsOfItem(id);
             
@@ -207,7 +207,7 @@ namespace X_ChemicalStorage.Controllers
 
             ItemViewModel model = new()
             {
-
+                NewLot = new Lot(),
                 NewItem = _servicesItem.FindBy(id),
                 ItemsList = _servicesItem.GetAll(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id),
@@ -220,7 +220,7 @@ namespace X_ChemicalStorage.Controllers
                                         Value = l.Id.ToString(),
                                         Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
                                     }).ToList(),
-                LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
+                //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
             
             return View(model);

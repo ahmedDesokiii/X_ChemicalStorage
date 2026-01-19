@@ -7,15 +7,16 @@ namespace X_ChemicalStorage.Controllers
     public class LotsController : Controller
     {
         private readonly IServicesRepository<Lot> _servicesLot ;
+        private readonly IServicesLot _servicesOfLot ;
         private readonly IServicesRepository<Item> _servicesItem ;
         private readonly IInventoryService _inventoryService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-       
-        public LotsController(IServicesRepository<Lot> servicesLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public LotsController(IServicesRepository<Lot> servicesLot, IServicesLot servicesOfLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _servicesLot = servicesLot;
+            _servicesOfLot = servicesOfLot;
             _servicesItem = servicesItem;
             _inventoryService = inventoryService;
             _userManager = userManager;
@@ -72,35 +73,36 @@ namespace X_ChemicalStorage.Controllers
         [Authorize(Permissions.Lots.Create_Lots), Authorize(Permissions.Lots.Edit_Lots)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(LotViewModel model)
+        public IActionResult Save(ItemViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var userId = _userManager.GetUserId(User);
+               var userId = _userManager.GetUserId(User);
+           // model.NewLot.ItemId = model.NewItem.Id;
+           // model.NewLot.Item = model.NewItem;
+            if (model?.NewLot?.Id == 0)
+            { //Create
+                //Exist
+                if (_servicesLot.FindBy(model.NewLot.LotNumber) != null)
+                    SessionMsg(Helper.Error, "Exist Lot ", "This Lot already exists !");
 
-                if (model?.NewLot?.Id == 0)
-                { //Create
-                    //Exist
-                    if (_servicesLot.FindBy(model.NewLot.LotNumber.ToString()) != null)
-                        SessionMsg(Helper.Error, "Exist Lot ", "This Lot already exists !");
-
-                    else
-                    {
-                        if (_servicesLot.Save(model.NewLot))
-                            SessionMsg(Helper.Success, "Add Lot", "The Lot has been added successfully !");
-                        else
-                            SessionMsg(Helper.Error, "Error Adding Lot", "An error occurred while adding some data !");
-                    }
-                }
                 else
-                { //Update
-                    if (_servicesLot.Save(model.NewLot))
-                        SessionMsg(Helper.Success, "Edit Lot", "The Lot has been modified successfully !");
-                    else
-                        SessionMsg(Helper.Error, "Error Editting Lot", "An error occurred while modifying some data !");
+                {
 
+                    if (_servicesLot.Save(model.NewLot))
+                        SessionMsg(Helper.Success, "Add Lot", "The Lot has been added successfully !");
+                    else
+                        SessionMsg(Helper.Error, "Error Adding Lot", "An error occurred while adding some data !");
                 }
             }
+            else
+            { //Update
+                if (_servicesLot.Save(model.NewLot))
+                    SessionMsg(Helper.Success, "Edit Lot", "The Lot has been modified successfully !");
+                else
+                    SessionMsg(Helper.Error, "Error Editting Lot", "An error occurred while modifying some data !");
+
+            }
+
+
             return RedirectToAction("index", "Lots");
         }
         #endregion
@@ -153,8 +155,10 @@ namespace X_ChemicalStorage.Controllers
             LotViewModel model = new()
             {
                 NewLot = _servicesLot.FindBy(id),
-                LotsList = _servicesLot.GetAll()
+                LotsList = _servicesLot.GetAll(),
+                LotTransactionsList = _servicesOfLot.GetLotTransactionsOfLot(id).OrderBy(x => x.Move_Num).ToList()
             };
+            model.LocationData = _servicesOfLot.GetLocationDetailsOfLot(id);
             return View(model);
         }
         #endregion

@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using Microsoft.AspNetCore.Identity;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Drawing.Printing;
 using X_ChemicalStorage.Models;
@@ -10,11 +11,15 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
 {
     public class ServicesItem : IServicesRepository<Item> , IServicesItem
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
 
-        public ServicesItem(ApplicationDbContext context, IWebHostEnvironment env)
+        public ServicesItem(UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, IWebHostEnvironment env)
         {
+            _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
             _context = context;
             _env = env;
         }
@@ -90,6 +95,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     model.CurrentState = (int)Helper.eCurrentState.Active;
                     model.AvilableQuantity = model.TotalQuantity;
                     _context.Items.Add(model);
+                    _context.SaveChanges();
 
                     // Add record to Item Transaction
                     var trans = new ItemTransaction();
@@ -102,6 +108,10 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     trans.ItemId = model.Id;
                     trans.Move_State = true;
                     trans.Total_Quantity = model.TotalQuantity;
+                    
+                    trans.CreatedBy =  _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
+                    trans.DeviceUsing = Environment.MachineName;
+
                     trans.CurrentState = (int)Helper.eCurrentState.Active;
                     _context.ItemTransactions.Add(trans);
 
@@ -109,11 +119,11 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                 else
                 {
                     //result.Code = model.Code;
-                    result.Name = model.Name;
-                    result.Limit = model.Limit;
                     //result.BarcodeImage = model.BarcodeImage;
                     //result.TotalQuantity = model.TotalQuantity;
                     //result.AvilableQuantity = model.TotalQuantity;
+                    result.Name = model.Name;
+                    result.Limit = model.Limit;
                     result.SDS = model.SDS;
                     result.StorageCondition = model.StorageCondition;
                     result.CategoryId = model.CategoryId;

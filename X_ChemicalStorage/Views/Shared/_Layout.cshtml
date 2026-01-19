@@ -127,14 +127,14 @@
                                 @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Items.View).Result.Succeeded))
                                 {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Items" asp-action="Index"><i class="bi bi-pc fs-4"></i><br>Inv - Catalog</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Items" asp-action="Index"><i class="bi bi-boxes fs-4"></i><br>Inventory Catalog</a>
                                     </li>
                                 }
 
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View).Result.Succeeded))
                                     {
                                     <li class="nav-item ps-2">
-                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Lots" asp-action="Index"><i class="bi bi-archive-fill fs-4"></i><br>Inv - Lots</a>
+                                        <a class="nav-link fw-bold link-secondary text-center " style="font-size:18px !important" asp-area="" asp-controller="Lots" asp-action="Index"><i class="bi bi-archive-fill fs-4"></i><br>Inventory Lots</a>
                                     </li>
                                     }
 

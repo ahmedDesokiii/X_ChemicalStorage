@@ -95,7 +95,7 @@
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             <input  disabled asp-for="@Model.NewItem.Unit.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Unit Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
-                        <!-- Item Unit -->
+                        <!-- Item SDS -->
                         @if (Model.NewItem.SDS == true)
                         {
                             <div class="input-group mt-2 row mx-auto">
@@ -393,10 +393,8 @@
 
         <div class="row">
             <div class="col-md-1"></div>
-            <div class="col-md-4">
-               
-            </div>
-            <div class="col-md-6">
+            
+            <div class="col-md-10">
                 <div class="card p-0">
                     <div class="card-header py-1 d-flex align-items-center justify-content-start bg-dark-subtle">
                         <i class="bi bi-pin-angle-fill link-dark fs-4 pe-3"></i>
@@ -421,8 +419,10 @@
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Trans. #</span></th>
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Trans. Date</span></th>
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Statement</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Create By</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Device</span></th>
                                             <th class="bg-dark text-white text-center"><span class="fw-bold">Quantity</span></th>
-                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Total Quantity</span></th>
+                                            <th class="bg-dark text-white text-center"><span class="fw-bold">Available Quantity</span></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -433,6 +433,9 @@
                                                 <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@trans.Move_Num</span></td>
                                                 <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@Convert.ToDateTime(trans.Move_Date).ToShortDateString()</span></td>
                                                 <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@trans.Move_Statement</span></td>
+                                                <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@trans.CreatedBy</span></td>
+                                                <td class=" text-center px-1 pb-0 pt-2"><span class="link-dark ">@trans.DeviceUsing</span></td>
+
                                                 @if (trans.Move_State == true)
                                                 {
                                                     <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-caret-up-fill link-success fs-3 px-3"></i>@trans.Move_Quantity</span></td>

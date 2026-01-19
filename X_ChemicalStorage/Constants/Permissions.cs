@@ -93,6 +93,8 @@ namespace X_ChemicalStorage.Constants
                  $"Permissions.{module}.Details Lot",
                  $"Permissions.{module}.Edit Lot ",
                  $"Permissions.{module}.Delete Lot",
+                 $"Permissions.{module}.Print Lot Barcode",
+
             };
         }
 
@@ -204,6 +206,9 @@ namespace X_ChemicalStorage.Constants
             public const string Details_Lots = "Permissions.Lots.Details Lot";
             public const string Edit_Lots = "Permissions.Lots.Edit Lot ";
             public const string Delete_Lots = "Permissions.Lots.Delete Lot";
+            public const string Print_LotBarcode = "Permissions.Lots.Print Lot Barcode";
+
+
         }
 
         #endregion

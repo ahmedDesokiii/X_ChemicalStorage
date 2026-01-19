@@ -9,9 +9,10 @@
                 <span class="fs-4 fw-bold modal-title" id="title"></span>
                 <a href="#" class="btn-close position-absolute  end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
             </div>
+            <form method="post">
             <div class="modal-body">
-                <form  method="post">
-                    <input type="text" hidden class="form-control" asp-for="NewItem.Id" id="itemId" value="0" />
+                
+                    <input  hidden class="form-control" asp-for="NewItem.Id" id="itemId" value="0" />
                     <!-- Item Barcode -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -131,19 +132,16 @@
                         <input id="itemSDS" required hidden asp-for="@Model.NewItem.SDS" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.SDS" class="text-danger"></span>
-
-
-                    <div class="modal-footer mt-4" style="padding:0 15px 15px 0">
-                        <button class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " type="submit" title="Print Barcode" asp-controller="Items" asp-action="SaveAndPrint">
-                            <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
-                            <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
-                        </button>
-                        <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" asp-action="Save" asp-controller="Items" />
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
-                    </div>
-                </form>
             </div>
-
+            <div class="modal-footer mx-auto justify-content-center my-2 py-3">
+                <button class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " type="submit" title="Print Barcode" asp-controller="Items" asp-action="SaveAndPrint">
+                    <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
+                    <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
+                </button>
+                <input type="submit" class="btn btn-success" value="Save changes" id="btnSave" asp-action="Save" asp-controller="Items" />
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancle</button>
+            </div>
+        </form>
         </div>
     </div>
 </div>
