@@ -122,3 +122,13 @@ ResetRole = () => {
 
 }
 
+
+    document.getElementById("permissionSearch").addEventListener("keyup", function () {
+        const searchValue = this.value.toLowerCase();
+
+        document.querySelectorAll(".permission-card").forEach(card => {
+        let cardText = card.innerText.toLowerCase();
+    card.style.display = cardText.includes(searchValue) ? "" : "none";
+        });
+    });
+

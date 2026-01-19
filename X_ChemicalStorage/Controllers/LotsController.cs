@@ -205,12 +205,12 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region Print Lot Barcode
-        public IActionResult PrintLotBarcode(string barcodeFile, string itemCode , string expiryDate)
+        public IActionResult PrintLotBarcode(string barcodeFile, string itemCode , string lotNumber, string expiryDate)
         {
             ViewBag.BarcodePath = barcodeFile;
             ViewBag.ItemCode = itemCode;
-            ViewBag.LotNum = itemCode;
-            ViewBag.ExpiryDate = expiryDate;
+            ViewBag.LotNumber = lotNumber;
+            ViewBag.ExpiryDate = Convert.ToDateTime(expiryDate).ToShortDateString();
             return View();
         }
         #endregion

@@ -32,22 +32,27 @@ namespace ERPWeb_v02.Controllers
         public async Task<IActionResult> Index()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Thread.Sleep(1000);
+
+            var users = await _context.Users
+                .OrderBy(u => u.CurrentState)
+                .ToListAsync();
+
             var userVM = new List<UserViewModel>();
-                userVM =  await _context.Users
-                .Select(user => new UserViewModel()
-                    {
-                        Id = user.Id.ToString(),
-                        FullName= user.FullName,
-                        PhoneNumber = user.PhoneNumber,
-                        UserName = user.UserName,
-                        Email = user.Email,
-                        CurrentState = user.CurrentState,
-                        Roles = _userManager.GetRolesAsync(user).Result,
-                    })
-               .OrderBy(u => u.CurrentState)
-               .ToListAsync();
-            Thread.Sleep(500);
+
+            foreach (var user in users)
+            {
+                userVM.Add(new UserViewModel
+                {
+                    Id = user.Id.ToString(),
+                    FullName = user.FullName,
+                    PhoneNumber = user.PhoneNumber,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    CurrentState = user.CurrentState,
+                    Roles = await _userManager.GetRolesAsync(user)
+                });
+            }
+
             return View(userVM);
         }
         #endregion
@@ -258,9 +263,26 @@ namespace ERPWeb_v02.Controllers
 
 
         #region Delete User
+        //public async Task<IActionResult> DeleteUser(string userid)
+        //{
+
+        //    var user = await _userManager.FindByIdAsync(userid);
+
+        //    if (user == null)
+        //        return NotFound();
+
+        //    user.CurrentState = 0;
+        //    user.EmailConfirmed = false;
+
+        //    await _userManager.UpdateAsync(user);
+
+        //    return RedirectToAction(nameof(Index));
+        //}
         public async Task<IActionResult> DeleteUser(string userid)
         {
-            
+            if (string.IsNullOrEmpty(userid))
+                return BadRequest();
+
             var user = await _userManager.FindByIdAsync(userid);
 
             if (user == null)
@@ -269,8 +291,11 @@ namespace ERPWeb_v02.Controllers
             user.CurrentState = 0;
             user.EmailConfirmed = false;
 
-            await _userManager.UpdateAsync(user);
-           
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
             return RedirectToAction(nameof(Index));
         }
         #endregion

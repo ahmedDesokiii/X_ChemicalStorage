@@ -1,4 +1,4 @@
-﻿@model PermissionsFormViewModel
+﻿@* @model PermissionsFormViewModel
 @{
     ViewData["Title"] = "Manage Role Permissions";
 }
@@ -70,3 +70,109 @@
     <script src="~/js/Roles.js"></script>
 }
 
+ *@
+
+
+@model PermissionsFormViewModel
+@{
+    ViewData["Title"] = "Manage Role Permissions";
+}
+
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <div class="d-flex text-center mx-auto ">
+        <a asp-controller="Roles" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Roles</a>
+        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <a class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]</a>
+    </div>
+</div>
+
+<section class="container-fluid my-3" dir="ltr">
+    <form asp-action="ManagePermissions" method="post">
+
+        <!-- Header Card -->
+        <div class="card col-md-10 p-0 mx-auto justify-content-center mt-4">
+            <div class="card-header d-flex bg-info-subtle py-2 justify-content-start position-relative">
+                <div class="px-5">
+                    <h2 class="text-dark">@Model.RoleName</h2>
+                    <h4 class="text-dark">@Model.Details</h4>
+                    <span class="text-dark">Add / Delete Role Permissions</span>
+                </div>
+
+                <button asp-route="@Model"
+                        type="submit"
+                        title="Save Permissons"
+                        class="btn btn-info fs-5 btn-sm rounded-3 px-3 position-absolute end-0 mt-3 me-3">
+                    <i class="bi bi-bookmark-check-fill fs-3 fw-bold"></i><br />
+                    Save Permissions Changes
+                </button>
+            </div>
+        </div>
+
+
+
+        <!-- Search -->
+        <div class="mt-2 col-md-10 mx-auto mb-3">
+            <input type="text"
+                   id="permissionSearch"
+                   class="form-control form-control-lg"
+                   placeholder="Search by Module or Permission..." />
+        </div>
+        <!-- Modules Cards -->
+        <div class="col-md-10 mx-auto mt-4">
+            @{
+                var groupedModules = Model.RoleCalims
+                .Select((claim, index) => new { claim, index })
+                .GroupBy(x => x.claim.DisplayValue.Split('.')[1]);
+            }
+            <div class="row my-3">
+            @foreach (var module in groupedModules)
+            {
+                
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm permission-card">
+                            <div class="card-header text-white fs-5 fw-bold"
+                                 style="background-color:#032b42 !important;">
+                                <i class="bi bi-pin-angle-fill  fs-4 pe-3"></i>
+                                @module.Key
+                            </div>
+
+                            <div class="card-body p-0">
+                                <table class="table table-hover m-0 table-bordered border-primary-subtle">
+                                    <thead>
+                                        <tr class="text-center">
+                                            <th class="fs-5 fw-bold bg-info-subtle">Permission</th>
+                                            <th class="fs-5 fw-bold bg-info-subtle">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in module)
+                                        {
+                                            <tr permission-row>
+                                                <td class="text-center fs-6">
+                                                    @item.claim.DisplayValue.Split('.')[2]
+                                                </td>
+                                                <td class="text-center">
+                                                    <input hidden asp-for="@Model.RoleCalims[item.index].DisplayValue" />
+                                                    <input type="checkbox"
+                                                           asp-for="@Model.RoleCalims[item.index].IsSelected"
+                                                           class="form-check-input border-1 border-primary fs-5" />
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                
+                
+            }
+            </div>
+        </div>
+
+    </form>
+</section>
+
+@section Scripts {
+    <script src="~/js/Roles.js"></script>
+}

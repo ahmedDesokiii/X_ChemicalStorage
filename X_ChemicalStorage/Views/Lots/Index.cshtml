@@ -68,7 +68,7 @@
                             <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                 <thead>
                                     <tr class="text-center">
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lot Number</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Barcode</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Item</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Expiry Date</th>
                                         <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Total<br class="m-0 p-0">Quantity</th>
@@ -88,7 +88,11 @@
                                         {
                                             <tr class="text-center ">
 
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                                <td class="fs-6 text-center py-0 px-1 my-auto">
+                                                    <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" /></span>
+                                                    <hr class="p-0 m-0">
+                                                    <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
+                                                </td>
                                                 <td class="fs-6 text-center px-1 bg-warning-subtle">
                                                     <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
                                                         @lot.Item?.Name
@@ -139,7 +143,11 @@
                                         {
                                             <tr class="text-center ">
 
-                                                <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.LotNumber</span></td>
+                                                <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center" >
+                                                    <span class="link-dark fw-bold fs-6 mx-auto"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
+                                                    <hr class="p-0 m-0">
+                                                    <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
+                                                </td>
                                                 <td class="fs-6 text-center px-1 ">
                                                     <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
                                                         @lot.Item?.Name
@@ -182,6 +190,12 @@
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLot('@lot.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
+                                                    {
+                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@lot.BarcodeImage" asp-route-ItemCode="@lot.Item.Code" asp-route-LotNumber="@lot.LotNumber" asp-route-ExpiryDate="@lot.ExpiryDate"><i class="bi bi-printer-fill"></i>
+                                        
+                                                        </a>
                                                     }
                                                 </td>
                                             </tr>
