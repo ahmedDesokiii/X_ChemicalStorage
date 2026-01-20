@@ -63,7 +63,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
 
                 if (result == null)
                 {
-                    model.Code = Guid.NewGuid().ToString("N").Substring(0, 8);
+                    //model.Code = Guid.NewGuid().ToString("N").Substring(0, 8);
                     //Generate Barcode !
                     var writer = new BarcodeWriterPixelData
                     {

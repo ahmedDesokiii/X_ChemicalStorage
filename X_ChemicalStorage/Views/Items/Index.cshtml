@@ -127,7 +127,7 @@
                                             <td class="py-1">
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-3"></i><br></a>
+                                                    <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i><br></a>
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
                                                 {
@@ -144,6 +144,10 @@
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
                                                 {
                                                     <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code" ><i class="bi bi-printer-fill"></i></a>
+                                                }
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
+                                                {
+                                                    <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i><br></a>
                                                 }
                                             </td>
                                         </tr>

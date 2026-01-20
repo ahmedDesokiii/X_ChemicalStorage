@@ -230,6 +230,7 @@ EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId , unitId , 
     document.getElementById("btnSave").value = lbEdit;
     document.getElementById("itemId").value = id;
     document.getElementById("itemCode").value = code;
+    document.getElementById("itemCode").readOnly = true;
     document.getElementById("itemName").value = name;
     document.getElementById("itemQnty").value = qnty;
     document.getElementById("itemQnty").readOnly = true;
@@ -249,7 +250,8 @@ EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId , unitId , 
 ResetItem = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;
     document.getElementById("btnSave").value = lbbtnSave;
-    document.getElementById("itemCode").value = "generation in progress automatic ... !";
+    //document.getElementById("itemCode").value = "generation in progress automatic ... !";
+    document.getElementById("itemCode").readOnly = false;
     document.getElementById("itemName").value = "";
     document.getElementById("itemSDS").value = "1";
     document.getElementById("itemQnty").value = "0";

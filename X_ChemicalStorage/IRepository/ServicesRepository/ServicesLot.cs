@@ -59,7 +59,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                 {
                     // Add record to Lot 
 
-                    model.LotNumber = Guid.NewGuid().ToString("N").Substring(0, 8);
+                   // model.LotNumber = Guid.NewGuid().ToString("N").Substring(0, 8);
                     //Generate Barcode !
                     var writer = new BarcodeWriterPixelData
                     {
@@ -86,7 +86,8 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     string fileName = model.LotNumber + ".png";
                     string filePath = Path.Combine(folderPath, fileName);
                     image.Save(filePath);
-                    //model.ItemId = 
+                   
+                    // Add Lot Record
                     model.BarcodeImage = "/lotbarcodes/" + fileName;
                     model.AvilableQuantity = model.TotalQuantity;
                     model.CurrentState = (int)Helper.eCurrentState.Active;
@@ -97,7 +98,8 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     Item item = _context.Items.FirstOrDefault(x => x.Id == model.ItemId);
                     if (item != null)
                     {
-                        item.AvilableQuantity -= model.TotalQuantity;
+                        item.TotalQuantity += model.TotalQuantity;
+                        item.AvilableQuantity += model.TotalQuantity;
                         _context.Items.Update(item);
                     }
                     _context.SaveChanges();
@@ -122,8 +124,6 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     _context.LotTransactions.Add(trans);
                     _context.SaveChanges();
 
-                    
-
                     // Add Item Transaction Record 
                     var itemTrans = new ItemTransaction();
                     
@@ -134,7 +134,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     itemTrans.Move_Date = DateTime.Now.Date;
                     itemTrans.Item = item;
                     itemTrans.ItemId = item.Id;
-                    itemTrans.Move_State = false;
+                    itemTrans.Move_State = true;
                     itemTrans.Total_Quantity = item.AvilableQuantity;
 
                     itemTrans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;

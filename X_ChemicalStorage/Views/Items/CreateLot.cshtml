@@ -3,7 +3,7 @@
 @model ItemViewModel
 @{
     ViewData["Title"] = "Create New Lot";
-   
+    string lotNumGenerate = Guid.NewGuid().ToString("N").Substring(0, 8);
 }
 <div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
     <div class="d-flex text-center mx-auto">
@@ -87,14 +87,15 @@
                             <!-- Lot Number -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="lotNum" readonly required  class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Generate Lot Barcode ...!" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" >
+                                <input id="lotNum"  required asp-for="@Model.NewLot.LotNumber" value="@lotNumGenerate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Lot Number" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" >
                             </div>
                             
                         
                             <!-- Lot Quantity -->
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Max Quantity Avilable : @Model.NewItem.AvilableQuantity " type="number" min="0" max="@Model?.NewItem?.AvilableQuantity" style="border-top-right-radius : 20px ;" autofocus>
+                                @* <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Max Quantity Avilable : @Model.NewItem.AvilableQuantity " type="number" min="0" max="@Model?.NewItem?.AvilableQuantity" style="border-top-right-radius : 20px ;" autofocus> *@
+                                <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0"  style="border-top-right-radius : 20px ;" autofocus>
                             </div>
                             <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
                         
