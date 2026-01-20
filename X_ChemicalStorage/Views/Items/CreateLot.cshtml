@@ -124,13 +124,7 @@
                                 <input type="date" id="lotManufactureDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center "  style="border-top-right-radius : 20px ;">
                             </div>
                             <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
-                            <!-- Lot Receiving Date -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp; Received Date </span>
-                                <input readonly type="date" id="lotReceivingDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ReceivedDate" class="form-control text-center bg-light"   style="border-top-right-radius : 20px ;">
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.ReceivedDate" class="text-danger"></span>
-
+                           
                             <!-- Lot SDS -->
                             <div class="input-group mt-3 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>

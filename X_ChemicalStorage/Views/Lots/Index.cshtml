@@ -29,18 +29,18 @@
                                 <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Add New Lot" onclick="" data-bs-toggle="modal" data-bs-target="#ListItemsModal"><i class="bi bi-cart-plus-fill fs-1"></i><br class="p-0 m-0">Add New Lot</a>
                             </div>
                         }
+                        <div class="col-4"></div>
+                        
+                           
+                        
                         <div class="col-2"></div>
                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots).Result.Succeeded)
                         {
-                            <div class="col-2 mx-auto">
-                                <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Expiery Lots List" onclick="" data-bs-toggle="modal" data-bs-target="#ExpieryLotsModal"><i class="bi bi-list-task fs-1"></i><br class="p-0 m-0">Expiered Lots</a>
-                            </div>
-                        }
-                        <div class="col-2"></div>
-                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots).Result.Succeeded)
-                        {
-                            <div class="col-2 mx-auto">
+                           @*  <div class="col-2 mx-auto">
                                 <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Disbursement Lot" onclick="" data-bs-toggle="modal" data-bs-target="#DisbursementLotModal"><i class="bi bi-cart-dash-fill fs-1"></i><br class="p-0 m-0">Disbursement Lot</a>
+                            </div> *@
+                            <div class="col-2 mx-auto">
+                                <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Expiery Lots List" onclick="" data-bs-toggle="modal" data-bs-target="#ExpieryLotsModal"><i class="bi bi-list-task fs-1"></i><br class="p-0 m-0">Expiered Lots</a>
                             </div>
                         }
                         
@@ -84,16 +84,16 @@
                                     @foreach (var lot in Model.LotsList)
                                     {
                                         cNo++;
-                                        @if (Convert.ToDateTime(lot.ExpiryDate).Date.AddDays(30) < DateTime.Now.Date)
+                                        if (Convert.ToDateTime(lot.ExpiryDate).Date < DateTime.Now.Date.AddDays(30) && Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date)
                                         {
                                             <tr class="text-center ">
 
-                                                <td class="fs-6 text-center py-0 px-1 mx-auto  justify-content-center">
+                                                <td class="fs-6 text-center py-0 px-1 mx-auto  justify-content-center" style="background-color:#FFF8D4">
                                                     <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
                                                     <hr class="p-0 m-0">
                                                     <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
                                                 </td>
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle">
+                                                <td class="fs-6 text-center px-1" style="background-color:#FFF8D4">
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
                                                     {
                                                         <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
@@ -106,16 +106,16 @@
                                                             @lot.Item?.Name
                                                         </span>
                                                     }
-                                                    
+
 
                                                 </td>
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
+                                                <td class="fs-6 text-center px-1 " style="background-color:#FFF8D4"><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                <td class="fs-6 text-center px-1 " style="background-color:#FFF8D4"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
                                                 @* <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@lot.SupplierLots.FirstOrDefault()</span></td> *@
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+                                                <td class="fs-6 text-center px-1 " style="background-color:#FFF8D4"><span class="link-dark fw-bold">Room[@lot.Location?.RoomNum]</span></td>
                                                 @if (lot.SDS == true)
                                                 {
-                                                    <td class="text-center bg-warning-subtle">
+                                                    <td class="text-center" style="background-color:#FFF8D4">
                                                         <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
                                                             Valid
                                                         </span>
@@ -123,21 +123,18 @@
                                                 }
                                                 else
                                                 {
-                                                    <td class="text-center bg-warning-subtle">
+                                                    <td class="text-center" style="background-color:#FFF8D4">
                                                         <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
                                                             Invalid
                                                         </span>
                                                     </td>
                                                 }
 
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()</span></td>
-                                                <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
+                                                <td class="fs-6 text-center px-1 " style="background-color:#FFF8D4"><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()</span></td>
+                                                <td class="fs-6 text-center px-1 " style="background-color:#FFF8D4"><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
 
-                                                <td class="py-1 bg-warning-subtle">
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-cart-dash-fill fs-4"></i><br></a>
-                                                    }
+                                                <td class="py-1" style="background-color:#E8F9FF !important ">
+                                                   
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
@@ -157,14 +154,19 @@
 
                                                         </a>
                                                     }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
+                                                    }
                                                 </td>
                                             </tr>
                                         }
-                                        else if (Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date)
+
+                                        if (Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date.AddDays(30))
                                         {
                                             <tr class="text-center ">
 
-                                                <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center" >
+                                                <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center">
                                                     <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
                                                     <hr class="p-0 m-0">
                                                     <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
@@ -172,13 +174,13 @@
                                                 <td class="fs-6 text-center px-1 ">
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
                                                     {
-                                                    <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
-                                                        @lot.Item?.Name
-                                                    </a>
+                                                        <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
+                                                            @lot.Item?.Name
+                                                        </a>
                                                     }
-                                                else
+                                                    else
                                                     {
-                                                        <span class="link-primary fw-bold text-decoration-none" title="Item Details" >
+                                                        <span class="link-primary fw-bold text-decoration-none" title="Item Details">
                                                             @lot.Item?.Name
                                                         </span>
                                                     }
@@ -186,7 +188,7 @@
                                                 <td class="fs-6 text-center px-1 "><span class="fw-bold link-success">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                                 <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
                                                 @* <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@lot.SupplierLots.FirstOrDefault()</span></td> *@
-                                                <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+                                                <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">Room[@lot.Location?.RoomNum]</span></td>
                                                 @if (lot.SDS == true)
                                                 {
                                                     <td class="text-center ">
@@ -208,11 +210,8 @@
                                                 <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
 
 
-                                                <td class="py-1">
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-cart-dash-fill fs-4"></i><br></a>
-                                                    }
+                                                <td class="py-1" style="background-color:#E8F9FF !important ">
+                                                    
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
@@ -227,13 +226,19 @@
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
                                                     {
-                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@lot.BarcodeImage" asp-route-ItemCode="@lot.Item.Code" asp-route-LotNumber="@lot.LotNumber" asp-route-ExpiryDate="@lot.ExpiryDate"><i class="bi bi-printer-fill"></i>
-                                        
+                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@lot.BarcodeImage" asp-route-ItemCode="@lot.Item.Code" asp-route-LotNumber="@lot.LotNumber" asp-route-ExpiryDate="@lot.ExpiryDate">
+                                                            <i class="bi bi-printer-fill"></i>
+
                                                         </a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
                                                     }
                                                 </td>
                                             </tr>
                                         }
+                                        
                                     }
 
                                 </tbody>

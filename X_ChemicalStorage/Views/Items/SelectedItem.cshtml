@@ -81,8 +81,8 @@
                         </div>
                         <!-- Item Total Quantity -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.NewItem.TotalQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Quantity ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Avilable Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Quantity ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Item Limit -->
                         <div class="input-group mt-2 row mx-auto">
@@ -138,12 +138,12 @@
                                 <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                     <thead>
                                         <tr class="text-center fs-5">
-                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Barcode</span></th>
-                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Expiry Date</span></th>
-                                            <th class="bg-warning text-white text-center fs-6"><span class="fw-bold">Total<br class="m-0 p-0">Quantity</span></th>
-                                            <th class="bg-warning text-white text-center fs-5"><span class="fw-bold">Lot SDS</span></th>
-                                            <th class="bg-warning text-white text-center fs-6"><span class="fw-bold">Manufacture <br class="m-0 p-0">Date</span></th>
-                                            <th class="bg-warning text-white text-center fs-6"><span class="fw-bold"></span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#CB6040"><span class="fw-bold">Barcode</span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#CB6040"><span class="fw-bold">Expiry Date</span></th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#CB6040"><span class="fw-bold">Total<br class="m-0 p-0">Quantity</span></th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#CB6040"><span class="fw-bold">Lot SDS</span></th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#CB6040"><span class="fw-bold">Manufacture <br class="m-0 p-0">Date</span></th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#CB6040"><span class="fw-bold"></span></th>
                                             
                                         </tr>
                                     </thead>
@@ -151,19 +151,19 @@
                                         @foreach (var lot in Model.LotsList)
                                         {
                                             cNo++;
-                                            @if (Convert.ToDateTime(lot.ExpiryDate).Date < DateTime.Now.Date)
+                                           @if (Convert.ToDateTime(lot.ExpiryDate).Date.AddDays(-30) <= DateTime.Now.Date)
                                             {
                                                 <tr class="text-center ">
-                                                    <td class="fs-6 text-center px-1 bg-danger-subtle mx-auto justify-content-center">
+                                                    <td class="fs-6 text-center px-1  mx-auto justify-content-center" style="background-color:#FFF4B7">
                                                         <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
                                                         <hr class="p-0 m-0">
                                                         <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
                                                     </td>
-                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="fw-bold link-danger">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
-                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
+                                                    <td class="fs-6 text-center px-1 " style="background-color:#FFF4B7"><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 " style="background-color:#FFF4B7"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
                                                     @if (lot.SDS == true)
                                                     {
-                                                        <td class="text-center bg-danger-subtle">
+                                                        <td class="text-center " style="background-color:#FFF4B7">
                                                             <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
                                                                 Valid
                                                             </span>
@@ -171,52 +171,14 @@
                                                     }
                                                     else
                                                     {
-                                                        <td class="text-center bg-danger-subtle">
+                                                        <td class="text-center" style="background-color:#FFF4B7">
                                                             <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
                                                                 Invalid
                                                             </span>
                                                         </td>
                                                     }
-                                                    
-                                                    <td class="fs-6 text-center px-1 bg-danger-subtle"><span class="link-dark fw-bold">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
-                                                    <td class="fs-6 text-center px-1 bg-danger-subtle">
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                        {
-                                                            <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
-                                                        }
-                                                    </td>
-
-                                                   
-                                                </tr>
-                                            }
-                                            else if (Convert.ToDateTime(lot.ExpiryDate).Date.AddDays(-30) <= DateTime.Now.Date)
-                                            {
-                                                <tr class="text-center ">
-                                                    <td class="fs-6 text-center px-1 bg-info-subtle mx-auto justify-content-center">
-                                                        <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
-                                                        <hr class="p-0 m-0">
-                                                        <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
-                                                    </td>
-                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
-                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
-                                                    @if (lot.SDS == true)
-                                                    {
-                                                        <td class="text-center bg-info-subtle">
-                                                            <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
-                                                                Valid
-                                                            </span>
-                                                        </td>
-                                                    }
-                                                    else
-                                                    {
-                                                        <td class="text-center bg-info-subtle">
-                                                            <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
-                                                                Invalid
-                                                            </span>
-                                                        </td>
-                                                    }
-                                                    <td class="fs-6 text-center px-1 bg-info-subtle"><span class="link-dark fw-bold">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
-                                                    <td class="fs-6 text-center px-1 bg-info-subtle">
+                                                    <td class="fs-6 text-center px-1 " style="background-color:#FFF4B7"><span class="link-dark fw-bold">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 " style="background-color:#FFF4B7">
                                                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
                                                         {
                                                             <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
@@ -303,11 +265,11 @@
                             <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Building Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             <input disabled asp-for="@Model.LocationData.LocationName" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
-                        <!-- Room Type -->
+                       @*  <!-- Room Type -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             <input disabled asp-for="@Model.LocationData.RoomType" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Room Type ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                        </div>
+                        </div> *@
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>

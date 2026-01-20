@@ -86,8 +86,9 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     string fileName = model.LotNumber + ".png";
                     string filePath = Path.Combine(folderPath, fileName);
                     image.Save(filePath);
-                   
+
                     // Add Lot Record
+                    model.ReceivedDate = DateTime.Now;
                     model.BarcodeImage = "/lotbarcodes/" + fileName;
                     model.AvilableQuantity = model.TotalQuantity;
                     model.CurrentState = (int)Helper.eCurrentState.Active;

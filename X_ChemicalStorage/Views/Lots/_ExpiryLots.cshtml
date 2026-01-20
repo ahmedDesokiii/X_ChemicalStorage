@@ -63,7 +63,7 @@
                                         </td>
                                         <td class="fs-6 text-center px-1 bg-light-subtle"><span class="fw-bold link-danger">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                         <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
-                                        <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark fw-bold">@lot.Location?.LocationName</span></td>
+                                        <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark fw-bold">Room[@lot.Location?.RoomNum]</span></td>
                                             @if (lot.SDS == true)
                                             {
                                             <td class="text-center bg-light-subtle">
