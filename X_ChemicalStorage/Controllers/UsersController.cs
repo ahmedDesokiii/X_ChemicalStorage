@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 //using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace ERPWeb_v02.Controllers
@@ -35,6 +36,7 @@ namespace ERPWeb_v02.Controllers
 
             var users = await _context.Users
                 .OrderBy(u => u.CurrentState)
+                .ThenBy(u=>u.FullName)
                 .ToListAsync();
 
             var userVM = new List<UserViewModel>();
@@ -144,12 +146,13 @@ namespace ERPWeb_v02.Controllers
                 PhoneNumber = user.PhoneNumber,
                 UserName = user.UserName,
                 PassUser = user.PassUser,
-                Email = user.Email
+                Email = user.Email,
+                Gender = user.Gender
             };
 
             return View(profileFormVM);
         }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditUser(ProfileFormViewModel model)
@@ -168,7 +171,8 @@ namespace ERPWeb_v02.Controllers
             { 
             user.FullName = model.FullName;
             user.PhoneNumber = model.PhoneNumber;
-            user.Email = model.Email;
+            //user.Email = model.Email;
+            user.Gender = model.Gender;
 
             await _userManager.UpdateAsync(user);
                 SessionMsg(Helper.Success, "Edit User", "The user has been modified successfully !");

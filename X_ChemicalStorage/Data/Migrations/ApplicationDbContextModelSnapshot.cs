@@ -265,7 +265,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
@@ -320,7 +320,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Items");
+                    b.ToTable("Items", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.ItemTransaction", b =>
@@ -365,7 +365,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("ItemTransactions");
+                    b.ToTable("ItemTransactions", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Location", b =>
@@ -410,7 +410,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Lot", b =>
@@ -460,7 +460,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("LocationId");
 
-                    b.ToTable("Lots");
+                    b.ToTable("Lots", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.LotTransaction", b =>
@@ -505,7 +505,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("LotId");
 
-                    b.ToTable("LotTransactions");
+                    b.ToTable("LotTransactions", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.ManufacuterCompany", b =>
@@ -532,7 +532,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ManufacuterCompanies");
+                    b.ToTable("ManufacuterCompanies", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
@@ -562,7 +562,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.SupplierLot", b =>
@@ -577,7 +577,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("LotId");
 
-                    b.ToTable("SupplierLots");
+                    b.ToTable("SupplierLots", (string)null);
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>
@@ -601,7 +601,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Units");
+                    b.ToTable("Units", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

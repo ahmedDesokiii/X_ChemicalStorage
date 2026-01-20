@@ -59,7 +59,7 @@
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
                                         <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Storage<br class="m-0 p-0">Condition</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
+                                        @* <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th> *@
                                         <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                     </tr>
                                 </thead>
@@ -118,12 +118,11 @@
                                             {
                                                 <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-info fs-3 px-1"></i>@item.StorageCondition</span></td>
                                             }
-                                            <td class="fs-6 text-center px-1">
-                                                @* <a class="link-primary fw-bold text-decoration-none" title="Storage Details" data-bs-toggle="modal" data-bs-target="#LocationModal"> *@
+                                            @* <td class="fs-6 text-center px-1">
                                                 <a class="link-dark fw-bold text-decoration-none" title="Storage Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">
                                                     @item.Location.LocationName
                                                 </a>
-                                            </td>
+                                            </td> *@
                                            
                                             <td class="py-1">
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)

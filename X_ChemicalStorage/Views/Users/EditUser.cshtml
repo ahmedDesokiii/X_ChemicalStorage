@@ -12,18 +12,20 @@
 </div>
 <section class="container-fluid my-3" dir="ltr">
     <div class="row">
-        <div class="col-md-1"></div>
+        <div class="col-md-3"></div>
         <form asp-controller="Users" asp-action="EditUser" method="post">
-            <div class="card col-md-10 p-0 mx-auto justify-content-center">
+            <div class="card col-md-6 p-0 mx-auto justify-content-center">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle py-2">
                     <span class="fs-3 fw-bold link-dark px-5">
                         @ViewData["Title"]
                     </span>
                 </div>
                 <div class="card-body row justify-content-center">
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                         <input type="hidden" asp-for="@Model.Id">
-
+                        <div class="mx-auto justify-content-center">
+                            <img src="~/images/user.png" height="200" class="mx-auto" />
+                        </div>
                         <!-- User Name -->
                         <div class="input-group mb-2">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp; UserName &nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -33,7 +35,7 @@
                         <div class="input-group mb-2">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Email &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 
-                            <input id="email" disabled asp-for="@Model.Email" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter User Email ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
+                            <input id="email" disabled asp-for="@Model.Email" class="form-control text-center"  placeholder="Enter User Email ..." type="email" style="border-top-right-radius : 20px ;border-right-color:red;border-right-width:3px;">
                         </div>
                         <span asp-validation-for="@Model.Email" class="text-danger"></span>
 
@@ -61,7 +63,7 @@
                         <div class="input-group mb-2">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Gender &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 
-                            <select class="form-select text-center" id="inputGroupSelect01" asp-for="@Model.Gender" aria-required="true" style="border-top-right-radius : 20px ;border-right-width:3px;">
+                            <select class="form-select text-center" id="inputGroupSelect01" asp-for="@Model.Gender" style="border-top-right-radius : 20px ;border-right-width:3px;">
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                             </select>

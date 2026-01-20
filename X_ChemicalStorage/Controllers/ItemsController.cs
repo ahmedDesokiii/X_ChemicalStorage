@@ -43,37 +43,38 @@ namespace X_ChemicalStorage.Controllers
         [Authorize(Permissions.Items.View_Items)]
         public IActionResult Index()
         {
-            var Items = new ItemViewModel
-            {
-                ItemsList = _servicesItem.GetAll(),
-                NewItem = new Item(),
+            var Items = new ItemViewModel();
 
-                ListCategories = _context.Categories
+            Items.ItemsList = _servicesItem.GetAll()
+                                            .OrderByDescending(x => x.StorageCondition)
+                                            .ToList();
+            Items.NewItem = new Item();
+
+                Items.ListCategories = _context.Categories
                                     .Where(c => c.CurrentState > 0)
                                     .Include(l => l.Items)
                                     .Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                                     {
                                         Value = c.Id.ToString(),
                                         Text = c.Name
-                                    }).ToList(),
+                                    }).ToList();
 
-                ListLocations = _context.Locations
+                Items.ListLocations = _context.Locations
                                     .Where(l => l.CurrentState > 0)
                                     .Include(l => l.Items)
                                     .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                                     {
                                         Value = l.Id.ToString(),
                                         Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
-                                    }).ToList(),
-                ListUnits = _context.Units
+                                    }).ToList();
+                Items.ListUnits = _context.Units
                                     .Where(l => l.CurrentState > 0)
                                     .Include(l => l.Items)
                                     .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                                     {
                                         Value = l.Id.ToString(),
                                         Text = l.Name
-                                    }).ToList()
-            };
+                                    }).ToList();
 
             
             return View(Items);
@@ -188,9 +189,23 @@ namespace X_ChemicalStorage.Controllers
             ItemViewModel model = new()
             {
                 NewItem = _servicesItem.FindBy(id),
-                ItemsList = _servicesItem.GetAll(),
-                LotsList = _servicesOfItem.GetLotsOfItem(id),
-                ExpieredLots = _servicesLot.GetAll().Where(x => x.ItemId == id && x.ExpiryDate < todayUtc && x.CurrentState>0).ToList(),
+                ItemsList = _servicesItem.GetAll()
+                                            .OrderByDescending(x => x.StorageCondition)
+                                            .ToList(),
+
+                LotsList = _servicesOfItem.GetLotsOfItem(id)
+                                        .OrderBy(x => x.ExpiryDate)
+                                        .ThenBy(x => x.ManufactureDate)
+                                        .ThenBy(x => x.ReceivedDate)
+                                        .ToList(),
+
+                ExpieredLots = _servicesLot.GetAll()
+                                        .Where(x => x.ItemId == id && x.ExpiryDate < todayUtc && x.CurrentState>0)
+                                        .OrderBy(x => x.ExpiryDate)
+                                        .ThenBy(x => x.ManufactureDate)
+                                        .ThenBy(x => x.ReceivedDate)
+                                        .ToList(),
+
                 ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id).OrderBy(x=>x.Move_Num).ToList(),
             };
             model.LocationData = _servicesOfItem.GetLocationDetailsOfItem(id);

@@ -30,7 +30,7 @@ namespace X_ChemicalStorage.Controllers
         {
             var Units = new UnitViewModel
             {
-                UnitsList = _servicesUnit.GetAll(),
+                UnitsList = _servicesUnit.GetAll().OrderBy(x => x.Name).ToList(),
                 NewUnit = new Unit()
             };
             return View(Units);

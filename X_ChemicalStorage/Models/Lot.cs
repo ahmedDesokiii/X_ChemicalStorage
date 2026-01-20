@@ -9,8 +9,16 @@ namespace X_ChemicalStorage.Models
         //public double? Quantity { get; set; }
         public double? TotalQuantity { get; set; }
         public double? AvilableQuantity { get; set; }
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? ReceivedDate { get; set; }
+        
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? ManufactureDate { get; set; }
+        
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? ExpiryDate { get; set; }
         public bool? SDS { get; set; }
         public string? BarcodeImage { get; set; } // مسار صورة الباركود

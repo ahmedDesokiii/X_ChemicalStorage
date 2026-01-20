@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using X_ChemicalStorage.IRepository;
+using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Controllers
 {
@@ -37,10 +39,33 @@ namespace X_ChemicalStorage.Controllers
             var todayUtc = DateTime.UtcNow.Date;
             var Lots = new LotViewModel
             {
-                LotsList = _servicesLot.GetAll(),
-                ExpiryLotsList = _servicesLot.GetAll().Where(x=>x.ExpiryDate < todayUtc).ToList(),
-                ItemsList = _servicesItem.GetAll(),
-                NewLot = new Lot()
+                LotsList = _servicesLot.GetAll()
+                                        .OrderBy(x => x.ExpiryDate)
+                                        .ThenBy(x => x.ManufactureDate)
+                                        .ThenBy(x => x.ReceivedDate)
+                                        .ToList(),
+
+                ExpiryLotsList = _servicesLot.GetAll()
+                                            .Where(x=>x.ExpiryDate < todayUtc)
+                                            .OrderBy(x => x.ExpiryDate)
+                                            .ThenBy(x => x.ManufactureDate)
+                                            .ThenBy(x => x.ReceivedDate)
+                                            .ToList(),
+
+                ItemsList = _servicesItem.GetAll()
+                                            .OrderByDescending(x => x.StorageCondition)
+                                            .ToList(),
+                ListLocations = _context.Locations
+                                    .Where(l => l.CurrentState > 0)
+                                    .Include(l => l.Items)
+                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                                    {
+                                        Value = l.Id.ToString(),
+                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
+                                    }).ToList(),
+
+                NewLot = new Lot(),
+                NewItem = new Item(),
             };
             return View(Lots);
         }

@@ -2,7 +2,7 @@
 //// DataTables initialisation
 
 $('#tableUser').dataTable({
-   
+    ordering: false,
     columnControl: {
         target: 1,
         content: ['search']
@@ -44,7 +44,7 @@ $('#tableUser').dataTable({
 });
 
 $('#tablePermissions').dataTable({
-
+    ordering: false,
     columnControl: {
         target: 1,
         content: ['search']
@@ -416,12 +416,24 @@ GetStorageTypes = () => {
     }
 }
 
-//ManufacuterCompany Methods
-EditLot = (id, name, shName, details) => {
+//Item Methods
+EditLot = (id, num, qty,exp, locationId,manf,reci,sds) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
-    
+    document.getElementById("lotId").value = id;
+    document.getElementById("lotNum").value = num;
+    document.getElementById("lotQty").value = qty;
+    document.getElementById("lotExpiryDate").value = exp;
+    document.getElementById("lotLocation").value = locationId;
+    document.getElementById("lotManf").value = manf;
+    document.getElementById("lotReci").value = reci;
+    document.getElementById("lotSDS").value = sds;
 
+    if (sds == 'True') {
+        document.getElementById("sdsYes").checked = true;
+    } else {
+        document.getElementById("sdsNo").checked = true;
+    }
 }
 ResetLot = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;

@@ -2,7 +2,7 @@
 //// DataTables initialisation
 
 $('#tableRole').dataTable({
-
+    ordering: false, // sort data in controller
     columnControl: {
         target: 1,
         content: ['search']

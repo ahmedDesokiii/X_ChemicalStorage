@@ -30,7 +30,7 @@ namespace X_ChemicalStorage.Controllers
         {
             var ManufacuterCompanies = new ManufacuterCompanyViewModel
             {
-                ManufacuterCompaniesList = _servicesManufacuterCompany.GetAll(),
+                ManufacuterCompaniesList = _servicesManufacuterCompany.GetAll().OrderBy(x => x.Name).ToList(),
                 NewManufacuterCompany = new ManufacuterCompany()
             };
             return View(ManufacuterCompanies);

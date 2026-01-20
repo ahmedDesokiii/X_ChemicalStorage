@@ -34,8 +34,8 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                                      .Include(item=>item.Lots)
                                      .Include(item=>item.Category)
                                      .Include(item=>item.Unit)
-
                                      .Where(x => x.CurrentState > 0)
+                                     
                                      .ToList();
             }
             catch

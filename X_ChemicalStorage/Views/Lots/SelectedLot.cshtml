@@ -21,12 +21,13 @@
             <div class=" d-flex col-md-4">
                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
                 {
-                    <a class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " title="Print Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@Model.NewLot.BarcodeImage" asp-route-Code="@Model.NewLot.LotNumber">
+                    <a class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@Model.NewLot.BarcodeImage" asp-route-ItemCode="@Model.NewLot.Item.Code" asp-route-LotNumber="@Model.NewLot.LotNumber" asp-route-ExpiryDate="@Model.NewLot.ExpiryDate">
                         <img src="~/images/barcode.png" alt="Save" height="40" class="mx-2">
                         <span class="fw-bold fs-6 pt-2 pe-3">Print Barcode</span>
                     </a>
                 }
 
+               
             </div>
             <div class=" d-flex col-md-4">
                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
@@ -50,10 +51,10 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <!-- Lot Image -->
+                        @* <!-- Lot Image -->
                         <div class="input-group mt-2 row mx-auto">
                             <img src="~/images/Lot.png" class="mx-auto w-25" />
-                        </div>
+                        </div> *@
                         <!-- Lot Barcode -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default "> Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -72,17 +73,17 @@
                         <!-- Lot ExpiryDate -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default "> Expiery Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Convert.ToDateTime(Model.NewLot.ExpiryDate).Date" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Expiery Date ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <input disabled asp-for="@Model.NewLot.ExpiryDate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Expiery Date ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Lot ManufactureDate -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default "> Manufacture Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Convert.ToDateTime(Model.NewLot.ManufactureDate).Date" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Manufacture Date ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <input disabled asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Manufacture Date ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Lot ReceivedDate -->
                         <div class="input-group mt-2 row mx-auto">
                             <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default "> Expiery Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Convert.ToDateTime(Model.NewLot.ReceivedDate).Date" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Received Date ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <input disabled asp-for="@Model.NewLot.ReceivedDate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Received Date ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Lot Quantity -->
                         <div class="input-group mt-2 row mx-auto">
@@ -104,6 +105,27 @@
                                 <input disabled asp-for="@Model.NewLot.SDS" value="Invalid" class="form-control text-center link-danger fw-bold" autocomplete="on" aria-required="true" placeholder="Lot SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                         }
+
+                        <!-- Item Barcode -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
+                                <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                    <img src="@Model?.NewLot.Item?.BarcodeImage" style="height:80px" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item Code -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewLot.Item.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <!-- Item Name -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewLot.Item.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
                     </div>
                     <!-- /.card-body -->
                 </div>

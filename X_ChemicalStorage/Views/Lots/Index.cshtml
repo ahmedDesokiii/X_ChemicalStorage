@@ -88,15 +88,26 @@
                                         {
                                             <tr class="text-center ">
 
-                                                <td class="fs-6 text-center py-0 px-1 my-auto">
-                                                    <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" /></span>
+                                                <td class="fs-6 text-center py-0 px-1 mx-auto  justify-content-center">
+                                                    <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
                                                     <hr class="p-0 m-0">
                                                     <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
                                                 </td>
                                                 <td class="fs-6 text-center px-1 bg-warning-subtle">
-                                                    <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
-                                                        @lot.Item?.Name
-                                                    </a>
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                                                    {
+                                                        <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
+                                                            @lot.Item?.Name
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="link-primary fw-bold text-decoration-none" title="Item Details">
+                                                            @lot.Item?.Name
+                                                        </span>
+                                                    }
+                                                    
+
                                                 </td>
                                                 <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                                 <td class="fs-6 text-center px-1 bg-warning-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
@@ -131,10 +142,20 @@
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                     }
-                                                    
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Edit_Lots).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditLot('@lot.Id','@lot.LocationId','@lot.SDS')" data-bs-toggle="modal" data-bs-target="#EditLotModal"><i class="bi bi-pencil-square"></i></a>
+                                                    }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLot('@lot.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
+                                                    {
+                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@lot.BarcodeImage" asp-route-ItemCode="@lot.Item.Code" asp-route-LotNumber="@lot.LotNumber" asp-route-ExpiryDate="@lot.ExpiryDate">
+                                                            <i class="bi bi-printer-fill"></i>
+
+                                                        </a>
                                                     }
                                                 </td>
                                             </tr>
@@ -144,14 +165,23 @@
                                             <tr class="text-center ">
 
                                                 <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center" >
-                                                    <span class="link-dark fw-bold fs-6 mx-auto"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
+                                                    <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
                                                     <hr class="p-0 m-0">
                                                     <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
                                                 </td>
                                                 <td class="fs-6 text-center px-1 ">
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                                                    {
                                                     <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
                                                         @lot.Item?.Name
                                                     </a>
+                                                    }
+                                                else
+                                                    {
+                                                        <span class="link-primary fw-bold text-decoration-none" title="Item Details" >
+                                                            @lot.Item?.Name
+                                                        </span>
+                                                    }
                                                 </td>
                                                 <td class="fs-6 text-center px-1 "><span class="fw-bold link-success">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                                 <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
@@ -186,6 +216,10 @@
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Edit_Lots).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditLot('@lot.Id','@lot.LotNumber','@lot.TotalQuantity','@lot.ExpiryDate','@lot.LocationId','@lot.ManufactureDate','@lot.ReceivedDate','@lot.SDS')" data-bs-toggle="modal" data-bs-target="#EditLotModal"><i class="bi bi-pencil-square"></i></a>
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
                                                     {
