@@ -29,18 +29,27 @@
                                 <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Add New Lot" onclick="" data-bs-toggle="modal" data-bs-target="#ListItemsModal"><i class="bi bi-cart-plus-fill fs-1"></i><br class="p-0 m-0">Add New Lot</a>
                             </div>
                         }
-                        <div class="col-4"></div>
+                        <div class="col-2"></div>
+                        <div class="col-2">
+                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots).Result.Succeeded)
+                            {
+                                <div class="col-2 mx-auto">
+                                    <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Expiery Lots List" onclick="" data-bs-toggle="modal" data-bs-target="#ExpieryLotsModal"><i class="bi bi-list-task fs-1"></i><br class="p-0 m-0">Expiered Lots</a>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-1"></div>
                         
                            
                         
                         <div class="col-2"></div>
-                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots).Result.Succeeded)
+                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
                         {
                            @*  <div class="col-2 mx-auto">
                                 <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Disbursement Lot" onclick="" data-bs-toggle="modal" data-bs-target="#DisbursementLotModal"><i class="bi bi-cart-dash-fill fs-1"></i><br class="p-0 m-0">Disbursement Lot</a>
                             </div> *@
                             <div class="col-2 mx-auto">
-                                <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Expiery Lots List" onclick="" data-bs-toggle="modal" data-bs-target="#ExpieryLotsModal"><i class="bi bi-list-task fs-1"></i><br class="p-0 m-0">Expiered Lots</a>
+                                <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Exchange Lot" onclick="" data-bs-toggle="modal" data-bs-target="#ListItemsModalDis"><i class="bi bi-cart-dash-fill fs-1"></i><br class="p-0 m-0">Exchange Lot</a>
                             </div>
                         }
                         
@@ -154,10 +163,6 @@
 
                                                         </a>
                                                     }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
-                                                    }
                                                 </td>
                                             </tr>
                                         }
@@ -231,10 +236,7 @@
 
                                                         </a>
                                                     }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
-                                                    }
+                            
                                                 </td>
                                             </tr>
                                         }
@@ -262,6 +264,7 @@
 <partial name="_SaveLot" />
 <partial name="_ExpiryLots" />
 <partial name="_ListItems" />
+<partial name="_ListItemsDis" />
 
 @section Scripts {
     <script src="~/js/Users.js"></script>
@@ -312,5 +315,63 @@
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
     </script>
+    <script>
+        const searchInput = document.getElementById('itemsSearchInput');
+        const items = document.querySelectorAll('.item-card');
+
+        function filterItems(value) {
+            const searchValue = value.toLowerCase();
+            let visibleItems = [];
+
+            items.forEach(item => {
+                const name = item.dataset.name?.toLowerCase() || '';
+                const code = item.dataset.code?.toLowerCase() || '';
+                const barcode = item.dataset.barcode?.toLowerCase() || '';
+                const category = item.dataset.category?.toLowerCase() || '';
+
+                const isMatch =
+                    name.includes(searchValue) ||
+                    code.includes(searchValue) ||
+                    barcode.includes(searchValue) ||
+                    category.includes(searchValue);
+
+                item.style.display = isMatch ? '' : 'none';
+
+                if (isMatch) visibleItems.push(item);
+            });
+
+            return visibleItems;
+        }
+
+        // typing / scanning
+        searchInput.addEventListener('input', function () {
+            filterItems(this.value);
+        });
+
+        // scanner usually ends with Enter
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                const matches = filterItems(this.value);
+
+                // لو عنصر واحد بس
+                if (matches.length === 1) {
+                    const actionBtn = matches[0].querySelector('.action-btn');
+                    if (actionBtn) {
+                        actionBtn.click(); // ينفذ Exchange تلقائي
+                    }
+                }
+            }
+        });
+
+        // لما المودال يفتح خد فوكس
+        document.getElementById('ListItemsModalDis')
+            .addEventListener('shown.bs.modal', () => {
+                searchInput.focus();
+                searchInput.value = '';
+                filterItems('');
+            });
+    </script>
+
+   
 }
 

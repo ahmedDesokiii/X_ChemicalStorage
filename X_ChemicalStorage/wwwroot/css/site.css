@@ -1,4 +1,4 @@
-
+﻿
 @import url('https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Yanone+Kaffeesatz:wght@200..700&display=swap');
 /* {
     font-family: "Berkshire Swash", serif;
@@ -295,4 +295,204 @@ label.radio-card {
             }
     }
 }
+
+
+
+
+/* ===== Modal ===== */
+.modal-header-custom {
+    background: linear-gradient(135deg, #0C7779, #415E72);
+    color: #fff;
+    border-bottom: none;
+}
+
+/* ===== Grid ===== */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+}
+
+/* ===== Card ===== */
+.item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    transition: all .25s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+    .item-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(0,0,0,.12);
+    }
+
+/* ===== Header ===== */
+.item-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0C7779;
+}
+
+/* ===== Barcode ===== */
+.barcode-mobile {
+    max-width: 90px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 8px;
+}
+
+/* ===== Meta ===== */
+.item-meta {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #555;
+}
+
+/* ===== Badge ===== */
+.storage-badge {
+    margin-top: 10px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge-room {
+    background: #ffe5e5;
+    color: #c0392b;
+}
+
+.badge-cold {
+    background: #e7f9f0;
+    color: #27ae60;
+}
+
+.badge-other {
+    background: #eaf3ff;
+    color: #2980b9;
+}
+
+/* ===== Actions ===== */
+.item-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.action-btn {
+    transition: all .2s ease;
+}
+
+    .action-btn:hover {
+        transform: scale(1.15);
+        color: #0C7779 !important;
+    }
+
+
+    /* ===== Card ===== */
+.item-card {
+    background: rgba(12, 119, 121, 0.04); /* لون خفيف جدًا */
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(12, 119, 121, 0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,.06);
+    transition: background .25s ease, 
+                box-shadow .25s ease, 
+                transform .25s ease,
+                border-color .25s ease;
+}
+
+/* Hover Effect */
+.item-card:hover {
+    background: rgba(12, 119, 121, 0.08); /* أغمق سنة */
+    border-color: rgba(12, 119, 121, 0.18);
+    box-shadow: 0 14px 30px rgba(0,0,0,.10);
+    transform: translateY(-4px);
+}
+
+
+
+/*--------------------- Mobile Only---------------------------------*/
+/* ===== Mobile Only ===== */
+@media (max-width: 768px) {
+
+    /* Hide table */
+    .items-table {
+        display: none;
+    }
+
+    /* Show cards */
+    .item-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+        margin-bottom: 16px;
+        padding: 14px;
+        animation: fadeUp .3s ease-in-out;
+    }
+
+    .item-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .item-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0C7779;
+    }
+
+    .barcode-mobile {
+        max-width: 90px;
+    }
+
+    .item-meta {
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    .item-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+        .item-actions i {
+            font-size: 26px;
+        }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* ===== Desktop Only ===== */
+@media (min-width: 769px) {
+    .mobile-items {
+        display: none;
+    }
+}
+
+
 /*--------------------- endcustom css---------------------------------*/

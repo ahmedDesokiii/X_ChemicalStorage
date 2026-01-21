@@ -192,7 +192,6 @@ namespace X_ChemicalStorage.Controllers
                 ItemsList = _servicesItem.GetAll()
                                             .OrderByDescending(x => x.StorageCondition)
                                             .ToList(),
-
                 LotsList = _servicesOfItem.GetLotsOfItem(id)
                                         .OrderBy(x => x.ExpiryDate)
                                         .ThenBy(x => x.ManufactureDate)
@@ -238,6 +237,34 @@ namespace X_ChemicalStorage.Controllers
                 //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
             
+            return View(model);
+        }
+        #endregion
+
+        #region Disbursing → Lot Exchange 
+        [HttpGet]
+        public IActionResult ExchangeLot(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ItemViewModel model = new()
+            {
+                NewLot = new Lot(),
+                NewItem = _servicesItem.FindBy(id),
+                ItemsList = _servicesItem.GetAll(),
+                LotsList = _servicesOfItem.GetLotsOfItem(id),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
+                ListLocations = _context.Locations
+                                    .Where(l => l.CurrentState > 0)
+                                    .Include(l => l.Items)
+                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                                    {
+                                        Value = l.Id.ToString(),
+                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
+                                    }).ToList(),
+                //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
+            };
+
             return View(model);
         }
         #endregion

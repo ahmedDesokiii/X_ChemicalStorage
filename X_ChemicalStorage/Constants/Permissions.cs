@@ -90,6 +90,7 @@ namespace X_ChemicalStorage.Constants
                  $"Permissions.{module}.View Lots List",
                  $"Permissions.{module}.View ExpieryLots List",
                  $"Permissions.{module}.Create New Lot",
+                 $"Permissions.{module}.Exchange Lot",
                  $"Permissions.{module}.Details Lot",
                  $"Permissions.{module}.Edit Lot ",
                  $"Permissions.{module}.Delete Lot",
@@ -203,6 +204,7 @@ namespace X_ChemicalStorage.Constants
             public const string View_Lots = "Permissions.Lots.View Lots List";
             public const string View_ExpieryLots = "Permissions.Lots.View ExpieryLots List";
             public const string Create_Lots = "Permissions.Lots.Create New Lot";
+            public const string Exchange_Lots = "Permissions.Lots.Exchange Lot";
             public const string Details_Lots = "Permissions.Lots.Details Lot";
             public const string Edit_Lots = "Permissions.Lots.Edit Lot ";
             public const string Delete_Lots = "Permissions.Lots.Delete Lot";
