@@ -1,1 +1,92 @@
-﻿
+﻿@model LotViewModel
+
+@{
+    var canCreate = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded;
+}
+
+<div class="modal fade" id="ListItemsModalCreate" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content card card-success card-outline">
+
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold"><i class="bi bi-cart-plus-fill me-2"></i>Items List</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="actionModeCreate" value="create" />
+                <div class="mb-3">
+                    <input type="text" id="itemsSearchInputCreate" class="form-control form-control-lg" placeholder="Scan barcode..." autocomplete="off" />
+                    <small id="scanMessageCreate" class="text-danger d-none mt-1">Item not found</small>
+                </div>
+
+                @if (!Model.ItemsList.Any())
+                {
+                    <div class="alert alert-warning text-center">
+                        <h5>No Items</h5>
+                        <p class="mb-0">No items have been added yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="items-grid">
+                        @foreach (var item in Model.ItemsList)
+                        {
+                            <div class="item-card" data-barcode="@item.Code">
+                                <div class="item-card-header">
+                                    <div class="item-name fs-4">@item.Name</div>
+                                    <div>
+                                        <img src="@item.BarcodeImage" class="barcode-mobile" />
+                                        <div class="d-block p-0 m-0" style="font-size:12px"> @item.Code</div>
+                                    </div>
+                                    
+
+                                </div>
+                                <div class="item-meta text-start ps-4">
+                                    @{
+                                        var badgeClass = item.StorageCondition switch
+                                        {
+                                            "room temp" => "badge-room",
+                                            "2-8C" => "badge-cold",
+                                            _ => "badge-other"
+                                        };
+                                    }
+                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageCondition</span>
+
+                                    <div class="ps-2"><strong>Category:</strong> @item.Category?.Name</div>
+                                    <div class="ps-2"><strong>Location:</strong> Room[@item.Location?.RoomNum]</div>
+                                    <div class="ps-2"><strong>SDS:</strong> 
+                                    @if (item.SDS == true)
+                                    {
+                                            <span class="py-1 px-3 bg-success-subtle link-success rounded-5">
+                                                Valid
+                                            </span>
+                                    }
+                                    else
+                                    {
+                                            <span class="py-1 px-3 bg-danger-subtle link-danger rounded-5">
+                                                Invalid
+                                            </span>
+                                    }
+                                    </div>
+                                </div>
+
+                                <div class="item-actions mt-0 mb-1">
+                                    @if (canCreate)
+                                    {
+                                        <a asp-controller="Items" asp-action="CreateLot" asp-route-id="@item.Id"
+                                           class="btn action-btn my-1" data-action="create" title="Create Lot">
+                                            <i class="bi bi-cart-plus-fill fs-1"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -29,8 +29,8 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                 return _context.Lots
                     .Include(x=>x.Item)
                     .Include(x=>x.Location)
-                    .Include(x=>x.SupplierLots)
-                    .Where(x => x.CurrentState > 0 && x.TotalQuantity > 0)
+                    .Include(x=>x.Suppliers)
+                    .Where(x => x.CurrentState > 0 && x.AvilableQuantity > 0)
                     .OrderBy(x=>x.ExpiryDate)
                     .ToList();
             }
@@ -48,7 +48,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
 
         #endregion
 
-        #region Save Lot (Add & Update)
+        #region Create Lot (Add & Update)
         // Add | Update Lot
         public bool Save(Lot model)
         {
@@ -99,8 +99,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     Item item = _context.Items.FirstOrDefault(x => x.Id == model.ItemId);
                     if (item != null)
                     {
-                        item.TotalQuantity += model.TotalQuantity;
-                        item.AvilableQuantity += model.TotalQuantity;
+                        item.AvilableQuantity += model.AvilableQuantity;
                         _context.Items.Update(item);
                     }
                     _context.SaveChanges();
@@ -110,8 +109,8 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     var trans = new LotTransaction();
                     int maxTr = _context.LotTransactions.Count() + 1;
                     trans.Move_Num = maxTr;
-                    trans.Move_Statement = "Add New Lot";
-                    trans.Move_Quantity = model.TotalQuantity;
+                    trans.Move_Statement = "Add New Lot" + model.LotNumber;
+                    trans.Move_Quantity = model.AvilableQuantity;
                     trans.Move_Date = DateTime.Now.Date;
                     trans.Lot = model;
                     trans.LotId = model.Id;
@@ -131,7 +130,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     int maxTrItem = _context.ItemTransactions.Count() + 1;
                     itemTrans.Move_Num = maxTrItem;
                     itemTrans.Move_Statement = "Add Lot Num : "+model.LotNumber;
-                    itemTrans.Move_Quantity = model.TotalQuantity;
+                    itemTrans.Move_Quantity = model.AvilableQuantity;
                     itemTrans.Move_Date = DateTime.Now.Date;
                     itemTrans.Item = item;
                     itemTrans.ItemId = item.Id;
@@ -162,6 +161,80 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     _context.Lots.Update(result);
                 }
                 _context.SaveChanges();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        #endregion
+
+        #region Exchange Lot 
+        // Add | Update Lot
+        public bool Exchange(Lot model)
+        {
+            try
+            {
+                //Update Avilable Quantity after Transaction in Item Table
+                Item item = _context.Items.FirstOrDefault(x => x.Id == model.ItemId);
+                    if (item != null)
+                    {
+                        item.AvilableQuantity -= model.ExchageQuantity;
+                        _context.Items.Update(item);
+                    }
+                    _context.SaveChanges();
+                
+                    //Update Avilable Quantity after Transaction in Lot Table
+                    Lot lot = _context.Lots.FirstOrDefault(x => x.Id == model.Id);
+                    if (lot != null)
+                    {
+                        lot.AvilableQuantity -= model.ExchageQuantity;
+                        _context.Lots.Update(lot);
+                    }
+                _context.SaveChanges();
+
+
+                // Add record to Lot Transaction
+                var trans = new LotTransaction();
+                    int maxTr = _context.LotTransactions.Count() + 1;
+                    trans.Move_Num = maxTr;
+                    trans.Move_Statement = "Exchange Lot : " + model.LotNumber;
+                    trans.Move_Quantity = model.ExchageQuantity;
+                    trans.Move_Date = DateTime.Now.Date;
+                    //trans.Lot = model;
+                    trans.LotId = model.Id;
+                    trans.Move_State = false;
+                    trans.Total_Quantity = lot.AvilableQuantity;
+
+                    trans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
+                    trans.DeviceUsing = Environment.MachineName;
+                    trans.Recipient = model.Recipient;   
+
+                    trans.CurrentState = (int)Helper.eCurrentState.Active;
+                    _context.LotTransactions.Add(trans);
+                    _context.SaveChanges();
+
+                    // Add Item Transaction Record 
+                    var itemTrans = new ItemTransaction();
+
+                    int maxTrItem = _context.ItemTransactions.Count() + 1;
+                    itemTrans.Move_Num = maxTrItem;
+                    itemTrans.Move_Statement = "Exchange Lot  : " + model.LotNumber;
+                    itemTrans.Move_Quantity = model.ExchageQuantity;
+                    itemTrans.Move_Date = DateTime.Now.Date;
+                    itemTrans.Item = item;
+                    itemTrans.ItemId = item.Id;
+                    itemTrans.Move_State = false;
+                    itemTrans.Total_Quantity = item.AvilableQuantity;
+
+                    itemTrans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
+                    itemTrans.DeviceUsing = Environment.MachineName;
+
+                    itemTrans.CurrentState = (int)Helper.eCurrentState.Active;
+                    _context.ItemTransactions.Add(itemTrans);
+                    _context.SaveChanges();
+                
                 return true;
             }
             catch (Exception)

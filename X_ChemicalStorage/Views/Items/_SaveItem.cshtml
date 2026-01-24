@@ -20,7 +20,7 @@
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                         <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
                             <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                <img src="~/barcodes/0bfaec93.png" height="80" />
+                                <img src="~/barcodes/0bfaec93.png" height="60" />
                                 @* <br class="p-0 m-0">
                                 <span class="link-dark " style="font-size:10px">@Model.NewItem?.Code</span> *@
                             </div>
@@ -51,9 +51,9 @@
                     <!-- ItemQuantity -->
                     <div class="input-group mt-2 row mx-auto" hidden>
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemQnty" required asp-for="@Model.NewItem.TotalQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <input id="itemQnty" required asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
-                    <span asp-validation-for="@Model.NewItem.TotalQuantity" class="text-danger"></span>
+                    <span asp-validation-for="@Model.NewItem.AvilableQuantity" class="text-danger"></span>
                     <!-- ItemLimit -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>

@@ -11,5 +11,169 @@
         </span>
     </div>
 </div>
-<section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
+<section class="text-center py-3 container-fluid justify-content-center mx-auto" dir="ltr">
+
+<div class="row text-center mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h6>Total Items</h6>
+            <h4>@Model.TotalItems</h4>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h6>Available Quantity</h6>
+            <h4>@Model.TotalAvailableQuantity</h4>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm text-warning">
+            <h6>Low Stock</h6>
+            <h4>@Model.LowStockItems</h4>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm text-danger">
+            <h6>Expired Lots</h6>
+            <h4>@Model.ExpiredLots</h4>
+        </div>
+    </div>
+</div>
+
+   
+<canvas id="stockChart"></canvas>
+    <hr class="my-5" />
+
+    <h4 class="text-center mb-3">Lot Transactions (IN / OUT)</h4>
+    <canvas id="lotTransactionChart"></canvas>
+    
+
 </section>
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const dashboardData = {
+            availableQty: @Model.TotalAvailableQuantity,
+            lowStock: @Model.LowStockItems,
+            expiredLots: @Model.ExpiredLots
+        };
+
+        new Chart(document.getElementById('stockChart'), {
+            data: {
+                labels: ['Available Qty', 'Low Stock', 'Expired Lots'],
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Available Quantity',
+                        data: [
+                            dashboardData.availableQty,
+                            null,
+                            null
+                        ],
+                        backgroundColor: '#198754',
+                        yAxisID: 'yQty'
+                    },
+                    {
+                        type: 'line',
+                        label: 'Low Stock Items',
+                        data: [
+                            null,
+                            dashboardData.lowStock,
+                            null
+                        ],
+                        borderColor: '#ffc107',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        yAxisID: 'yCount'
+                    },
+                    {
+                        type: 'line',
+                        label: 'Expired Lots',
+                        data: [
+                            null,
+                            null,
+                            dashboardData.expiredLots
+                        ],
+                        borderColor: '#dc3545',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        yAxisID: 'yCount'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    yQty: {
+                        type: 'linear',
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Quantity'
+                        }
+                    },
+                    yCount: {
+                        type: 'linear',
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    <script>
+        const lotData = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(Model.LotTransactions)
+            );
+
+    new Chart(document.getElementById('lotTransactionChart'), {
+        type: 'line',
+        data: {
+            labels: lotData.map(x => x.date),
+            datasets: [
+                {
+                    label: 'IN',
+                    data: lotData.map(x => x.inQty),
+                    borderColor: '#198754',
+                    tension: 0.4
+                },
+                {
+                    label: 'OUT',
+                    data: lotData.map(x => x.outQty),
+                    borderColor: '#dc3545',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+
+}
+
+
+

@@ -6,7 +6,8 @@ namespace X_ChemicalStorage.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string? LotNumber { get; set; }
-        //public double? Quantity { get; set; }
+        public double? ExchageQuantity { get; set; }
+        public string? Recipient { get; set; } // جهة الاستلام
         public double? TotalQuantity { get; set; }
         public double? AvilableQuantity { get; set; }
         [DataType(DataType.Date)]
@@ -27,11 +28,11 @@ namespace X_ChemicalStorage.Models
         public int? LocationId { get; set; } // Location Details
         [ForeignKey("LocationId")]
         public Location? Location { get; set; }
-         public int? ItemId { get; set; } 
+        public int? ItemId { get; set; } 
         [ForeignKey("ItemId")]
         public Item? Item { get; set; }
-
-        public ICollection<SupplierLot> SupplierLots { get; set; }
+        public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
+        //public ICollection<SupplierLot> SupplierLots { get; set; }
         public int? CurrentState { get; set; }
     }
 }

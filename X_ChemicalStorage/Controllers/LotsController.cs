@@ -202,32 +202,22 @@ namespace X_ChemicalStorage.Controllers
             return View(model);
         }
         #endregion
-
-
-        // View
-        public IActionResult Scan()
-        {
-            return View();
-        }
-
-        // AJAX
-        [HttpGet]
-        public async Task<IActionResult> GetLotsByBarcode(string barcode)
-        {
-            var lots = await _inventoryService.GetLotsByBarcodeAsync(barcode);
-
-            if (!lots.Any())
-                return NotFound("لا توجد Lots متاحة");
-
-            return Json(lots);
-        }
-
+        #region Disbursing → Lot Exchange 
         [HttpPost]
-        public IActionResult Submit(int lotId, int quantity)
+        [AutoValidateAntiforgeryToken]
+        public IActionResult Exchange(ItemViewModel model)
         {
-            // خصم الكمية ومعالجة العملية
-            return Ok();
+            var userId = _userManager.GetUserId(User);
+            
+                if (_servicesOfLot.Exchange(model.NewLot))
+                    SessionMsg(Helper.Success, "Exchange Lot", "The Lot has been exchanged successfully !");
+                else
+                    SessionMsg(Helper.Error, "Error Exchanging Lot", "An error occurred while adding some data !");
+            
+            return RedirectToAction("index", "Lots");
         }
+
+        #endregion
 
         #region Print Lot Barcode
         public IActionResult PrintLotBarcode(string barcodeFile, string itemName , string lotNumber, string expiryDate)

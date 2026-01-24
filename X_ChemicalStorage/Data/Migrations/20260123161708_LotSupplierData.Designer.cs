@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using X_ChemicalStorage.Data;
 
@@ -11,9 +12,11 @@ using X_ChemicalStorage.Data;
 namespace X_ChemicalStorage.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260123161708_LotSupplierData")]
+    partial class LotSupplierData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -430,9 +433,6 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<int?>("CurrentState")
                         .HasColumnType("int");
 
-                    b.Property<double?>("ExchageQuantity")
-                        .HasColumnType("float");
-
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("datetime2");
 
@@ -450,9 +450,6 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.Property<DateTime?>("ReceivedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Recipient")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("SDS")
                         .HasColumnType("bit");
@@ -502,9 +499,6 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Move_Statement")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Recipient")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double?>("Total_Quantity")

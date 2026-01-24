@@ -33,7 +33,7 @@ else if (User.IsInRole(Roles.Teacher.ToString()) || User.IsInRole(Roles.TeacherW
     }
 </style>
 
-<ul class="navbar-nav">
+<ul class="navbar-nav" dir="ltr">
     <li class="nav-item mt-2">
         <div class="dropdown ">
             <a data-mdb-dropdown-init
@@ -43,7 +43,7 @@ else if (User.IsInRole(Roles.Teacher.ToString()) || User.IsInRole(Roles.TeacherW
                aria-expanded="false">
                 <h3><i class="bi bi-bell-fill text-light"></i></h3>
             </a>
-            <span id="notifications" class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger">
+            <span id="notifications" class="position-absolute top-0 start-0 translate-middle badge rounded bg-danger">
                 <span>1</span> <span class="visually-hidden me-4">notify</span>
             </span>
             <ul class="dropdown-menu dropdown-menu-end py-0"

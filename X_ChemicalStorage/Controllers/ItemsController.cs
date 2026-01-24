@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -234,6 +236,14 @@ namespace X_ChemicalStorage.Controllers
                                         Value = l.Id.ToString(),
                                         Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
                                     }).ToList(),
+                ListSuppliers = _context.Suppliers
+                                    .Where(s => s.CurrentState > 0)
+                                    .Include(s => s.Lot)
+                                    .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                                    {
+                                        Value = s.Id.ToString(),
+                                        Text = s.Name
+                                    }).ToList(),
                 //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
             
@@ -242,31 +252,79 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Disbursing → Lot Exchange 
+
+        //public IActionResult ExchangeLot(int id)
+        //{
+        //    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //    ItemViewModel model = new()
+        //    {
+        //        NewLot = _servicesLot.GetAll().OrderBy(x=>x.ExpiryDate).FirstOrDefault(x=>x.CurrentState>0) ,
+        //        NewItem = _servicesItem.FindBy(id),
+        //        ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
+        //        ListLocations = _context.Locations
+        //                            .Where(l => l.CurrentState > 0)
+        //                            .Include(l => l.Items)
+        //                            .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+        //                            {
+        //                                Value = l.Id.ToString(),
+        //                                Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
+        //                            }).ToList(),
+        //        //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
+        //        ListLotsOfItem = _servicesOfItem.GetLotsOfItem(id)
+        //                            .Where(l => l.AvilableQuantity > 0)
+        //                            .OrderBy(x => x.ExpiryDate)
+        //                            .ThenBy(x => x.ManufactureDate)
+        //                            .ThenBy(x => x.ReceivedDate)
+        //                            .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+        //                            {
+        //                                Value = l.Id.ToString(),
+        //                                Text = " Avilable Qty[ " + l.AvilableQuantity + " ] → Expiry Date[ " + (l.ExpiryDate.HasValue ? l.ExpiryDate.Value.ToString("yyyy-MM-dd") : "N/A") + " ] "
+        //                            }).ToList()
+        //    };
+
+        //    return View(model);
+
+
+        //}
+
+        // GET: Exchange Lot
         [HttpGet]
         public IActionResult ExchangeLot(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // جلب بيانات الـ Item
+            var item = _context.Items.FirstOrDefault(x => x.Id == id);
+            if (item == null) return NotFound();
 
-            ItemViewModel model = new()
+            // جلب اللوتات المتاحة وترتيبها حسب تاريخ الانتهاء
+            var lots = _context.Lots
+                .Where(x => x.ItemId == id && x.AvilableQuantity > 0)
+                .OrderBy(x => x.ExpiryDate)
+                .ToList();
+
+            // تعيين أول لوت كـ default
+            var newLot = lots.FirstOrDefault();
+
+            // تجهيز الـ SelectList
+            var listLotsOfItem = lots.Select(lot => new SelectListItem
             {
-                NewLot = new Lot(),
-                NewItem = _servicesItem.FindBy(id),
-                ItemsList = _servicesItem.GetAll(),
-                LotsList = _servicesOfItem.GetLotsOfItem(id),
-                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
-                ListLocations = _context.Locations
-                                    .Where(l => l.CurrentState > 0)
-                                    .Include(l => l.Items)
-                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                                    {
-                                        Value = l.Id.ToString(),
-                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
-                                    }).ToList(),
-                //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
+                Value = lot.Id.ToString(),
+                Text = $" Available Qty [{lot.AvilableQuantity}] → Expiary Date [{lot.ExpiryDate:yyyy-MM-dd}]",
+                Selected = (newLot != null && lot.Id == newLot.Id)
+            }).ToList();
+
+            var model = new ItemViewModel
+            {
+                NewItem = item,
+                LotsList = lots,
+                NewLot = newLot,
+                ListLotsOfItem = listLotsOfItem
             };
 
             return View(model);
         }
+        
         #endregion
 
         #region Print Barcode

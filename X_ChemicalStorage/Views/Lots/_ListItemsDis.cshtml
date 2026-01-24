@@ -1,39 +1,28 @@
 ﻿@model LotViewModel
 
 @{
-    var canExchange = AuthorizationService
-        .AuthorizeAsync(User, Permissions.Lots.Exchange_Lots)
-        .Result.Succeeded;
+    var canExchange = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded;
 }
 
-<div class="modal fade" id="ListItemsModalDis" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="ListItemsModalExchange" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content card card-success card-outline">
 
-            <!-- Header -->
             <div class="modal-header modal-header-custom">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-box-seam me-2"></i>
-                    Items List
-                </h5>
+                <h5 class="modal-title fw-bold"><i class="bi bi-cart-dash-fill me-2"></i>Items List</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <!-- Body -->
             <div class="modal-body">
+                <input type="hidden" id="actionModeExchange" value="exchange" />
                 <div class="mb-3">
-                    <input type="text"
-                           id="itemsSearchInput"
-                           class="form-control"
-                           placeholder="Scan barcode..."
-                           autocomplete="off" />
-                    <small id="scanMessage" class="text-danger d-none mt-1">
-                        Item not found
-                    </small>
+                    <input type="text" id="itemsSearchInputExchange" class="form-control form-control-lg" placeholder="Scan barcode..." autocomplete="off" />
+                    <small id="scanMessageExchange" class="text-danger d-none mt-1">Item not found</small>
                 </div>
+
                 @if (!Model.ItemsList.Any())
                 {
-                    <div class="alert alert-warning mt-4 text-center">
+                    <div class="alert alert-warning text-center">
                         <h5>No Items</h5>
                         <p class="mb-0">No items have been added yet.</p>
                     </div>
@@ -41,65 +30,89 @@
                 else
                 {
                     <div class="items-grid">
-
                         @foreach (var item in Model.ItemsList)
                         {
-                            <div class="item-card"
-                                 data-name="@item.Name"
-                                 data-code="@item.Code"
-                                 data-barcode="@item.Code"
-                                 data-category="@item.Category?.Name">
-
-
-
-                                <!-- Header -->
+                            <div class="item-card" data-barcode="@item.Code">
                                 <div class="item-card-header">
-                                    <div class="item-name">@item.Name</div>
-                                    <img src="@item.BarcodeImage" class="barcode-mobile" />
+                                    <div class="item-name fs-4">@item.Name</div>
+                                    <div>
+                                        <img src="@item.BarcodeImage" class="barcode-mobile" />
+                                        <div class="d-block p-0 m-0" style="font-size:12px"> @item.Code</div>
+                                    </div>
+                                </div>
+                                <div class="item-meta text-start ps-4">
+                                    @{
+                                        var badgeClass = item.StorageCondition switch
+                                        {
+                                            "room temp" => "badge-room",
+                                            "2-8C" => "badge-cold",
+                                            _ => "badge-other"
+                                        };
+                                    }
+                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageCondition</span>
+
+                                    <div class="ps-2"><strong>Category:</strong> @item.Category?.Name</div>
+                                    <div class="ps-2"><strong>Location:</strong> Room[@item.Location?.RoomNum]</div>
+                                    <div class="ps-2">
+                                        <strong>SDS:</strong>
+                                        @if (item.SDS == true)
+                                        {
+                                            <span class="py-1 px-3 bg-success-subtle link-success rounded-5">
+                                                Valid
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="py-1 px-3 bg-danger-subtle link-danger rounded-5">
+                                                Invalid
+                                            </span>
+                                        }
+                                    </div>
                                 </div>
 
-                                <!-- Meta -->
-                                <div class="item-meta">
-                                    <div><strong>Code:</strong> @item.Code</div>
-                                    <div><strong>Category:</strong> @item.Category?.Name</div>
-                                </div>
-
-                                <!-- Storage -->
-                                @{
-                                    var badgeClass = item.StorageCondition switch
+                                <div class="item-actions mt-0 mb-1">
+                                    @if (canExchange)
                                     {
-                                        "room temp" => "badge-room",
-                                        "2-8C" => "badge-cold",
-                                        _ => "badge-other"
-                                    };
-                                }
-
-                                <span class="storage-badge @badgeClass">
-                                    <i class="bi bi-thermometer-half"></i>
-                                    @item.StorageCondition
-                                </span>
-
-                                <!-- Actions -->
-                                @if (canExchange)
-                                {
-                                    <div class="item-actions">
-                                        <a asp-controller="Items"
-                                           asp-action="ExchangeLot"
-                                           asp-route-id="@item.Id"
-                                           class="btn action-btn"
-                                           title="Exchange Lot">
+                                        <a asp-controller="Items" asp-action="ExchangeLot" asp-route-id="@item.Id"
+                                           class="btn action-btn" data-action="exchange" title="Exchange Lot">
                                             <i class="bi bi-cart-dash-fill fs-1"></i>
                                         </a>
-                                    </div>
-                                }
+                                    }
+                                </div>
                             </div>
                         }
-
                     </div>
-
                 }
-
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function() {
+            const modal = document.getElementById('ListItemsModalExchange');
+            if (!modal) return;
+
+            const input = modal.querySelector('#itemsSearchInputExchange');
+            const cards = modal.querySelectorAll('.item-card');
+            const scanMsg = modal.querySelector('#scanMessageExchange');
+
+            let timer;
+            input.addEventListener('input', () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    const code = input.value.trim();
+                    input.value = '';
+                    scanMsg.classList.add('d-none');
+                    const match = [...cards].find(c => c.dataset.barcode === code);
+                    if (!match) return scanMsg.classList.remove('d-none');
+                    const btn = match.querySelector('.action-btn[data-action="exchange"]');
+                    if (btn) btn.click();
+                }, 300);
+            });
+
+            modal.addEventListener('shown.bs.modal', () => input.focus());
+        })();
+    </script>
+}

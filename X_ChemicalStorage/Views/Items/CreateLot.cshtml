@@ -37,21 +37,21 @@
 
                             <!-- Item Barcode -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
                                     <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                        <img src="@Model?.NewItem?.BarcodeImage" />
+                                        <img src="~/barcodes/0bfaec93.png" height="60" />
                                     </div>
                                 </div>
                             </div>
                             <!-- Item Code -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 <input readonly  value="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                             <!-- Item Name -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                         
@@ -70,67 +70,83 @@
                         <div class="card-body mx-auto ">
                             <!-- Item Image -->
                             <div class="input-group mt-2 row mx-auto">
-                                @* <img src="~/images/lot.png" class="mx-auto w-25 " /> *@
                             </div>
                         
                             <!---------------------------- Lot Data ----------------------------------->
                             <!-- Lot Barcode -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
-                                    <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                        <img src="~/lotbarcodes/184799d5.png" height="100" />
-                                    </div>
-                                </div>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="card col-md-8 py-1 border-start" style="border-top-right-radius : 20px ;">
+                                    <span class="col-md-8">
+                                        <img src="~/lotbarcodes/184799d5.png" height="60" />
+                                    </span>
+                                </span>
                             </div>
 
                             <!-- Lot Number -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8">
                                 <input id="lotNum"  required asp-for="@Model.NewLot.LotNumber" value="@lotNumGenerate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Lot Number" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" >
+                                </span>
                             </div>
                             
                         
                             <!-- Lot Quantity -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                @* <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Max Quantity Avilable : @Model.NewItem.AvilableQuantity " type="number" min="0" max="@Model?.NewItem?.AvilableQuantity" style="border-top-right-radius : 20px ;" autofocus> *@
-                                <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0"  style="border-top-right-radius : 20px ;" autofocus>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8">
+                                    <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
+                                </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
                         
                             <!-- Lot Expiry Date -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Expiry Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Expiry Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8">
                                 <input type="date" id="lotExpiryDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ExpiryDate" class="form-control text-center " style="border-top-right-radius : 20px ;">
+                                </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.ExpiryDate" class="text-danger"></span>
 
                             <!-- Lot Location -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                @* <input value="@Model.NewItem.LocationId" class="form-control text-center fw-bold col-md-6" type="text" style="border-top-right-radius : 20px ;"> *@
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 <span class="col-md-8"></span>
                                 <div class="row mt-1">
-                                    <select id="lotLocation" class="form-select text-start " required asp-items="@Model.ListLocations" asp-for="@Model.NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
+                                    <select id="lotLocation" class="form-select text-start fw-bold" required asp-items="@Model.ListLocations" asp-for="@Model.NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
                                         <option selected disabled class="text-center "> Choose Location </option>
                                     </select>
                                 </div>
                             </div>
                             <span asp-validation-for="@Model.NewLot.LocationId" class="text-danger"></span>
+                            <!-- Lot Supplier -->
+                            <div class="input-group mt-2 row mx-auto">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Supplier &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8">
+                                    <select id="lotSupp" class="form-select text-start " required asp-items="@Model.ListSuppliers" style="border-top-right-radius : 20px ;">
+                                        <option selected disabled class="text-center "> Choose Supplier </option>
+                                    </select>
+                                </span>
+                            </div>
+                            <span asp-validation-for="@Model.NewLot.LocationId" class="text-danger"></span>
                             <!-- Lot Manufacture Date -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default "> &nbsp;&nbsp;Manufacture Date </span>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Manufacture Date </span>
+                                <span class="col-md-8">
                                 <input type="date" id="lotManufactureDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center "  style="border-top-right-radius : 20px ;">
+                                </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
                            
                             <!-- Lot SDS -->
                             <div class="input-group mt-3 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;">
-                                    <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                        <div class="col-md-4 text-center my-0">
+                                @* <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;"> *@
+                                    <div class="card-body col-md-8 d-flex row p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                        <div class="col-md-1 col-1"></div>
+                                        <div class="col-md-4 col-4 text-center my-0">
                                             <label for="sdsYes" class="radio-card" onclick="document.getElementById('itemSDS').value = 'True'; ">
                                                 <input type="radio" hidden name="radio-card" id="sdsYes" />
                                                 <div class="card-content-wrapper rounded-3 py-2 px-4">
@@ -140,8 +156,8 @@
                                                 </div>
                                             </label>
                                         </div>
-                                        <div class="col-md-3 text-center"></div>
-                                        <div class=" col-md-4 text-center my-0">
+                                        <div class="col-md-2 col-2 text-center"></div>
+                                        <div class=" col-md-4 col-4 text-center my-0">
                                             <label for="sdsNo" class="radio-card" onclick="document.getElementById('itemSDS').value = 'False'; ">
                                                 <input type="radio" hidden name="radio-card" id="sdsNo" />
                                                 <div class="card-content-wrapper rounded-3 py-2 px-3">
@@ -152,25 +168,28 @@
                                             </label>
                                         </div>
                                     </div>
-                                </div>
+                                @* </div> *@
                                 <input id="itemSDS" required hidden asp-for="@Model.NewLot.SDS" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                             <span asp-validation-for="@Model.NewLot.SDS" class="text-danger"></span>
 
                         <!-- /.card-body -->
                     </div>
-                    <div class="card-footer mt-4 d-flex mx-auto py-3 bg-transparent" style="padding:0 15px 15px 0">
-                        <button class="btn btn-outline-primary btn-sm mx-2 d-flex rounded rounded-3 " type="submit" title="Print lot Barcode" asp-controller="Lots" asp-action="SaveAndPrint">
-                            <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
-                            <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
+                    <div class=" d-flex mx-auto py-3 mt-2 bg-transparent" style="padding:0 15px 15px 0">
+                            <button class="btn btn-outline-primary btn-sm mx-2 d-flex rounded rounded-3 " type="submit" title="Print lot Barcode" 
+                                asp-controller="Lots" 
+                                asp-action="PrintLotBarcode" 
+                                asp-route-barcodeFile="@Model.NewLot.BarcodeImage" 
+                                asp-route-ItemName="@Model.NewItem.Name" 
+                                asp-route-LotNumber="@Model.NewLot.LotNumber" 
+                                asp-route-ExpiryDate="@Model.NewLot.ExpiryDate">
+                                <img src="~/images/barcode.png" alt="SaveAndPrint" height="30"  class="mx-2">
+                                <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
                         </button>
-                        <input type="submit" class="btn btn-success mx-2" value="Save changes Only" id="btnSave" asp-action="Save" asp-controller="Lots" />
-                        
+                        <input type="submit" class="btn btn-success mx-2" value="Save changes Only" id="btnSave" asp-action="Save" asp-controller="Lots" />  
                     </div>
                     <!-- /.card -->
-                    <!-- /.card -->
                 </div>
-            
             </div>
             </div>
             <!-- /.row -->

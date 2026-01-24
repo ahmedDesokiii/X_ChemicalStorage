@@ -93,7 +93,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
 
                     model.BarcodeImage = "/barcodes/" + fileName;
                     model.CurrentState = (int)Helper.eCurrentState.Active;
-                    model.AvilableQuantity = model.TotalQuantity;
+                    //model.AvilableQuantity = model.TotalQuantity;
                     _context.Items.Add(model);
                     _context.SaveChanges();
 
@@ -102,12 +102,12 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     int maxTr = _context.ItemTransactions.Count() + 1;
                     trans.Move_Num = maxTr;
                     trans.Move_Statement = "Add New Item";
-                    trans.Move_Quantity = model.TotalQuantity;
+                    trans.Move_Quantity = model.AvilableQuantity;
                     trans.Move_Date = DateTime.Now.Date;
                     trans.Item = model;
                     trans.ItemId = model.Id;
                     trans.Move_State = true;
-                    trans.Total_Quantity = model.TotalQuantity;
+                    trans.Total_Quantity = model.AvilableQuantity;
                     
                     trans.CreatedBy =  _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
                     trans.DeviceUsing = Environment.MachineName;
@@ -204,8 +204,8 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                 return _context.Lots
                     .Include(x => x.Item)
                     .Include(x => x.Location)
-                    .Include(x => x.SupplierLots)
-                    .Where(x => x.CurrentState > 0 && x.TotalQuantity > 0 && x.ItemId == id && x.ExpiryDate >= DateTime.Now.Date)
+                    .Include(x => x.Suppliers)
+                    .Where(x => x.CurrentState > 0 && x.AvilableQuantity > 0 && x.ItemId == id && x.ExpiryDate >= DateTime.Now.Date)
                     .OrderBy(x => x.ExpiryDate).ThenBy(x=>x.ItemId).ThenBy(x=>x.LotNumber)
                     .ToList();
             }

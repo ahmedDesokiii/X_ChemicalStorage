@@ -29,16 +29,16 @@ namespace X_ChemicalStorage.Data
                 .HasKey(sl => new { sl.SupplierId, sl.LotId });
 
             // Define the relationship from Supplier to the join entity
-            builder.Entity<SupplierLot>()
-                .HasOne(sl => sl.Supplier)
-                .WithMany(s => s.SupplierLots)
-                .HasForeignKey(sl => sl.SupplierId);
+            //builder.Entity<SupplierLot>()
+            //    .HasOne(sl => sl.Supplier)
+            //    .WithMany(s => s.SupplierLots)
+            //    .HasForeignKey(sl => sl.SupplierId);
 
             // Define the relationship from Lot to the join entity
-            builder.Entity<SupplierLot>()
-                .HasOne(sl => sl.Lot)
-                .WithMany(l => l.SupplierLots)
-                .HasForeignKey(sl => sl.LotId);
+            //builder.Entity<SupplierLot>()
+            //    .HasOne(sl => sl.Lot)
+            //    .WithMany(l => l.SupplierLots)
+            //    .HasForeignKey(sl => sl.LotId);
 
         }
         //public DbSet<PrintSetting> PrintSettings { get; set; }

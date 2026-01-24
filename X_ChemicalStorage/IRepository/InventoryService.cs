@@ -16,14 +16,14 @@ namespace X_ChemicalStorage.IRepository
             var lots = await _context.Items
                 .Where(i => i.Code == barcode)
                 .SelectMany(i => i.Lots)
-                .Where(l => l.TotalQuantity > 0)
+                .Where(l => l.AvilableQuantity > 0)
                 .OrderBy(l => l.ExpiryDate)
                 .Select(l => new LotDto
                 {
                     Id = l.Id,
-                    AvailableQty = l.TotalQuantity,
+                    AvailableQty = l.AvilableQuantity,
                     DisplayText =
-                        $"{l.LotNumber} | Qty: {l.TotalQuantity} | Exp: {l.ExpiryDate:yyyy-MM-dd}"
+                        $"{l.LotNumber} | Qty: {l.AvilableQuantity} | Exp: {l.ExpiryDate:yyyy-MM-dd}"
                 })
                 .ToListAsync();
 

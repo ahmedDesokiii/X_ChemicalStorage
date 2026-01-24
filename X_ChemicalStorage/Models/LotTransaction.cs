@@ -12,6 +12,8 @@ namespace X_ChemicalStorage.Models
         public string? Move_Statement { get; set; } = string.Empty;
         public double? Move_Quantity { get; set; } = 0;
         public double? Total_Quantity { get; set; } = 0;
+        public string? Recipient { get; set; } = string.Empty; // جهة الاستلام
+
         public int? LotId { get; set; } 
         [ForeignKey("LotId")]
         public Lot? Lot { get; set; }

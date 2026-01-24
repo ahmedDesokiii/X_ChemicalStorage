@@ -4,19 +4,33 @@
     ViewData["Title"] = "Iventory Catalog";
     int cNo = 0;
     
+    // Define colors for each category
+    Dictionary<string, string>
+    categoryColors = new Dictionary<string, string>
+        ()
+        {
+        { "Electronics", "#0d6efd" },
+        { "Chemicals", "#198754" },
+        { "Food", "#ffc107" },
+        { "Furniture", "#fd7e14" },
+        { "Clothing", "#6f42c1" }
+        // Add more categories as needed
+        };
 
 }
+        
+
 <style>
-    /* Animation for cards on hover */
+    /* Card hover animation */
     .card-hover {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .card-hover:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 15px 25px rgba(0,0,0,0.2);
-        z-index: 10;
-    }
+        .card-hover:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.25);
+            z-index: 10;
+        }
 
     /* Truncate text in header */
     .card-header .text-truncate {
@@ -24,7 +38,68 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    /* Card body layout */
+    .card-body .data-row {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    .card-body .data-label {
+        font-weight: 600;
+        color: #415E72;
+    }
+
+    .card-body .data-value {
+        font-weight: bold;
+    }
+
+    /* Barcode image */
+    .barcode-img {
+        height: 40px;
+    }
+
+    /* Buttons: only icon, no border/background */
+    .icon-btn {
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0 4px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+        .icon-btn:hover {
+            transform: scale(1.2);
+            color: #0d6efd; /* Optional hover color */
+        }
+
+    /* Storage icon colors */
+    .storage-room-temp {
+        color: red;
+    }
+
+    .storage-2-8c {
+        color: green;
+    }
+
+    .storage-other {
+        color: blue;
+    }
+
+    /* Mobile card spacing */
+    .professional-card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    
 </style>
+
 
 
 <div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
@@ -64,120 +139,176 @@
                     else
                     {
 
-                        <div id="Users" class="tabcontent mx-2">
-                            <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
-                                <thead>
-                                    <tr class="text-center">
-                                        @* <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th> *@
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Barcode</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SDS</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Category</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
-                                        <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Total<br class="m-0 p-0">Quantity</th>
-                                        <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Avilable<br class="m-0 p-0">Quantity</th>
-                                        <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Storage<br class="m-0 p-0">Condition</th>
-                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
-                                        <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model.ItemsList)
-                                    {
-                                        cNo++;
-                                       
+                        <!-- ================= MOBILE VIEW ================= -->
+                        <!-- MOBILE Cards -->
+                        <div id="mobile-cards" class="d-block d-md-none px-2 mt-4">
+                            @foreach (var item in Model.ItemsList)
+                            {
+                                var categoryColor = categoryColors.ContainsKey(item.Category.Name) ? categoryColors[item.Category.Name] : "#415E72";
+
+                                <div class="card professional-card mb-3 shadow-sm border-0 card-hover" style="border-left: 6px solid @categoryColor;">
+                                    
+                                <!-- Card Header -->
+                                    <div class="card-header text-white p-3 rounded-top" style="background: linear-gradient(90deg, @categoryColor, #032b42);">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <h5 class="fw-bold mb-1 text-truncate">@item.Name</h5>
+                                            </div>
+                                            <div class="text-center">
+                                                <img src="@item.BarcodeImage" class="barcode-img rounded-3" />
+                                                <small class="text-light">@item.Code</small>
+                                           </div>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- Card Body -->
+                                    <div class="card-body pt-2 pb-1">
+                                        <div class="data-row"><span class="data-label">Lots:</span> <span class="data-value">@item.Lots.Count</span></div>
+                                        <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value" style="color:@(item.SDS==true ? "green" : "red")">@((item.SDS==true) ? "Valid" : "Invalid")</span></div>
+                                        <div class="data-row"><span class="data-label">Category:</span> <span class="data-value">@item.Category.Name</span></div>
+                                        <div class="data-row"><span class="data-label">Limit:</span> <span class="data-value">@item.Limit</span></div>
+                                        <div class="data-row"><span class="data-label">Total Qty:</span> <span class="data-value">@item.TotalQuantity</span></div>
+                                        <div class="data-row"><span class="data-label">Available Qty:</span> <span class="data-value">@item.AvilableQuantity</span></div>
+                                        <div class="data-row">
+                                            <span class="data-label">Storage:</span>
+                                            <span class="data-value">
+                                                <i class="bi bi-thermometer-half fs-4 @(item.StorageCondition == "2-8C" ? "storage-2-8c" : item.StorageCondition == "room temp" ? "storage-room-temp" : "storage-other")"></i>
+                                                @item.StorageCondition
+                                            </span>
+                                        </div>
+                                        <div class="data-row"><span class="data-label">Location:</span> <span class="data-value">Room[@item.Location.RoomNum]</span></div>
+                                    </div>
+
+                                    <!-- Card Footer Buttons -->
+                                    <div class="card-footer bg-light border-0 pt-2 pb-2 d-flex justify-content-around gap-2 flex-wrap">
+                                        <a class="icon-btn" title="Add Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i></a>
+                                        <a class="icon-btn" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-2"></i></a>
+                                        <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
+                                        <a class="icon-btn" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill fs-2"></i></a>
+                                        <a class="icon-btn" title="Exchange Lot" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill fs-2"></i></a>
+
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div id="web-cards" class="d-none d-sm-block">
+                            <div id="Users" class="tabcontent mx-2">
+                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
+                                    <thead>
                                         <tr class="text-center">
-                                            @* <td class="fs-6 text-center px-1"><span class="">@cNo</span></td> *@
-                                            <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center">
-                                                <span class="link-dark fw-bold fs-6"> <img src="@item.BarcodeImage" style="height:40px" /></span>
-                                                <hr class="p-0 m-0">
-                                                <span class="link-dark " style="font-size:10px">@item.Code</span>
-                                            </td>
-                                            <td class="fs-6 text-center py-1 px-1 ">
-                                                <span class="link-primary fw-bold">@item.Name</span>
-                                            </td>
-                                            <td class="fs-6 text-center px-1">@item.Lots.Count</td>
-                                            @if(item.SDS == true)
-                                            {
-                                                <td class="text-center ">
-                                                    <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
-                                                        Valid
-                                                    </span>
-                                                </td>
-                                            }
-                                            else
-                                            {
-                                                <td class="text-center ">
-                                                    <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
-                                                       Invalid
-                                                    </span>
-                                                </td>
-                                            }
-                                            
-                                            <td class="fs-6 text-center px-1">@item.Category.Name</td>
-                                            <td class="text-center ">
-                                                <span class="fw-bold py-2 px-3 bg-warning-subtle link-warning rounded-5">
-                                                    @item.Limit
-                                                </span>
-                                            </td>
-                                            <td class="fs-6 text-center px-1"><span class="fw-bold">@item.TotalQuantity</span></td>
-                                            <td class="fs-6 text-center px-1"><span class="fw-bold">@item.AvilableQuantity</span></td>
-                                               
-                                            @if (item.StorageCondition == "room temp")
-                                            {
-                                                <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-danger fs-3 px-1"></i>@item.StorageCondition</span></td>
-                                            }
-                                            else if (item.StorageCondition == "2-8C")
-                                            {
-                                                <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-success fs-3 px-1"></i>@item.StorageCondition</span></td>
-                                            }
-                                            else
-                                            {
-                                                <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-info fs-3 px-1"></i>@item.StorageCondition</span></td>
-                                            }
-                                            <td class="fs-6 text-center px-1">
-                                                <a class="link-dark fw-bold text-decoration-none" title="Storage Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">
-                                                   Room[@item.Location.RoomNum]
-                                                </a>
-                                            </td>
-                                           
-                                            <td class="py-1" style="background-color:#E8F9FF !important ">
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
-                                                {
-                                                    <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i><br></a>
-                                                }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
-                                                {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
-                                                }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
-                                                {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
-                                                }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
-                                                {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill"></i></a>
-                                                }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
-                                                {
-                                                    <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code" ><i class="bi bi-printer-fill"></i></a>
-                                                }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
-                                                {
-                                                    <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Exchange Lot" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
-                                                }
-                                                <style>
-                                                    .btn:hover {
-                                                        transform: scale(1.1);
-                                                        transition: 0.2s;
-                                                    }
-                                                </style>
-                                            </td>
+                                            @* <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th> *@
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Barcode</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SDS</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Category</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Total<br class="m-0 p-0">Quantity</th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Avilable<br class="m-0 p-0">Quantity</th>
+                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Storage<br class="m-0 p-0">Condition</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
+                                            <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.ItemsList)
+                                        {
+                                            cNo++;
+                                       
+                                            <tr class="text-center">
+                                                @* <td class="fs-6 text-center px-1"><span class="">@cNo</span></td> *@
+                                                <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center">
+                                                    <span class="link-dark fw-bold fs-6"> <img src="@item.BarcodeImage" style="height:40px" /></span>
+                                                    <hr class="p-0 m-0">
+                                                    <span class="link-dark " style="font-size:10px">@item.Code</span>
+                                                </td>
+                                                <td class="fs-6 text-center py-1 px-1 ">
+                                                    <span class="link-primary fw-bold">@item.Name</span>
+                                                </td>
+                                                <td class="fs-6 text-center px-1">@item.Lots.Count</td>
+                                                @if(item.SDS == true)
+                                                {
+                                                    <td class="text-center ">
+                                                        <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
+                                                            Valid
+                                                        </span>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center ">
+                                                        <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
+                                                           Invalid
+                                                        </span>
+                                                    </td>
+                                                }
+                                            
+                                                <td class="fs-6 text-center px-1">@item.Category.Name</td>
+                                                <td class="text-center ">
+                                                    <span class="fw-bold py-2 px-3 bg-warning-subtle link-warning rounded-5">
+                                                        @item.Limit
+                                                    </span>
+                                                </td>
+                                                <td class="fs-6 text-center px-1"><span class="fw-bold">@item.TotalQuantity</span></td>
+                                                <td class="fs-6 text-center px-1"><span class="fw-bold">@item.AvilableQuantity</span></td>
+                                               
+                                                @if (item.StorageCondition == "room temp")
+                                                {
+                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-danger fs-3 px-1"></i>@item.StorageCondition</span></td>
+                                                }
+                                                else if (item.StorageCondition == "2-8C")
+                                                {
+                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-success fs-3 px-1"></i>@item.StorageCondition</span></td>
+                                                }
+                                                else
+                                                {
+                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-info fs-3 px-1"></i>@item.StorageCondition</span></td>
+                                                }
+                                                <td class="fs-6 text-center px-1">
+                                                    <a class="link-dark fw-bold text-decoration-none" title="Storage Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">
+                                                       Room[@item.Location.RoomNum]
+                                                    </a>
+                                                </td>
+                                           
+                                                <td class="py-1">
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i><br></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill"></i></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
+                                                    {
+                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code" ><i class="bi bi-printer-fill"></i></a>
+                                                    }
+                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
+                                                    {
+                                                        <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Exchange Lot" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
+                                                    }
+                                                    <style>
+                                                        .btn:hover {
+                                                            transform: scale(1.1);
+                                                            transition: 0.2s;
+                                                        }
+                                                    </style>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     }
                 
@@ -193,112 +324,6 @@
     <!-- /.row -->
 </section>
 <!-- /.content -->
-<section class="container mt-3" dir="ltr">
-    <div class="row g-3">
-        @foreach (var item in Model.ItemsList)
-        {
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="card h-100 shadow-sm border-0 rounded-4">
-                    <!-- Header -->
-                    <div class="card-header text-center bg-info-subtle py-3 rounded-top-4">
-                        <!-- Item Name -->
-                        <h5 class="fw-bold mb-2 text-truncate">@item.Name</h5>
-                        <!-- Barcode -->
-                        <img src="@item.BarcodeImage" style="height:50px;" class="mb-1" />
-                        <div class="fs-6 fw-bold text-truncate">@item.Code</div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="card-body p-3">
-                        <div class="mb-1">
-                            <strong>Lots:</strong> <span class="badge bg-primary">@item.Lots.Count</span>
-                        </div>
-                        <div class="mb-1">
-                            <strong>SDS:</strong>
-                            @if (item.SDS==true)
-                            {
-                                <span class="badge bg-success">Valid</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Invalid</span>
-                            }
-                        </div>
-                        <div class="mb-1">
-                            <strong>Category:</strong> <span class="badge bg-info">@item.Category.Name</span>
-                        </div>
-                        <div class="mb-1">
-                            <strong>Total:</strong> @item.TotalQuantity,
-                            <strong>Available:</strong> @item.AvilableQuantity,
-                            <strong>Limit:</strong> <span class="badge bg-warning">@item.Limit</span>
-                        </div>
-                        <div class="mb-1">
-                            <strong>Storage:</strong>
-                            @if (item.StorageCondition == "room temp")
-                            {
-                                <span class="badge bg-warning">@item.StorageCondition</span>
-                            }
-                            else if (item.StorageCondition == "2-8C")
-                            {
-                                <span class="badge bg-info">@item.StorageCondition</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">@item.StorageCondition</span>
-                            }
-                        </div>
-                        <div class="mb-1">
-                            <strong>Location:</strong> Room[@item.Location.RoomNum]
-                        </div>
-                    </div>
-
-                    <!-- Footer: Actions -->
-                    <div class="card-footer bg-light text-center py-2">
-                        <div class="d-flex justify-content-center flex-wrap gap-1">
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
-                            {
-                                <a class="btn btn-sm btn-success" title="Add Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id">
-                                    <i class="bi bi-cart-plus-fill"></i>
-                                </a>
-                            }
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
-                            {
-                                <a class="btn btn-sm btn-dark" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">
-                                    <i class="bi bi-eye-fill"></i>
-                                </a>
-                            }
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
-                            {
-                                <a class="btn btn-sm btn-warning" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                            }
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
-                            {
-                                <a class="btn btn-sm btn-danger" title="Delete" onclick="DeleteItem('@item.Id')">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </a>
-                            }
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
-                            {
-                                <a class="btn btn-sm btn-info" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code">
-                                    <i class="bi bi-printer-fill"></i>
-                                </a>
-                            }
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
-                            {
-                                <a class="btn btn-sm btn-danger" title="Exchange Lot" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id">
-                                    <i class="bi bi-cart-dash-fill"></i>
-                                </a>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-</section>
-
 
 
 <partial name="_SaveItem"  />
@@ -354,4 +379,8 @@
     </script>
 
 }
+
+
+
+
 
