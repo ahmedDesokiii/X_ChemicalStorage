@@ -43,21 +43,21 @@
                     <!-- Category -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <select id="itemCategory" class="form-select text-center col-md-8" required asp-items="@Model.ListCategories" asp-for="NewItem.CategoryId" style="border-top-right-radius : 20px ;">
-                            <option selected disabled> Choose Category </option>
+                        <select id="itemCategory" required class="form-select text-center col-md-8" asp-items="@Model.ListCategories" asp-for="NewItem.CategoryId" style="border-top-right-radius : 20px ;">
+                            <option value="" selected disabled> Choose Category </option>
                         </select>    
                     </div>
                     <span asp-validation-for="@Model.NewItem.CategoryId" class="text-danger"></span>
                     <!-- ItemQuantity -->
                     <div class="input-group mt-2 row mx-auto" hidden>
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemQnty" required asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <input id="itemQnty" value="0" required asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.AvilableQuantity" class="text-danger"></span>
                     <!-- ItemLimit -->
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemLimit" required asp-for="@Model.NewItem.Limit" class="form-control text-danger text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Limit ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <input id="itemLimit" value="1" required asp-for="@Model.NewItem.Limit" class="form-control text-danger text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Limit ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.Limit" class="text-danger"></span>
 
@@ -65,7 +65,7 @@
                     <div class="input-group mt-2 row mx-auto">
                         <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                         <select id="itemUnit" class="form-select text-center col-md-8" required asp-items="@Model.ListUnits" asp-for="NewItem.UnitId" style="border-top-right-radius : 20px ;">
-                            <option selected disabled> Choose Unit </option>
+                            <option value="" selected disabled> Choose Unit </option>
                         </select>
                     </div>
                    
@@ -85,7 +85,6 @@
                             <option value="freezer20"> Hazardous  </option>
                         </select>
                     </div>
-
                     <span asp-validation-for="@Model.NewItem.StorageCondition" class="text-danger"></span>
 
                     <!-- Location -->
@@ -95,7 +94,7 @@
                         <span class="col-md-8"></span>
                         <div class="row mt-1">
                             <select id="itemLocation" class="form-select text-start " required asp-items="@Model.ListLocations" asp-for="NewItem.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
-                                <option selected disabled class="text-center "> Choose Location </option>
+                                <option value="" selected disabled class="text-center "> Choose Location </option>
                             </select>
                         </div>
                         

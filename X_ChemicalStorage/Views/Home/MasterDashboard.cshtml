@@ -13,35 +13,51 @@
 </div>
 <section class="text-center py-3 container-fluid justify-content-center mx-auto" dir="ltr">
 
-<div class="row text-center mb-4">
-    <div class="col-md-3">
+<div class="row text-center mb-4 mx-auto">
+    <div class="col-md-1"></div>
+    <div class="col-md-2">
         <div class="card p-3 shadow-sm">
             <h6>Total Items</h6>
             <h4>@Model.TotalItems</h4>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card p-3 shadow-sm">
             <h6>Available Quantity</h6>
             <h4>@Model.TotalAvailableQuantity</h4>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card p-3 shadow-sm text-warning">
             <h6>Low Stock</h6>
             <h4>@Model.LowStockItems</h4>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card p-3 shadow-sm text-danger">
             <h6>Expired Lots</h6>
             <h4>@Model.ExpiredLots</h4>
         </div>
     </div>
+    <div class="col-md-2">
+        <div class="card p-3 shadow-sm text-warning">
+            <h6>Low Stock</h6>
+            <h4>@Model.LowStockItems</h4>
+        </div>
+    </div>
+    <div class="col-md-1"></div>
+
 </div>
 
-   
-<canvas id="stockChart"></canvas>
+    <div class="row text-center  mb-4">
+        <div class="col-md-2"></div>
+        <div class="col-md-8 mx-auto">
+            <canvas id="stockChart"></canvas>
+        </div>
+
+        <div class="col-md-2"></div>
+
+</div>
     <hr class="my-5" />
 
     <h4 class="text-center mb-3">Lot Transactions (IN / OUT)</h4>
@@ -134,7 +150,7 @@
             }
         });
     </script>
-    <script>
+   @*  <script>
         const lotData = @Html.Raw(
                     System.Text.Json.JsonSerializer.Serialize(Model.LotTransactions)
             );
@@ -171,7 +187,7 @@
             }
         }
     });
-</script>
+</script> *@
 
 }
 

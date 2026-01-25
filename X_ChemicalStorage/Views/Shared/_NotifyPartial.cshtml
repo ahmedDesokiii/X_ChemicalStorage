@@ -1,4 +1,6 @@
-﻿@* @model MasterViewModel
+﻿@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@* @model MasterViewModel
 @{
     var DemandsData = Model.DemandVM.Demands;
     int? notify = 0;
@@ -32,24 +34,25 @@ else if (User.IsInRole(Roles.Teacher.ToString()) || User.IsInRole(Roles.TeacherW
         content: none;
     }
 </style>
-
-<ul class="navbar-nav" dir="ltr">
-    <li class="nav-item mt-2">
-        <div class="dropdown ">
-            <a data-mdb-dropdown-init
-               class="text-reset dropdown-toggle"
-               id="notifications"
-               role="button"
-               aria-expanded="false">
-                <h3><i class="bi bi-bell-fill text-light"></i></h3>
-            </a>
-            <span id="notifications" class="position-absolute top-0 start-0 translate-middle badge rounded bg-danger">
-                <span>1</span> <span class="visually-hidden me-4">notify</span>
-            </span>
-            <ul class="dropdown-menu dropdown-menu-end py-0"
+@if (SignInManager.IsSignedIn(User))
+{
+    <ul class="navbar-nav" dir="ltr">
+        <li class="nav-item mt-2">
+            <div class="dropdown ">
+                <a data-mdb-dropdown-init
+                class="text-reset dropdown-toggle"
+                id="notifications"
+                role="button"
+                aria-expanded="false">
+                    <h3><i class="bi bi-bell-fill text-light"></i></h3>
+                </a>
+                <span id="notifications" class="position-absolute top-0 start-0 translate-middle badge rounded bg-danger">
+                    <span>1</span> <span class="visually-hidden me-4">notify</span>
+                </span>
+                <ul class="dropdown-menu dropdown-menu-end py-0"
                 aria-labelledby="notifications" id="notificationsList">
 
-                @* @if (!DemandsData.Any())
+                    @* @if (!DemandsData.Any())
                 {
                     <li>
                         <a class="dropdown-item text-center" href="#">لا يوجد اي اشعارات</a>
@@ -125,11 +128,11 @@ else if (User.IsInRole(Roles.Teacher.ToString()) || User.IsInRole(Roles.TeacherW
 
 
                 } *@
-            </ul>
-        </div>
-    </li>
-</ul>
-
+                </ul>
+            </div>
+        </li>
+    </ul>
+}
 <script>
     /*
     $(document).ready(function(){
