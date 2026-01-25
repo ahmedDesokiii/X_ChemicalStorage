@@ -140,7 +140,7 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
 
-        #region Add|Edit Item [Create & Update] without print
+        #region Add with print |Edit Item [Create with print & Update] 
         [Authorize(Permissions.Items.Create_Items), Authorize(Permissions.Items.Edit_Items)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
@@ -160,7 +160,7 @@ namespace X_ChemicalStorage.Controllers
                     {
                         SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
                         //To print Barcode After Save Item
-                        return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage });
+                        return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage , code = model.NewItem.Code });
                     }
                     else
                         SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
@@ -172,7 +172,7 @@ namespace X_ChemicalStorage.Controllers
                 {
                     SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
                     //To print Barcode After Save Item
-                    //return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage });
+                    return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage, code = model.NewItem.Code });
                 }
                 else
                     SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
@@ -330,8 +330,8 @@ namespace X_ChemicalStorage.Controllers
         #region Print Barcode
         public IActionResult PrintItemBarcode(string barcodeFile , string code)
         {
-            //ViewBag.BarcodePath = "/barcodes/" + barcodeFile;
-            ViewBag.BarcodePath = barcodeFile;
+            ViewBag.BarcodePath = "/barcodes/"+code+".png";
+            //ViewBag.BarcodePath = barcodeFile;
             ViewBag.Code = code;
             return View();
         }

@@ -1,6 +1,7 @@
 ﻿@model ItemViewModel
 @{
     string codeGenerate = Guid.NewGuid().ToString("N").Substring(0, 8);
+    string barcode = Model.NewItem.Code + ".png";
 }
 
 <!-- Modal -->
@@ -17,54 +18,60 @@
                     <input  hidden class="form-control" asp-for="NewItem.Id" id="itemId" value="0" />
                     <!-- Item Barcode -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <div class="card col-md-8 col-8 py-1" style="border-top-right-radius : 20px ;">
                             <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                <img src="~/barcodes/0bfaec93.png" height="60" />
-                                @* <br class="p-0 m-0">
-                                <span class="link-dark " style="font-size:10px">@Model.NewItem?.Code</span> *@
-                            </div>
+                               
+                                @if (string.IsNullOrEmpty(barcode) || barcode == ".png")
+                                    {
+                                        <img src="~/barcodes/0bfaec93.png" height="60" /> 
+                                    }
+                                    else
+                                    {
+                                        <img src="@($"~/barcodes/ + {barcode}")" height="60" asp-for="@Model.NewItem.BarcodeImage" />
+                                    }
+                                </div>
                         </div>
                     </div>
                     <!-- ItemCode -->
                     <div class="input-group mt-2 row mx-auto" >
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemCode"  required asp-for="@Model.NewItem.Code" value="@codeGenerate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="itemCode"  required asp-for="@Model.NewItem.Code" value="@codeGenerate" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Enter Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.Code" class="text-danger"></span>
 
                     <!-- ItemName -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemName" required asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" autofocus>
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="itemName" required asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Enter Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" autofocus>
                     </div>
                     <span asp-validation-for="@Model.NewItem.Name" class="text-danger"></span>
 
                     <!-- Category -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <select id="itemCategory" required class="form-select text-center col-md-8" asp-items="@Model.ListCategories" asp-for="NewItem.CategoryId" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <select id="itemCategory" required class="form-select text-center col-md-8 col-8" asp-items="@Model.ListCategories" asp-for="NewItem.CategoryId" style="border-top-right-radius : 20px ;">
                             <option value="" selected disabled> Choose Category </option>
                         </select>    
                     </div>
                     <span asp-validation-for="@Model.NewItem.CategoryId" class="text-danger"></span>
                     <!-- ItemQuantity -->
                     <div class="input-group mt-2 row mx-auto" hidden>
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemQnty" value="0" required asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="itemQnty" value="0" asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Enter Item Quantity ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.AvilableQuantity" class="text-danger"></span>
                     <!-- ItemLimit -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <input id="itemLimit" value="1" required asp-for="@Model.NewItem.Limit" class="form-control text-danger text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Item Limit ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <input id="itemLimit" value="1" required asp-for="@Model.NewItem.Limit" class="form-control text-danger text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Enter Item Limit ..." type="number" min="0" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                     </div>
                     <span asp-validation-for="@Model.NewItem.Limit" class="text-danger"></span>
 
                     <!-- Unit -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <select id="itemUnit" class="form-select text-center col-md-8" required asp-items="@Model.ListUnits" asp-for="NewItem.UnitId" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <select id="itemUnit" class="form-select text-center col-md-8 col-8" required asp-items="@Model.ListUnits" asp-for="NewItem.UnitId" style="border-top-right-radius : 20px ;">
                             <option value="" selected disabled> Choose Unit </option>
                         </select>
                     </div>
@@ -73,25 +80,25 @@
 
                     <!-- StorageConditions -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Storage Condition &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <select id="itemStorageCondition" class="form-select text-center col-md-8" required asp-for="NewItem.StorageCondition" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Storage Condition &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <select id="itemStorageCondition" class="form-select text-center col-md-8 col-8" required asp-for="NewItem.StorageCondition" style="border-top-right-radius : 20px ;">
                             <option value="" selected disabled> Choose Storage Condition </option>
                             <option value="room temp"> Room Temp </option>
                             <option value="2-8C"> 2&deg;C - 8&deg;C  </option>
                             <option value="freezer20"> Freezer-20  </option>
-                            <option value="freezer20"> Freezer-80  </option>
-                            <option value="freezer20"> Freezer-150  </option>
-                            <option value="freezer20"> Liquid Nitrogen Tank  </option>
-                            <option value="freezer20"> Hazardous  </option>
+                            <option value="freezer80"> Freezer-80  </option>
+                            <option value="freezer150"> Freezer-150  </option>
+                            <option value="nitrogen"> Liquid Nitrogen Tank  </option>
+                            <option value="hazardous"> Hazardous  </option>
                         </select>
                     </div>
                     <span asp-validation-for="@Model.NewItem.StorageCondition" class="text-danger"></span>
 
                     <!-- Location -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             @* <input value="@Model.NewItem.LocationId" class="form-control text-center fw-bold col-md-6" type="text" style="border-top-right-radius : 20px ;"> *@
-                        <span class="col-md-8"></span>
+                        <span class="col-md-8 col-8"></span>
                         <div class="row mt-1">
                             <select id="itemLocation" class="form-select text-start " required asp-items="@Model.ListLocations" asp-for="NewItem.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
                                 <option value="" selected disabled class="text-center "> Choose Location </option>
@@ -104,10 +111,10 @@
 
                     <!-- ItemSDS -->
                     <div class="input-group mt-3 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <div class="card col-md-8 col-8 py-0" style="border-top-right-radius : 20px ;">
                             <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                <div class="col-md-4 text-center my-0">
+                                <div class="col-md-4 col-4 text-center my-0">
                                     <label for="sdsYes" class="radio-card" onclick="document.getElementById('itemSDS').value = 'True'; ">
                                         <input type="radio" hidden name="radio-card" id="sdsYes" />
                                         <div class="card-content-wrapper rounded-3 py-2 px-4">
@@ -117,8 +124,8 @@
                                         </div>
                                     </label>
                                 </div>
-                                <div class="col-md-3 text-center"></div>
-                                <div class=" col-md-4 text-center my-0">
+                                <div class="col-md-3 col-3 text-center"></div>
+                                <div class=" col-md-4 col-4 text-center my-0">
                                     <label for="sdsNo" class="radio-card" onclick="document.getElementById('itemSDS').value = 'False'; ">
                                         <input type="radio" hidden name="radio-card" id="sdsNo" />
                                         <div class="card-content-wrapper rounded-3 py-2 px-3">
