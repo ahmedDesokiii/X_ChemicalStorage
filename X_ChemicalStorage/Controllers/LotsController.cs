@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using X_ChemicalStorage.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Controllers
@@ -14,8 +16,9 @@ namespace X_ChemicalStorage.Controllers
         private readonly IInventoryService _inventoryService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IAuthorizationService _authorizationService;
 
-        public LotsController(IServicesRepository<Lot> servicesLot, IServicesLot servicesOfLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public LotsController(IServicesRepository<Lot> servicesLot, IServicesLot servicesOfLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IAuthorizationService authorizationService)
         {
             _servicesLot = servicesLot;
             _servicesOfLot = servicesOfLot;
@@ -23,6 +26,7 @@ namespace X_ChemicalStorage.Controllers
             _inventoryService = inventoryService;
             _userManager = userManager;
             _context = context;
+            _authorizationService = authorizationService;
         }
 
         private void SessionMsg(string MsgType, string Title, string Msg)
@@ -34,8 +38,10 @@ namespace X_ChemicalStorage.Controllers
 
         #region List of Lots
         [Authorize(Permissions.Lots.View_Lots)]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+
+
             var todayUtc = DateTime.UtcNow.Date;
             var Lots = new LotViewModel
             {
@@ -66,7 +72,31 @@ namespace X_ChemicalStorage.Controllers
 
                 NewLot = new Lot(),
                 NewItem = new Item(),
+
             };
+            Lots.CanCreateLot = ( await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.Create_Lots)).Succeeded;
+
+            Lots.CanViewExpiryLots = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots)).Succeeded;
+
+            Lots.CanViewDetails = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.Details_Lots)).Succeeded;
+            Lots.CanViewDetails = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Items.Details_Items)).Succeeded;
+
+            Lots.CanEditLot = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.Edit_Lots)).Succeeded;
+
+            Lots.CanDeleteLot = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.Delete_Lots)).Succeeded;
+
+            Lots.CanExchangeLot = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.Exchange_Lots)).Succeeded;
+
+            Lots.CanPrintBarcode = (await _authorizationService
+                .AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode)).Succeeded;
+
             return View(Lots);
         }
         #endregion

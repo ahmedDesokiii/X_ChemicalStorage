@@ -1,12 +1,19 @@
 ﻿@model LotViewModel
-
 @{
     ViewData["Title"] = "Lots";
-    int cNo = 0;
-
 }
+
 <style>
-    /* Card hover animation */
+    .lot-status-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.75rem;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-weight: 700;
+    }
+
     .card-hover {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
@@ -17,14 +24,12 @@
             z-index: 10;
         }
 
-    /* Truncate text in header */
     .card-header .text-truncate {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    /* Card body layout */
     .card-body .data-row {
         display: flex;
         justify-content: space-between;
@@ -33,168 +38,193 @@
         margin-bottom: 4px;
     }
 
-    .card-body .data-label {
+    .data-label {
         font-weight: 600;
         color: #415E72;
     }
 
-    .card-body .data-value {
+    .data-value {
         font-weight: bold;
     }
 
-    /* Barcode image */
     .barcode-img {
         height: 40px;
     }
 
-    /* Buttons: only icon, no border/background */
     .icon-btn {
         border: none;
         background: none;
         padding: 0;
-        margin: 0 4px;
         font-size: 1.2rem;
         cursor: pointer;
-        transition: transform 0.2s;
     }
 
         .icon-btn:hover {
-            transform: scale(1.2);
-            color: #0d6efd; /* Optional hover color */
+            transform: scale(1.15);
+            color: #0d6efd;
         }
 
-    /* Storage icon colors */
-    .storage-room-temp {
-        color: red;
-    }
-
-    .storage-2-8c {
-        color: green;
-    }
-
-    .storage-other {
-        color: blue;
-    }
-
-    /* Mobile card spacing */
     .professional-card {
         border-radius: 12px;
         overflow: hidden;
     }
-
 </style>
 
-<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
-    <span class="text-center fw-bold fs-1" style="color:#415E72 !important ">
-        Inventory Lots
-        <i class="bi bi-archive-fill ps-2 fs-1"></i>
+<!-- ================= HEADER ================= -->
+<div class="card border-0 py-3" dir="ltr"
+     style="background-color:#032b42;border-radius:0 0 75px 0">
+    <span class="text-center fw-bold fs-1" style="color:#415E72">
+        Inventory Lots <i class="bi bi-archive-fill ps-2"></i>
     </span>
 </div>
-<!-- Main content -->
 
-<section class="container-fluid mt-3 " dir="ltr">
+<section class="container-fluid mt-3" dir="ltr">
     <div class="row">
-
         <div class="col-md-1"></div>
+
         <div class="col-md-10">
             <div class="card p-0">
-                <div class="card-header  align-items-center justify-content-start bg-info-subtle">
-                    <div class="row mx-auto">
 
-                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
+                <!-- ================= ACTIONS ================= -->
+                <div class="card-header bg-info-subtle">
+                    <div class="row text-center">
+
+                        @if (Model.CanCreateLot)
                         {
-                            <div class="col-4 col-md-4 text-center">
-                                <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Add New Lot" onclick="setMode('receiving')" data-bs-toggle="modal" data-bs-target="#ListItemsModalCreate"><i class="bi bi-cart-plus-fill fs-1"></i><br class="p-0 m-0">Add New Lot</a>
+                            <div class="col-4">
+                                <a class="btn border-0 bg-transparent fw-bold"
+                                   onclick="setMode('receiving')"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#ListItemsModalCreate">
+                                    <i class="bi bi-cart-plus-fill fs-1"></i><br />Add Lot
+                                </a>
                             </div>
                         }
-                        <div class="col-4 col-md-4 text-center">
-                            @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots).Result.Succeeded)
-                            {
-                                <div class="">
-                                    <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Expiery Lots List" onclick="" data-bs-toggle="modal" data-bs-target="#ExpieryLotsModal"><i class="bi bi-list-task fs-1"></i><br class="p-0 m-0">Expiered Lots</a>
-                                </div>
-                            }
-                        </div>
-                        <div class="col-4 col-md-4 text-center">
-                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
+
+                        @if (Model.CanViewExpiryLots)
                         {
-                            <div class=" mx-auto">
-                                <a class="btn fw-bold btn-outline-primary bg-transparent border-0 text-center p-0 mx-1 fs-6" title="Exchange Lot" onclick="" data-action-url="/Items/ExchangeLot" data-bs-toggle="modal" data-bs-target="#ListItemsModalExchange"><i class="bi bi-cart-dash-fill fs-1"></i><br class="p-0 m-0">Exchange Lot</a>
+                            <div class="col-4">
+                                <a class="btn border-0 bg-transparent fw-bold text-danger"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#ExpieryLotsModal">
+                                    <i class="bi bi-list-task fs-1"></i><br />Expired
+                                </a>
                             </div>
                         }
-                        </div>
+
+                        @if (Model.CanExchangeLot)
+                        {
+                            <div class="col-4">
+                                <a class="btn border-0 bg-transparent fw-bold text-primary"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#ListItemsModalExchange">
+                                    <i class="bi bi-cart-dash-fill fs-1"></i><br />Exchange
+                                </a>
+                            </div>
+                        }
+
                     </div>
                 </div>
-                <!-- /.card-header -->
-
+              
+                <!-- ================= BODY ================= -->
                 <div class="card-body p-0">
-                    <!-- Tab links -->
-                    @*  <div class="tab">
-                        <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
-                    </div> *@
-                    <!-- Tab content -->
-                    
-                        @if (!Model.LotsList.Any())
-                        {
-                            <div class="alert  alert-warning mt-5">
-                                <h4 class="alert-heading">No Lots</h4>
-                                <p class="mb-0">No Lots have been added to the app yet.</p>
-                            </div>
-                        }
-                        else 
-                        {
+
+                    @if (!Model.LotsList.Any())
+                    {
+                        <div class="alert  alert-warning mt-5">
+                            <h4 class="alert-heading">No Lots</h4>
+                            <p class="mb-0">No Lots have been added to the app yet.</p>
+                        </div>
+                    }
+                    else
+                    {
 
                         <!-- ======================= Mobile =============================== -->
 
                         <div class="d-block d-md-none px-2">
-
                             @foreach (var lot in Model.LotsList)
                             {
                                 int daysLeft = (lot.ExpiryDate - DateTime.Now.Date).Value.Days;
-                                string nearExpiry;
+
+                                string borderColor;
+                                string badgeClass;
+                                string badgeText;
 
                                 if (daysLeft <= 0)
                                 {
-                                    nearExpiry = "#f94e3b"; // أحمر: خطر
+                                    borderColor = "#dc3545"; // danger
+                                    badgeClass = "bg-danger text-white";
+                                    badgeText = "Expired";
                                 }
                                 else if (daysLeft <= 7)
                                 {
-                                    nearExpiry = "#ffc107"; // أصفر: قريب
+                                    borderColor = "#ffc107"; // warning
+                                    badgeClass = "bg-warning text-dark";
+                                    badgeText = "Near Expiry";
                                 }
                                 else
                                 {
-                                    nearExpiry = "#4caf50"; // أخضر: صالح
+                                    borderColor = "#198754"; // success
+                                    badgeClass = "bg-success text-white";
+                                    badgeText = "Valid";
                                 }
 
+                                <div class="card professional-card mb-3 shadow-sm mt-3 border-0 card-hover position-relative"
+                                     style="border-left:6px solid @borderColor;">
 
-                                
-                                <div class="card professional-card  mb-3 shadow-sm mt-3 border-0 card-hover" style="border-left: 6px solid @nearExpiry;">
-                                    <!-- Card Header -->
-                                    <div class="card-header text-white p-3 rounded-top" style="background: linear-gradient( @nearExpiry, #415E72);">
+                                    <!-- STATUS BADGE -->
+                                    <span class="position-absolute top-0 end-0 m-2 badge @badgeClass rounded-pill">
+                                        @badgeText
+                                    </span>
+
+                                    <!-- HEADER -->
+                                    <div class="card-header text-white py-2 px-3"
+                                         style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 50%, #415E72 100%);">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="flex-grow-1 overflow-hidden">
-                                                <h5 class="fw-bold mb-1 text-truncate">@lot.Item.Name</h5>
-                                            </div>
-                                            <div class="text-center">
-                                                <img src="@lot.BarcodeImage" class="barcode-img rounded-3" />
-                                                <small class="text-light">@lot.LotNumber</small>
+                                                <h6 class="fw-bold mb-0 text-truncate">
+                                                    @lot.Item?.Name
+                                                </h6>
                                             </div>
 
+                                            <div class="text-center ms-2">
+                                                <img src="@lot.BarcodeImage"
+                                                     class="barcode-img rounded-2 shadow-sm bg-white p-1" />
+                                                <div style="font-size:10px" class="text-light">
+                                                    @lot.LotNumber
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Card Body -->
-                                    <div class="card-body pt-2 pb-1">
-                                        <div class="data-row"><span class="data-label">Expiry Date:</span> <span class="data-value">@lot.ExpiryDate</span></div>
-                                        <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value bg-secondary px-2 rounded-4" style="color:@(lot.SDS == true ? "green" : "red")">@((lot.SDS == true) ? "Valid" : "Invalid")</span></div>
-                                        <div class="data-row"><span class="data-label">Location:</span> <span class="data-value">Room[@lot.Location.RoomNum]</span></div>
-                                        <div class="data-row"><span class="data-label">Quantity:</span> <span class="data-value">@lot.AvilableQuantity</span></div>
-                                        <div class="data-row"><span class="data-label">Manufacture Date:</span> <span class="data-value">@lot.ManufactureDate</span></div>
+
+                                    <!-- BODY -->
+                                    <div class="card-body py-2">
+                                        <div class="data-row">
+                                            <span class="data-label">Expiry Date:</span>
+                                            <span class="fw-bold">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span>
+                                        </div>
+
+                                        <div class="data-row">
+                                            <span class="data-label">Available Quantity:</span>
+                                            <span class="fw-bold bg-info-subtle rounded-4 px-3 py-1 ">@lot.AvilableQuantity</span>
+                                        </div>
+
+                                        <div class="data-row">
+                                            <span class="data-label">Location:</span>
+                                            <span class="fw-bold">Room[@lot.Location?.RoomNum]</span>
+                                        </div>
+
+                                        <div class="data-row">
+                                            <span class="data-label">SDS:</span>
+                                            <span class="badge @(lot.SDS == true ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                                @(lot.SDS == true ? "Valid" : "Invalid")
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    <!-- Card Footer Buttons -->
-                                    <div class="card-footer bg-light border-0 pt-2 pb-2 d-flex justify-content-around gap-2 flex-wrap">
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                    <!-- FOOTER ACTIONS -->
+                                    <div class="card-footer bg-light border-0 d-flex justify-content-around py-2">
+                                        @if (Model.CanViewDetails)
                                         {
                                             <a class="icon-btn"
                                                asp-controller="Lots"
@@ -203,50 +233,40 @@
                                                 <i class="bi bi-eye-fill fs-2"></i>
                                             </a>
                                         }
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Edit_Lots).Result.Succeeded)
+                                        @if (Model.CanEditLot)
                                         {
                                             <span class="icon-btn text-secondary"
                                                   title="Cannot Edit Lot !"
                                                   style="cursor:not-allowed; opacity:.45;">
 
-                                                <i class="bi bi-pencil-square fs-2"></i>
+                                                <i class="bi bi-pencil-square fs-4"></i>
                                             </span>
-                                            
                                         }
-
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
+                                        @if (Model.CanDeleteLot)
                                         {
-                                            <a class="icon-btn"
+                                            <a class="icon-btn text-danger"
                                                onclick="DeleteLot('@lot.Id')">
                                                 <i class="bi bi-trash3-fill fs-2"></i>
                                             </a>
                                         }
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
+
+                                        @if (Model.CanPrintBarcode)
                                         {
-                                            <a id="printBarcode" class="icon-btn"
-                                               title="Print Lot Barcode" 
-                                               asp-controller="Lots" 
-                                               asp-action="PrintLotBarcode" 
-                                               asp-route-barcodeFile="@lot.BarcodeImage" 
-                                               asp-route-ItemName="@lot.Item.Name" 
-                                               asp-route-LotNumber="@lot.LotNumber" 
+                                            <a class="icon-btn"
+                                               asp-controller="Lots"
+                                               asp-action="PrintLotBarcode"
+                                               asp-route-barcodeFile="@lot.BarcodeImage"
+                                               asp-route-ItemName="@lot.Item.Name"
+                                               asp-route-LotNumber="@lot.LotNumber"
                                                asp-route-ExpiryDate="@lot.ExpiryDate">
                                                 <i class="bi bi-printer-fill fs-2"></i>
                                             </a>
                                         }
-                                        
-                                        
                                     </div>
-
-                                    
-
-
-
-
                                 </div>
                             }
-
                         </div>
+
 
                         <div class="d-none d-md-block table-responsive px-2">
                             <div id="Users" class="tabcontent mx-2">
@@ -268,18 +288,18 @@
                                     <tbody>
                                         @foreach (var lot in Model.LotsList)
                                         {
-                                            cNo++;
-                                            if (Convert.ToDateTime(lot.ExpiryDate).Date < DateTime.Now.Date.AddDays(30) && Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date)
+                                            
+                                            if (lot.ExpiryDate.Value.Date < DateTime.Now.Date.AddDays(30) && lot.ExpiryDate.Value.Date > DateTime.Now.Date)
                                             {
                                                 <tr class="text-center ">
 
-                                                    <td class="fs-6 text-center py-0 px-1 mx-auto  justify-content-center" >
+                                                    <td class="fs-6 text-center py-0 px-1 mx-auto  justify-content-center">
                                                         <span class="link-dark fw-bold fs-6"> <img src="@lot.BarcodeImage" style="height:40px" /></span>
                                                         <hr class="p-0 m-0">
                                                         <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
                                                     </td>
                                                     <td class="fs-6 text-center px-1">
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                                                        @if (Model.CanViewItemDetails)
                                                         {
                                                             <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
                                                                 @lot.Item?.Name
@@ -294,13 +314,13 @@
 
 
                                                     </td>
-                                                    <td class="fs-6 text-center px-1 " ><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="fw-bold link-warning">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                                     <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.AvilableQuantity</span></td>
                                                     @* <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@lot.SupplierLots.FirstOrDefault()</span></td> *@
                                                     <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">Room[@lot.Location?.RoomNum]</span></td>
                                                     @if (lot.SDS == true)
                                                     {
-                                                        <td class="text-center" >
+                                                        <td class="text-center">
                                                             <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
                                                                 Valid
                                                             </span>
@@ -308,23 +328,23 @@
                                                     }
                                                     else
                                                     {
-                                                        <td class="text-center" >
+                                                        <td class="text-center">
                                                             <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
                                                                 Invalid
                                                             </span>
                                                         </td>
                                                     }
 
-                                                    <td class="fs-6 text-center px-1 " ><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()</span></td>
-                                                    <td class="fs-6 text-center px-1 " ><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
 
-                                                    <td class="py-1" >
+                                                    <td class="py-1">
 
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                        @if (Model.CanViewDetails)
                                                         {
                                                             <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                         }
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Edit_Lots).Result.Succeeded)
+                                                        @if (Model.CanEditLot)
                                                         {
                                                             <span class="icon-btn text-secondary"
                                                                   title="Cannot Edit Lot !"
@@ -333,11 +353,11 @@
                                                                 <i class="bi bi-pencil-square fs-4"></i>
                                                             </span>
                                                         }
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
+                                                        @if (Model.CanDeleteLot)
                                                         {
                                                             <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLot('@lot.Id')"><i class="bi bi-trash3-fill"></i></a>
                                                         }
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
+                                                        @if (Model.CanPrintBarcode)
                                                         {
                                                             <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@lot.BarcodeImage" asp-route-ItemName="@lot.Item.Name" asp-route-LotNumber="@lot.LotNumber" asp-route-ExpiryDate="@lot.ExpiryDate">
                                                                 <i class="bi bi-printer-fill"></i>
@@ -348,7 +368,7 @@
                                                 </tr>
                                             }
 
-                                            if (Convert.ToDateTime(lot.ExpiryDate).Date > DateTime.Now.Date.AddDays(30))
+                                            if (lot.ExpiryDate.Value.Date > DateTime.Now.Date.AddDays(30))
                                             {
                                                 <tr class="text-center ">
 
@@ -358,7 +378,7 @@
                                                         <span class="link-dark " style="font-size:10px">@lot.LotNumber</span>
                                                     </td>
                                                     <td class="fs-6 text-center px-1 ">
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                                                        @if (Model.CanViewItemDetails)
                                                         {
                                                             <a class="link-primary fw-bold text-decoration-none" title="Item Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot.ItemId">
                                                                 @lot.Item?.Name
@@ -392,17 +412,17 @@
                                                         </td>
                                                     }
 
-                                                    <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()</span></td>
+                                                    <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()/span></td>
                                                     <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
 
 
                                                     <td class="py-1">
 
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
+                                                        @if (Model.CanViewDetails)
                                                         {
                                                             <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                         }
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Edit_Lots).Result.Succeeded)
+                                                        @if (Model.CanEditLot)
                                                         {
                                                             <span class="icon-btn text-secondary"
                                                                   title="Cannot Edit Lot !"
@@ -411,11 +431,11 @@
                                                                 <i class="bi bi-pencil-square fs-4"></i>
                                                             </span>
                                                         }
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Delete_Lots).Result.Succeeded)
+                                                        @if (Model.CanDeleteLot)
                                                         {
                                                             <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLot('@lot.Id')"><i class="bi bi-trash3-fill"></i></a>
                                                         }
-                                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
+                                                        @if (Model.CanPrintBarcode)
                                                         {
                                                             <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@lot.BarcodeImage" asp-route-ItemCode="@lot.Item.Code" asp-route-LotNumber="@lot.LotNumber" asp-route-ExpiryDate="@lot.ExpiryDate">
                                                                 <i class="bi bi-printer-fill"></i>
@@ -434,21 +454,14 @@
                             </div>
                         </div>
 
-                        
+
                     }
-                
                 </div>
-                <!-- /.card-body -->
             </div>
-            <!-- /.card -->
-            <!-- /.card -->
         </div>
         <div class="col-md-1"></div>
-        <!-- /.col -->
     </div>
-    <!-- /.row -->
 </section>
-<!-- /.content -->
 
 <partial name="_SaveLot" />
 <partial name="_ExpiryLots" />
@@ -584,4 +597,8 @@
         })();
     </script>
 }
+
+
+
+
 

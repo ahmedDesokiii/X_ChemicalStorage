@@ -142,14 +142,15 @@
                         <!-- ================= MOBILE VIEW ================= -->
                         <!-- MOBILE Cards -->
                         <div id="mobile-cards" class="d-block d-md-none px-2 mt-4">
-                            @foreach (var item in Model.ItemsList.Where(x=>x.AvilableQuantity>0))
+                            @foreach (var item in Model.ItemsList)
                             {
                                 var categoryColor = categoryColors.ContainsKey(item.Category.Name) ? categoryColors[item.Category.Name] : "#415E72";
 
                                 <div class="card professional-card mb-3 shadow-sm border-0 card-hover" style="border-left: 6px solid @categoryColor;">
                                     
                                 <!-- Card Header -->
-                                    <div class="card-header text-white p-3 rounded-top" style="background: linear-gradient(90deg, @categoryColor, #032b42);">
+                                    <div class="card-header text-white p-3 rounded-top" 
+                                         style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 50%, #415E72 100%);">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="flex-grow-1 overflow-hidden">
                                                 <h5 class="fw-bold mb-1 text-truncate">@item.Name</h5>
@@ -164,10 +165,10 @@
 
                                     <!-- Card Body -->
                                     <div class="card-body pt-2 pb-1">
-                                        <div class="data-row"><span class="data-label">Lots:</span> <span class="data-value">@item.Lots.Count</span></div>
+                                        <div class="data-row"><span class="data-label">Lots:</span> <span class="data-value bg-primary text-white px-3 py-1 rounded-4 ">@item.Lots.Count</span></div>
                                         <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value" style="color:@(item.SDS==true ? "green" : "red")">@((item.SDS==true) ? "Valid" : "Invalid")</span></div>
                                         <div class="data-row"><span class="data-label">Category:</span> <span class="data-value">@item.Category.Name</span></div>
-                                        <div class="data-row"><span class="data-label">Limit:</span> <span class="data-value">@item.Limit</span></div>
+                                        <div class="data-row"><span class="data-label">Limit:</span> <span class="data-value text-warning">@item.Limit</span></div>
                                         <div hidden class="data-row"><span class="data-label">Total Qty:</span> <span class="data-value">@item.TotalQuantity</span></div>
                                         <div class="data-row"><span class="data-label">Available Qty:</span> <span class="data-value">@item.AvilableQuantity</span></div>
                                         <div class="data-row">
@@ -182,30 +183,47 @@
 
                                     <!-- Card Footer Buttons -->
                                     <div class="card-footer bg-light border-0 pt-2 pb-2 d-flex justify-content-around gap-2 flex-wrap">
-                                        <a class="icon-btn" title="Add Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i></a>
-                                        <a class="icon-btn" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-2"></i></a>
-                                        <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
-                                        <a class="icon-btn" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill fs-2"></i></a>
-                                        @if (item.AvilableQuantity > 0)
+                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
                                         {
-                                            <a class="icon-btn"
-                                               title="Exchange Lot"
-                                               asp-controller="Items"
-                                               asp-action="ExchangeLot"
-                                               asp-route-Id="@item.Id">
-                                                <i class="bi bi-cart-dash-fill fs-2"></i>
-                                            </a>
+                                            <a class="icon-btn" title="Add Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i></a>
                                         }
-                                        else
+                                        
+                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
                                         {
-                                            <span class="icon-btn text-secondary"
-                                                  title="Cannot exchange — Available quantity is 0"
-                                                  style="cursor:not-allowed; opacity:.45;">
-
-                                                <i class="bi bi-cart-dash-fill fs-2"></i>
-                                            </span>
+                                            <a class="icon-btn" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-2"></i></a>
                                         }
 
+                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
+                                        {
+                                            <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
+                                        }
+
+                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
+                                        {
+                                            <a class="icon-btn" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill fs-2"></i></a>
+                                        }
+
+                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
+                                        {
+                                            @if (item.AvilableQuantity > 0)
+                                            {
+                                                <a class="icon-btn"
+                                                   title="Exchange Lot"
+                                                   asp-controller="Items"
+                                                   asp-action="ExchangeLot"
+                                                   asp-route-Id="@item.Id">
+                                                    <i class="bi bi-cart-dash-fill fs-2"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="icon-btn text-secondary"
+                                                      title="Cannot exchange — Available quantity is 0"
+                                                      style="cursor:not-allowed; opacity:.45;">
+                                                    <i class="bi bi-cart-dash-fill fs-2"></i>
+                                                </span>
+                                            }
+                                        }
                                     </div>
                                 </div>
                             }
