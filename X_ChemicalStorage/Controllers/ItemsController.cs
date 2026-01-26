@@ -310,7 +310,7 @@ namespace X_ChemicalStorage.Controllers
             var listLotsOfItem = lots.Select(lot => new SelectListItem
             {
                 Value = lot.Id.ToString(),
-                Text = $" Available Qty [{lot.AvilableQuantity}] → Expiary Date [{lot.ExpiryDate:yyyy-MM-dd}]",
+                Text = $"Exp Date [{lot.ExpiryDate:yyyy-MM-dd}] → Available Qty [{lot.AvilableQuantity}]  ",
                 Selected = (newLot != null && lot.Id == newLot.Id)
             }).ToList();
 

@@ -21,9 +21,9 @@
             <div class=" d-flex col-md-4 col-6" >
                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
                 {
-                    <a class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@Model.NewItem.BarcodeImage" asp-route-Code="@Model.NewItem.Code">
+                    <a class="btn btn-outline-primary btn-sm py-0 d-flex rounded rounded-3 " title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@Model.NewItem.BarcodeImage" asp-route-Code="@Model.NewItem.Code">
                         <img src="~/images/barcode.png" alt="Save" height="40" class="mx-2">
-                        <span class="fw-bold fs-6 pt-2 pe-3">Print Barcode</span>
+                        <span class="fw-bold fs-6 pt-2 pe-3 pt-sm-2 pe-sm-3">Print Barcode</span>
                     </a>
                 }
                 
@@ -42,7 +42,7 @@
         
         <div class="row">
             <div class="col-md-1"></div>
-            <div class="col-md-4">
+            <div class="col-md-4 col-12">
                 <div class="card p-0">
                     <div class="card-header py-1 d-flex align-items-center justify-content-start bg-info-subtle">
                         <i class="bi bi-pin-angle-fill link-primary fs-4 pe-3"></i>
@@ -56,8 +56,8 @@
                         </div>
                         <!-- Item Barcode -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <div class="card col-md-8 col-8 py-1" style="border-top-right-radius : 20px ;">
                                 <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
                                     <img src="@Model?.NewItem?.BarcodeImage" height="60" />
                                 </div>
@@ -66,41 +66,41 @@
                         
                         <!-- Item Code -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input  disabled asp-for="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.Code" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Item Name -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input  disabled asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.Name" class="form-control text-center fw-bold col-md-8" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Item Category -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.NewItem.Category.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Category Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Category  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.Category.Name" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Category Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Item Total Quantity -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Avilable Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Quantity ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Avilable Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.AvilableQuantity" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Item Quantity ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Item Limit -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input  disabled asp-for="@Model.NewItem.Limit" class="form-control text-center link-danger fw-bold" autocomplete="on" aria-required="true" placeholder="Item Limit ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item Limit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.Limit" class="form-control text-center link-danger fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Item Limit ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                        
                         <!-- Item Unit -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input  disabled asp-for="@Model.NewItem.Unit.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Unit Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Unit  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.NewItem.Unit.Name" class="form-control text-center col-8 col-md-8 fw-bold" autocomplete="on" aria-required="true" placeholder="Unit Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Item SDS -->
                         @if (Model.NewItem.SDS == true)
                         {
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item SDS  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input disabled asp-for="@Model.NewItem.SDS" value="Valid" class="form-control text-center link-success fw-bold" autocomplete="on" aria-required="true" placeholder="Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Item SDS  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <input disabled asp-for="@Model.NewItem.SDS" value="Valid" class="form-control text-center link-success fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                         }
                         else
@@ -262,8 +262,8 @@
                         </div>
                         <!-- Building Name -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Building Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.LocationName" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Building Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.LocationName" class="form-control col-md-8 col-8 text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Building Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                        @*  <!-- Room Type -->
                         <div class="input-group mt-2 row mx-auto">
@@ -272,33 +272,33 @@
                         </div> *@
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.RoomNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Room Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.RoomNum" class="form-control text-center col-8 col-md-8 fw-bold" autocomplete="on" aria-required="true" placeholder="Room Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Case Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.CaseNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Case Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Case Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.CaseNum" class="form-control col-8 col-md-8 text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Case Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Shelf Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.ShelfNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Shelf Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Shelf Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.ShelfNum" class="form-control text-center col-md-8 col-8 fw-bold" autocomplete="on" aria-required="true" placeholder="Shelf Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Rack Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.RackNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Rack Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Rack Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.RackNum" class="form-control text-center fw-bold col-md-8 col-8" autocomplete="on" aria-required="true" placeholder="Rack Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Box Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.BoxNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Box Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Box Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.BoxNum" class="form-control text-center col-md-8 col-8 fw-bold" autocomplete="on" aria-required="true" placeholder="Box Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                         <!-- Room Number -->
                         <div class="input-group mt-2 row mx-auto">
-                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tube Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            <input disabled asp-for="@Model.LocationData.TubeNum" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Tube Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            <span class="input-group-text bg-success-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tube Number  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input disabled asp-for="@Model.LocationData.TubeNum" class="form-control col-8 col-md-8 text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Tube Number ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
                     </div>
                     <!-- /.card-body -->

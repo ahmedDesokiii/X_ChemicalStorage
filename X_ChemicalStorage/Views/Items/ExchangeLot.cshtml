@@ -17,15 +17,15 @@
 
 <form method="post">
     <section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
-        <div class="card col-8">
+        <div class="card col-md-8 col-12">
             <div class="card-header py-1 d-flex align-items-center justify-content-start bg-info-subtle">
                 <i class="bi bi-pin-angle-fill link-primary fs-4 pe-3"></i>
                 <span class="fs-4 fw-bold link-primary">Lot Data</span>
             </div>
 
             <div class="card-body justify-content-center row">
-                <div class="col-2"></div>
-                <div class="col-8">
+                <div class="col-md-2"></div>
+                <div class="col-md-8 col-12">
 
                     <!-- Hidden Fields -->
                     <input hidden asp-for="@Model.NewLot.ItemId" value="@Model.NewItem.Id" />
@@ -34,8 +34,8 @@
 
                     <!-- Item Info -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-danger-subtle fw-bold col-md-4">Item Barcode</span>
-                        <div class="card col-md-8 py-1" style="border-bottom-right-radius : 20px ;">
+                        <span class="input-group-text bg-danger-subtle fw-bold col-md-4 col-3">Item Barcode</span>
+                        <div class="card col-md-8 col-9 py-1" style="border-bottom-right-radius : 20px ;">
                             <div class="card-body row p-0 mx-auto">
                                 <img src="@Model.NewItem.BarcodeImage" height="60" />
                                 <p style="font-size:12px" class="mb-0">@Model.NewItem.Code</p>
@@ -44,14 +44,14 @@
                     </div>
 
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-danger-subtle fw-bold col-md-4">Item Name</span>
-                        <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold" style="border-bottom-right-radius : 20px ;" />
+                        <span class="input-group-text bg-danger-subtle fw-bold col-md-4 col-3">Item Name</span>
+                        <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold col-md-8 col-9" style="border-bottom-right-radius : 20px ;" />
                     </div>
 
                     <!-- Lot Info -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold col-md-4">Lot Barcode</span>
-                        <div class="card col-md-8 py-1" style="border-bottom-right-radius : 20px ;">
+                        <span class="input-group-text bg-info-subtle fw-bold col-md-4 col-3">Lot Barcode</span>
+                        <div class="card col-md-8 py-1 col-9" style="border-bottom-right-radius : 20px ;">
                             <div class="card-body row p-0 mx-auto text-center">
                                 <img id="lotBarcode" src="@Model.NewLot.BarcodeImage" height="60" />
                                 <p id="lotNumber" style="font-size:12px" class="mb-0">@Model.NewLot.LotNumber</p>
@@ -61,8 +61,8 @@
 
                     <!-- Lot Select -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold col-md-4">Lot Data</span>
-                        <div class="col-md-8">
+                        <span class="input-group-text bg-info-subtle fw-bold col-md-4 col-3">Lot Data</span>
+                        <div class="col-md-8 col-9">
                             <select id="lotList" class="form-select text-start" asp-for="@Model.NewLot.Id" required style="border-bottom-right-radius : 20px ;">
                                 @foreach (var lot in Model.ListLotsOfItem)
                                 {
@@ -84,15 +84,15 @@
 
                     <!-- Exchange Quantity -->
                     <div class="input-group mt-4 row mx-auto">
-                        <span class="input-group-text bg-success-subtle fw-bold col-md-4">Exchange Quantity</span>
-                        <input id="lotExQnty" type="number" min="1" value="1" asp-for="@Model.NewLot.ExchageQuantity" class="form-control text-center" style="border-bottom-right-radius : 20px ;" />
+                        <span class="input-group-text bg-success-subtle fw-bold col-md-4 col-3">Exchange Quantity</span>
+                        <input id="lotExQnty" type="number" min="1" value="1" asp-for="@Model.NewLot.ExchageQuantity" class="form-control text-center col-md-8 col-9" style="border-bottom-right-radius : 20px ;" autofocus />
                     </div>
                     <span asp-validation-for="@Model.NewLot.ExchageQuantity" class="text-danger"></span>
 
                     <!-- Lot Recipient -->
                     <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-success-subtle fw-bold col-md-4">Lot Recipient</span>
-                        <input id="lotRec" asp-for="@Model.NewLot.Recipient" class="form-control text-center" placeholder="Lot Recipient" style="border-bottom-right-radius : 20px ;" />
+                        <span class="input-group-text bg-success-subtle fw-bold col-md-4 col-3">Lot Recipient</span>
+                        <input id="lotRec" asp-for="@Model.NewLot.Recipient" class="form-control text-center col-md-8 col-9" placeholder="Lot Recipient" style="border-bottom-right-radius : 20px ;" />
                     </div>
                     <span asp-validation-for="@Model.NewLot.Recipient" class="text-danger"></span>
 
@@ -102,13 +102,23 @@
                     </div>
 
                 </div>
-                <div class="col-2"></div>
+                <div class="col-md-2"></div>
             </div>
         </div>
     </section>
 </form>
 
 @section Scripts {
+    <script>
+        window.addEventListener("load", () => {
+            const input = document.getElementById("lotExQnty");
+
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const lotList = document.getElementById("lotList");

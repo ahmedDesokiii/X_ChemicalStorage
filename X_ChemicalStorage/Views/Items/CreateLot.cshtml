@@ -20,7 +20,7 @@
         <section class="container-fluid mt-3 " dir="ltr">
             <div class="row">
                 <div class="col-md-2"></div>
-                <div class="col-md-4">
+                <div class="col-md-4 col-12">
                     <div class="card p-0">
                         <div class="card-header py-1 d-flex align-items-center justify-content-start bg-danger-subtle">
                             <i class="bi bi-pin-angle-fill link-danger fs-4 pe-3"></i>
@@ -37,8 +37,8 @@
 
                             <!-- Item Barcode -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <div class="card col-md-8 py-1" style="border-top-right-radius : 20px ;">
+                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <div class="card col-md-8 col-9 py-1" style="border-top-right-radius : 20px ;">
                                     <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
                                         <img src="~/barcodes/0bfaec93.png" height="60" />
                                     </div>
@@ -46,13 +46,13 @@
                             </div>
                             <!-- Item Code -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input readonly  value="@Model.NewItem.Code" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <input readonly  value="@Model.NewItem.Code" class="form-control text-center fw-bold col-md-8 col-9" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                             <!-- Item Name -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold col-md-8 col-9" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                         
                             <!-- /.card-body -->
@@ -60,7 +60,7 @@
                         <!-- /.card -->
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 col-12">
                     <div class="card p-0">
                         <div class="card-header py-1 d-flex align-items-center justify-content-start bg-info-subtle">
                             <i class="bi bi-pin-angle-fill link-primary fs-4 pe-3"></i>
@@ -75,8 +75,8 @@
                             <!---------------------------- Lot Data ----------------------------------->
                             <!-- Lot Barcode -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="card col-md-8 py-1 border-start" style="border-top-right-radius : 20px ;">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="card col-md-8 col-9 py-1 border-start" style="border-top-right-radius : 20px ;">
                                     <span class="col-md-8">
                                         <img src="~/lotbarcodes/184799d5.png" height="60" />
                                     </span>
@@ -85,8 +85,8 @@
 
                             <!-- Lot Number -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8 col-9">
                                 <input id="lotNum"  required asp-for="@Model.NewLot.LotNumber" value="@lotNumGenerate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Lot Number" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" >
                                 </span>
                             </div>
@@ -94,26 +94,43 @@
                         
                             <!-- Lot Quantity -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8">
-                                    <input id="lotQnty" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8 col-9">
+                                    <input id="lotQnty" value="1" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
                                 </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
                         
                             <!-- Lot Expiry Date -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Expiry Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8">
-                                <input type="date" id="lotExpiryDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ExpiryDate" class="form-control text-center " style="border-top-right-radius : 20px ;">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Expiry Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8 col-8">
+                                <input type="date" id="lotExpiryDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ExpiryDate" class="form-control text-center col-md-8 col-9" style="border-top-right-radius : 20px ;">
                                 </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.ExpiryDate" class="text-danger"></span>
+                            <!-- Lot Supplier -->
+                            <div class="input-group mt-2 row mx-auto">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Supplier &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8 col-9">
+                                    <select id="lotSupp" class="form-select text-start " required asp-items="@Model.ListSuppliers" style="border-top-right-radius : 20px ;">
+                                        <option selected disabled class="text-center "> Choose Supplier </option>
+                                    </select>
+                                </span>
+                            </div>
+                            <!-- Lot Manufacture Date -->
+                            <div class="input-group mt-2 row mx-auto">
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">Manufacture Date </span>
+                                <span class="col-md-8 col-8">
+                                    <input type="date" id="lotManufactureDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center " style="border-top-right-radius : 20px ;">
+                                </span>
+                            </div>
+                            <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
 
                             <!-- Lot Location -->
                             <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8"></span>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="col-md-8 col-9"></span>
                                 <div class="row mt-1">
                                     <select id="lotLocation" class="form-select text-start fw-bold" required asp-items="@Model.ListLocations" asp-for="@Model.NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
                                         <option selected disabled class="text-center "> Choose Location </option>
@@ -121,28 +138,11 @@
                                 </div>
                             </div>
                             <span asp-validation-for="@Model.NewLot.LocationId" class="text-danger"></span>
-                            <!-- Lot Supplier -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Lot Supplier &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8">
-                                    <select id="lotSupp" class="form-select text-start " required asp-items="@Model.ListSuppliers" style="border-top-right-radius : 20px ;">
-                                        <option selected disabled class="text-center "> Choose Supplier </option>
-                                    </select>
-                                </span>
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.LocationId" class="text-danger"></span>
-                            <!-- Lot Manufacture Date -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">Manufacture Date </span>
-                                <span class="col-md-8">
-                                <input type="date" id="lotManufactureDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center "  style="border-top-right-radius : 20px ;">
-                                </span>
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
+                           
                            
                             <!-- Lot SDS -->
                             <div class="input-group mt-3 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4" id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 " id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 @* <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;"> *@
                                     <div class="card-body col-md-8 d-flex row p-0 mx-auto" style="border-top-right-radius : 20px ;">
                                         <div class="col-md-1 col-1"></div>
@@ -196,3 +196,15 @@
         </section>
     </section>
 </form>
+@section Scripts{
+    <script>
+        window.addEventListener("load", () => {
+            const input = document.getElementById("lotQnty");
+
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
+        });
+    </script>
+}

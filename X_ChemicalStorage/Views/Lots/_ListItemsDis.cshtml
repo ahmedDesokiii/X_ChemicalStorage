@@ -30,7 +30,7 @@
                 else
                 {
                     <div class="items-grid">
-                        @foreach (var item in Model.ItemsList)
+                        @foreach (var item in Model.ItemsList.Where(x=>x.AvilableQuantity>0))
                         {
                             <div class="item-card" data-barcode="@item.Code">
                                 <div class="item-card-header">
@@ -68,6 +68,8 @@
                                             </span>
                                         }
                                     </div>
+                                    <div class="ps-2"><strong>Available Quantity:</strong> <span class="rounded-4 bg-warning-subtle fw-bold px-3 py-1 text-dark">@item.AvilableQuantity</span></div>
+
                                 </div>
 
                                 <div class="item-actions mt-0 mb-1">

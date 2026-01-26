@@ -142,7 +142,7 @@
                         <!-- ================= MOBILE VIEW ================= -->
                         <!-- MOBILE Cards -->
                         <div id="mobile-cards" class="d-block d-md-none px-2 mt-4">
-                            @foreach (var item in Model.ItemsList)
+                            @foreach (var item in Model.ItemsList.Where(x=>x.AvilableQuantity>0))
                             {
                                 var categoryColor = categoryColors.ContainsKey(item.Category.Name) ? categoryColors[item.Category.Name] : "#415E72";
 
@@ -168,7 +168,7 @@
                                         <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value" style="color:@(item.SDS==true ? "green" : "red")">@((item.SDS==true) ? "Valid" : "Invalid")</span></div>
                                         <div class="data-row"><span class="data-label">Category:</span> <span class="data-value">@item.Category.Name</span></div>
                                         <div class="data-row"><span class="data-label">Limit:</span> <span class="data-value">@item.Limit</span></div>
-                                        <div class="data-row"><span class="data-label">Total Qty:</span> <span class="data-value">@item.TotalQuantity</span></div>
+                                        <div hidden class="data-row"><span class="data-label">Total Qty:</span> <span class="data-value">@item.TotalQuantity</span></div>
                                         <div class="data-row"><span class="data-label">Available Qty:</span> <span class="data-value">@item.AvilableQuantity</span></div>
                                         <div class="data-row">
                                             <span class="data-label">Storage:</span>
@@ -186,7 +186,25 @@
                                         <a class="icon-btn" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-2"></i></a>
                                         <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
                                         <a class="icon-btn" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill fs-2"></i></a>
-                                        <a class="icon-btn" title="Exchange Lot" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill fs-2"></i></a>
+                                        @if (item.AvilableQuantity > 0)
+                                        {
+                                            <a class="icon-btn"
+                                               title="Exchange Lot"
+                                               asp-controller="Items"
+                                               asp-action="ExchangeLot"
+                                               asp-route-Id="@item.Id">
+                                                <i class="bi bi-cart-dash-fill fs-2"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="icon-btn text-secondary"
+                                                  title="Cannot exchange — Available quantity is 0"
+                                                  style="cursor:not-allowed; opacity:.45;">
+
+                                                <i class="bi bi-cart-dash-fill fs-2"></i>
+                                            </span>
+                                        }
 
                                     </div>
                                 </div>
@@ -205,7 +223,6 @@
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SDS</th>
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Category</th>
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
-                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Total<br class="m-0 p-0">Quantity</th>
                                             <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Avilable<br class="m-0 p-0">Quantity</th>
                                             <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Storage<br class="m-0 p-0">Condition</th>
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
@@ -251,7 +268,6 @@
                                                         @item.Limit
                                                     </span>
                                                 </td>
-                                                <td class="fs-6 text-center px-1"><span class="fw-bold">@item.TotalQuantity</span></td>
                                                 <td class="fs-6 text-center px-1"><span class="fw-bold">@item.AvilableQuantity</span></td>
                                                
                                                 @if (item.StorageCondition == "room temp")
@@ -295,8 +311,26 @@
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
                                                     {
-                                                        <a class="btn fw-bold btn-outline-danger bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Exchange Lot" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill fs-2"></i><br></a>
-                                                    }
+                                                        @if (item.AvilableQuantity > 0)
+                                                        {
+                                                            <a class="icon-btn"
+                                                               title="Exchange Lot"
+                                                               asp-controller="Items"
+                                                               asp-action="ExchangeLot"
+                                                               asp-route-Id="@item.Id">
+                                                                <i class="bi bi-cart-dash-fill fs-2"></i>
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="icon-btn text-secondary"
+                                                                  title="Cannot exchange — Available quantity is 0"
+                                                                  style="cursor:not-allowed; opacity:.45;">
+                                                                
+                                                                <i class="bi bi-cart-dash-fill fs-2"></i>
+                                                            </span>
+                                                        }
+        }
                                                     <style>
                                                         .btn:hover {
                                                             transform: scale(1.1);
