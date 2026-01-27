@@ -85,7 +85,7 @@
                     <!-- Exchange Quantity -->
                     <div class="input-group mt-4 row mx-auto">
                         <span class="input-group-text bg-success-subtle fw-bold col-md-4 col-3">Exchange Quantity</span>
-                        <input id="lotExQnty" type="number" min="1" value="1" asp-for="@Model.NewLot.ExchageQuantity" class="form-control text-center col-md-8 col-9" style="border-bottom-right-radius : 20px ;" autofocus />
+                        <input id="lotExQnty" type="number" min="1" value="" placeholder="Max Quantity : @Model.NewLot.AvilableQuantity" asp-for="@Model.NewLot.ExchageQuantity" class="form-control text-center col-md-8 col-9" style="border-bottom-right-radius : 20px ;" autofocus />
                     </div>
                     <span asp-validation-for="@Model.NewLot.ExchageQuantity" class="text-danger"></span>
 

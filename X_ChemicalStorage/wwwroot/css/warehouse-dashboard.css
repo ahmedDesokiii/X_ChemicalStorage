@@ -1,0 +1,61 @@
+﻿.warehouse-dashboard {
+    height: calc(100vh - 160px);
+    overflow: hidden;
+}
+
+.kpi {
+    padding: 18px;
+    border-radius: 16px;
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(0,0,0,.2);
+}
+
+.kpi-primary {
+    background: linear-gradient(135deg,#0d6efd,#084298);
+}
+
+.kpi-success {
+    background: linear-gradient(135deg,#198754,#0f5132);
+}
+
+.kpi-warning {
+    background: linear-gradient(135deg,#ffc107,#997404);
+}
+
+.kpi-danger {
+    background: linear-gradient(135deg,#dc3545,#842029);
+}
+
+.dash-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+.lot-slider {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.lot-card {
+    min-width: 220px;
+    padding: 16px;
+    border-radius: 14px;
+    color: #fff;
+    cursor: pointer;
+}
+
+    .lot-card.high {
+        background: linear-gradient(135deg,#dc3545,#842029);
+    }
+
+    .lot-card.medium {
+        background: linear-gradient(135deg,#ffc107,#997404);
+    }
+
+    .lot-card.low {
+        background: linear-gradient(135deg,#198754,#0f5132);
+    }

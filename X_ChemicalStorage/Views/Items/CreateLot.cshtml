@@ -96,7 +96,7 @@
                             <div class="input-group mt-2 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 <span class="col-md-8 col-9">
-                                    <input id="lotQnty" value="1" asp-for="@Model.NewLot.TotalQuantity" class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
+                                    <input id="lotQnty" value="1" asp-for="@Model.NewLot.TotalQuantity" required class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
                                 </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
@@ -114,7 +114,7 @@
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Supplier &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                 <span class="col-md-8 col-9">
                                     <select id="lotSupp" class="form-select text-start " required asp-items="@Model.ListSuppliers" style="border-top-right-radius : 20px ;">
-                                        <option selected disabled class="text-center "> Choose Supplier </option>
+                                        <option selected disabled class="text-center " value=""> Choose Supplier </option>
                                     </select>
                                 </span>
                             </div>
@@ -133,7 +133,7 @@
                                 <span class="col-md-8 col-9"></span>
                                 <div class="row mt-1">
                                     <select id="lotLocation" class="form-select text-start fw-bold" required asp-items="@Model.ListLocations" asp-for="@Model.NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
-                                        <option selected disabled class="text-center "> Choose Location </option>
+                                        <option selected disabled class="text-center " value=""> Choose Location </option>
                                     </select>
                                 </div>
                             </div>
@@ -143,32 +143,35 @@
                             <!-- Lot SDS -->
                             <div class="input-group mt-3 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 " id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                @* <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;"> *@
-                                    <div class="card-body col-md-8 d-flex row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                        <div class="col-md-1 col-1"></div>
-                                        <div class="col-md-4 col-4 text-center my-0">
-                                            <label for="sdsYes" class="radio-card" onclick="document.getElementById('itemSDS').value = 'True'; ">
-                                                <input type="radio" hidden name="radio-card" id="sdsYes" />
-                                                <div class="card-content-wrapper rounded-3 py-2 px-4">
-                                                    <span class="bi bi-shield-fill-check link-success fs-3"></span>
-                                                    <br class="m-0 p-0">
-                                                    <span class="link-dark mb-0">Valid</span>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div class="col-md-2 col-2 text-center"></div>
-                                        <div class=" col-md-4 col-4 text-center my-0">
-                                            <label for="sdsNo" class="radio-card" onclick="document.getElementById('itemSDS').value = 'False'; ">
-                                                <input type="radio" hidden name="radio-card" id="sdsNo" />
-                                                <div class="card-content-wrapper rounded-3 py-2 px-3">
-                                                    <span class="bi bi-shield-x link-danger fs-3"></span>
-                                                    <br class="m-0 p-0">
-                                                    <span class="link-dark mb-0">Invalid</span>
-                                                </div>
-                                            </label>
-                                        </div>
+                                <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;">
+                                    <div class="card-body col-md-8 p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                       <div class="row">
+                                            @* <div class="col-md-1 col-1"></div> *@
+                                            <div class="col-md-3 col-3 text-center my-0">
+                                                <label for="sdsYes" class="radio-card" onclick="document.getElementById('itemSDS').value = 'True'; ">
+                                                    <input type="radio" hidden name="radio-card" id="sdsYes" />
+                                                    <div class="card-content-wrapper rounded-3 py-2 px-4">
+                                                        <span class="bi bi-shield-fill-check link-success fs-3"></span>
+                                                        <br class="m-0 p-0">
+                                                        <span class="link-dark mb-0">Valid</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4 col-4 text-center"></div>
+                                            <div class=" col-md-3 col-3 text-center my-0">
+                                                <label for="sdsNo" class="radio-card" onclick="document.getElementById('itemSDS').value = 'False'; ">
+                                                    <input type="radio" hidden name="radio-card" id="sdsNo" />
+                                                    <div class="card-content-wrapper rounded-3 py-2 px-3">
+                                                        <span class="bi bi-shield-x link-danger fs-3"></span>
+                                                        <br class="m-0 p-0">
+                                                        <span class="link-dark mb-0">Invalid</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                       </div>
+                                        
                                     </div>
-                                @* </div> *@
+                                </div>
                                 <input id="itemSDS" required hidden asp-for="@Model.NewLot.SDS" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                             </div>
                             <span asp-validation-for="@Model.NewLot.SDS" class="text-danger"></span>

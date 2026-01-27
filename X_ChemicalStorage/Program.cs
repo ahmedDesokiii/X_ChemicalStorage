@@ -77,6 +77,7 @@ builder.Services.AddScoped<IServicesRepository<Category>, ServicesCategory>();
 builder.Services.AddScoped<IServicesRepository<Unit>, ServicesUnit>();
 builder.Services.AddScoped<IServicesRepository<Item>, ServicesItem>();
 builder.Services.AddScoped<IServicesItem, ServicesItem>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IServicesLot, ServicesLot>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IServicesRepository<Location>, ServicesLocation>();

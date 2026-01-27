@@ -17,7 +17,7 @@
         <div class="row mb-2">
             <div class="col-md-2"></div>
 
-            <div class=" d-flex col-md-4">
+            <div class=" d-flex col-md-4 col-6">
                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
                 {
                     <a class="btn btn-outline-primary btn-sm  d-flex rounded rounded-3 " title="Print Lot Barcode" asp-controller="Lots" asp-action="PrintLotBarcode" asp-route-barcodeFile="@Model.NewLot.BarcodeImage" asp-route-ItemName="@Model.NewLot.Item.Name" asp-route-LotNumber="@Model.NewLot.LotNumber" asp-route-ExpiryDate="@Model.NewLot.ExpiryDate">
@@ -28,7 +28,7 @@
 
                
             </div>
-            <div class=" d-flex col-md-4">
+            <div class=" d-flex col-md-4 col-6">
                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
                 {
                     <a class="btn btn-outline-warning btn-sm  d-flex rounded rounded-3 " title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@Model.NewLot.ItemId">

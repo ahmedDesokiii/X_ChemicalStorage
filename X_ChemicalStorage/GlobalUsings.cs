@@ -20,3 +20,5 @@ global using Microsoft.AspNetCore.Localization;
 global using System.Globalization;
 global using X_ChemicalStorage.IRepository;
 global using X_ChemicalStorage.IRepository.ServicesRepository;
+global using X_ChemicalStorage.Services;
+global using X_ChemicalStorage.Dtos;

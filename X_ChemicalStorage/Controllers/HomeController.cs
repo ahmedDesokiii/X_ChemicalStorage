@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
+
 namespace X_ChemicalStorage.Controllers
 {
     [AllowAnonymous]
@@ -11,8 +12,10 @@ namespace X_ChemicalStorage.Controllers
         private readonly IServicesItem _servicesOfItem;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IDashboardService _service;
 
-        public HomeController(IWebHostEnvironment env, IServicesRepository<Item> servicesItem, IServicesRepository<Lot> servicesLot, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        
+        public HomeController(IWebHostEnvironment env, IServicesRepository<Item> servicesItem, IServicesRepository<Lot> servicesLot, IServicesItem servicesOfItem, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IDashboardService service)
         {
             _env = env;
             _servicesItem = servicesItem;
@@ -20,6 +23,7 @@ namespace X_ChemicalStorage.Controllers
             _servicesOfItem = servicesOfItem;
             _userManager = userManager;
             _context = context;
+            _service = service;
         }
 
         public IActionResult Index()
@@ -30,19 +34,7 @@ namespace X_ChemicalStorage.Controllers
         [AllowAnonymous]
         public IActionResult MasterDashboard()
         {
-            var totalItems = _context.Items.Count();
-            var totalAvailable = _context.Items.Sum(i => i.AvilableQuantity);
-            var lowStockItems = _context.Items.Where(i => i.AvilableQuantity < i.Limit).Count();
-            var expiredLots = _context.Lots.Where(l => l.ExpiryDate < DateTime.Now).Count();
-
-            var model = new DashboardViewModel
-            {
-                TotalItems = totalItems,
-                TotalAvailableQuantity = totalAvailable,
-                LowStockItems = lowStockItems,
-                ExpiredLots = expiredLots
-            };
-
+            var model = _service.GetDashboard();
             return View(model);
         }
         //public IActionResult MasterDashboard()
@@ -133,8 +125,8 @@ namespace X_ChemicalStorage.Controllers
         //     model = new DashboardViewModel
         //    {
         //        //TotalItems = Convert.ToInt32(totalItems),
-        //        //LowStockItems = Convert.ToInt32(lowStockItems),
-        //        //ExpiredLots = Convert.ToInt32(expiredLots),
+        //        //UnderLimitItems = Convert.ToInt32(lowStockItems),
+        //        //ExpiringLots = Convert.ToInt32(expiredLots),
         //        //ExpiringSoonLots = Convert.ToInt32(expiringSoonLots),
 
         //        //Months = months,

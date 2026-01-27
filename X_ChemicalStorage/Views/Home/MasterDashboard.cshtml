@@ -2,194 +2,330 @@
 @{
     ViewData["Title"] = "Dashboard";
 }
+
+<section class="container-fluid warehouse-dashboard mt-3">
+
+    <!-- KPI ROW -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <div class="kpi kpi-primary">
+                <span>Total Items</span>
+                <h3>@Model.TotalItems</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi kpi-success">
+                <span>Available Qty</span>
+                <h3>@Model.TotalAvailableQty</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi kpi-warning">
+                <span>Low Stock</span>
+                <h3>@Model.UnderLimitItems</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi kpi-danger">
+                <span>Expiring Lots</span>
+                <h3>@Model.ExpiringLots</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="row mb-3">
+        @if (Model.HasUnderLimitAlert)
+        {
+            <div class="alert alert-danger shadow-sm">⚠️ Under Minimum Stock</div>
+        }
+        @if (Model.HasExpiryAlert)
+        {
+            <div class="alert alert-warning shadow-sm">⏳ Lots Near Expiry</div>
+        }
+        @if (Model.HasHazardAlert)
+        {
+            <div class="alert alert-info shadow-sm">☣️ Hazard Materials</div>
+        }
+    </div>
+
+    <!-- LOT TIMELINE + DONUT -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-8">
+            <div class="dash-card">
+                <h6>Lot Expiry Timeline</h6>
+                <div id="lotTimeline"></div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dash-card">
+                <h6>Stock Distribution</h6>
+                <div id="stockDonut"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOP RISK LOTS -->
+    <div class="dash-card">
+        <h6>Top Risk Lots</h6>
+        <div class="lot-slider">
+            @foreach (var lot in Model.TopRiskLots)
+            {
+                <div class="lot-card @lot.RiskClass"
+                     onclick="openLot(@lot.LotId)">
+                    <strong>@lot.LotCode</strong>
+                    <small>@lot.DaysToExpire days</small>
+                    <div>@lot.MaterialName</div>
+                </div>
+            }
+        </div>
+    </div>
+
+</section>
+
+<!-- LOT DRILL DOWN -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="lotDetails">
+    <div class="offcanvas-header">
+        <h5>Lot Details</h5>
+        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body" id="lotContent"></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        const lotTimelineData = @Html.Raw(Json.Serialize(Model.LotTimeline));
+        const stockDonut = {
+            available: @Model.TotalAvailableQty,
+            low: @Model.UnderLimitItems,
+            expired: @Model.ExpiringLots
+        };
+    </script>
+
+    <script src="~/js/warehouse-dashboard.js"></script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ================= HEADER (UNCHANGED) ================= -->
 <div class="text-center">
-    <div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 ">
-        
+    <div class="card border-0 py-3"
+         style="background-color:#032b42 !important; border-radius:0 0 75px 0 ">
         <span class="text-center fs-1 fw-bold" style="color:#415E72 !important ">
             <i class="bi bi-speedometer2 ps-2 fs-1"></i>
             Dashboard
         </span>
     </div>
 </div>
-<section class="text-center py-3 container-fluid justify-content-center mx-auto" dir="ltr">
 
-<div class="row text-center mb-4 mx-auto">
-    <div class="col-md-1"></div>
-    <div class="col-md-2">
-        <div class="card p-3 shadow-sm">
-            <h6>Total Items</h6>
-            <h4>@Model.TotalItems</h4>
+<section class="container-fluid mt-4" dir="ltr">
+
+    <!-- ================= KPI CARDS ================= -->
+    <div class="row g-4 mb-5 justify-content-center text-center">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi kpi-primary">
+                <i class="bi bi-box-seam"></i>
+                <span>Total Items</span>
+                <h3>@Model.TotalItems</h3>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi kpi-success">
+                <i class="bi bi-stack"></i>
+                <span>Available Quantity</span>
+                <h3>@Model.TotalAvailableQty</h3>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi kpi-warning">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>Low Stock</span>
+                <h3>@Model.UnderLimitItems</h3>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi kpi-danger">
+                <i class="bi bi-x-octagon"></i>
+                <span>Expiring Lots</span>
+                <h3>@Model.ExpiringLots</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ALERTS ================= -->
+    @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert)
+    {
+        <div class="row mb-4">
+            <div class="col-lg-10 mx-auto">
+
+                @if (Model.HasUnderLimitAlert)
+                {
+                    <div class="alert alert-danger alert-modern">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <b>Low Stock Alert:</b>
+                        @Model.UnderLimitItems items below minimum limit
+                    </div>
+                }
+
+                @if (Model.HasExpiryAlert)
+                {
+                    <div class="alert alert-warning alert-modern">
+                        <i class="bi bi-hourglass-split me-2"></i>
+                        <b>Expiry Warning:</b>
+                        @Model.ExpiringLots batches expiring soon
+                    </div>
+                }
+
+                @if (Model.HasHazardAlert)
+                {
+                    <div class="alert alert-info alert-modern">
+                        <i class="bi bi-biohazard-fill me-2"></i>
+                        <b>Hazard Materials:</b>
+                        @Model.HazardItems items require special handling
+                    </div>
+                }
+
+            </div>
+        </div>
+    }
+
+    <!-- ================= STORY CHART ================= -->
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="dashboard-card">
+                <h6 class="dashboard-title">Stock Health Overview</h6>
+                <div id="stockHealthChart"></div>
+            </div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card p-3 shadow-sm">
-            <h6>Available Quantity</h6>
-            <h4>@Model.TotalAvailableQuantity</h4>
+
+    <!-- ================= RISK DISTRIBUTION ================= -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mx-auto">
+            <div class="dashboard-card text-center">
+                <h6 class="dashboard-title">Risk Distribution</h6>
+                <div id="riskChart"></div>
+                <small class="text-muted">
+                    Click on any segment to drill down
+                </small>
+            </div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card p-3 shadow-sm text-warning">
-            <h6>Low Stock</h6>
-            <h4>@Model.LowStockItems</h4>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card p-3 shadow-sm text-danger">
-            <h6>Expired Lots</h6>
-            <h4>@Model.ExpiredLots</h4>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card p-3 shadow-sm text-warning">
-            <h6>Low Stock</h6>
-            <h4>@Model.LowStockItems</h4>
-        </div>
-    </div>
-    <div class="col-md-1"></div>
 
-</div>
-
-    <div class="row text-center  mb-4">
-        <div class="col-md-2"></div>
-        <div class="col-md-8 mx-auto">
-            <canvas id="stockChart"></canvas>
-        </div>
-
-        <div class="col-md-2"></div>
-
-</div>
-    <hr class="my-5" />
-
-    <h4 class="text-center mb-3">Lot Transactions (IN / OUT)</h4>
-    <canvas id="lotTransactionChart"></canvas>
-    
-
+   
 </section>
-@section Scripts{
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const dashboardData = {
-            availableQty: @Model.TotalAvailableQuantity,
-            lowStock: @Model.LowStockItems,
-            expiredLots: @Model.ExpiredLots
-        };
 
-        new Chart(document.getElementById('stockChart'), {
-            data: {
-                labels: ['Available Qty', 'Low Stock', 'Expired Lots'],
-                datasets: [
-                    {
-                        type: 'bar',
-                        label: 'Available Quantity',
-                        data: [
-                            dashboardData.availableQty,
-                            null,
-                            null
-                        ],
-                        backgroundColor: '#198754',
-                        yAxisID: 'yQty'
-                    },
-                    {
-                        type: 'line',
-                        label: 'Low Stock Items',
-                        data: [
-                            null,
-                            dashboardData.lowStock,
-                            null
-                        ],
-                        borderColor: '#ffc107',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        yAxisID: 'yCount'
-                    },
-                    {
-                        type: 'line',
-                        label: 'Expired Lots',
-                        data: [
-                            null,
-                            null,
-                            dashboardData.expiredLots
-                        ],
-                        borderColor: '#dc3545',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        yAxisID: 'yCount'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    yQty: {
-                        type: 'linear',
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Quantity'
-                        }
-                    },
-                    yCount: {
-                        type: 'linear',
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Count'
-                        },
-                        grid: {
-                            drawOnChartArea: false
-                        }
-                    }
-                }
-            }
-        });
-    </script>
-   @*  <script>
-        const lotData = @Html.Raw(
-                    System.Text.Json.JsonSerializer.Serialize(Model.LotTransactions)
-            );
+<!-- ================= STYLES ================= -->
+<style>
+    .lot-slider {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
 
-    new Chart(document.getElementById('lotTransactionChart'), {
-        type: 'line',
-        data: {
-            labels: lotData.map(x => x.date),
-            datasets: [
-                {
-                    label: 'IN',
-                    data: lotData.map(x => x.inQty),
-                    borderColor: '#198754',
-                    tension: 0.4
-                },
-                {
-                    label: 'OUT',
-                    data: lotData.map(x => x.outQty),
-                    borderColor: '#dc3545',
-                    tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
+    .lot-card {
+        min-width: 200px;
+        padding: 16px;
+        border-radius: 14px;
+        color: #fff;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0,0,0,.2);
+    }
+
+        .lot-card.high {
+            background: linear-gradient(135deg,#dc3545,#842029);
         }
-    });
-</script> *@
 
-}
+        .lot-card.medium {
+            background: linear-gradient(135deg,#ffc107,#997404);
+        }
+
+        .lot-card.low {
+            background: linear-gradient(135deg,#198754,#0f5132);
+        }
+
+    .kpi {
+        border-radius: 18px;
+        padding: 24px;
+        color: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        transition: .3s;
+    }
+
+        .kpi:hover {
+            transform: translateY(-6px);
+        }
+
+        .kpi i {
+            font-size: 32px;
+            opacity: .9;
+        }
+
+        .kpi span {
+            display: block;
+            font-size: 14px;
+            opacity: .85;
+        }
+
+        .kpi h3 {
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+    .kpi-primary {
+        background: linear-gradient(135deg,#0d6efd,#084298);
+    }
+
+    .kpi-success {
+        background: linear-gradient(135deg,#198754,#0f5132);
+    }
+
+    .kpi-warning {
+        background: linear-gradient(135deg,#ffc107,#997404);
+    }
+
+    .kpi-danger {
+        background: linear-gradient(135deg,#dc3545,#842029);
+    }
+
+    .dashboard-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    }
+
+    .dashboard-title {
+        font-weight: bold;
+        margin-bottom: 16px;
+    }
+
+    .alert-modern {
+        border-radius: 14px;
+        padding: 14px 18px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.15);
+    }
+</style>
+
+
 
 
 
