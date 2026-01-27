@@ -2,52 +2,115 @@
 @{
     ViewData["Title"] = "Dashboard";
 }
+<!-- ================= HEADER (UNCHANGED) ================= -->
+<div class="text-center">
+    <div class="card border-0 py-3"
+         style="background-color:#032b42 !important; border-radius:0 0 75px 0 ">
+        <span class="text-center fs-1 fw-bold" style="color:#415E72 !important ">
+            <i class="bi bi-speedometer2 ps-2 fs-1"></i>
+            Dashboard
+        </span>
+    </div>
+</div>
 
-<section class="container-fluid warehouse-dashboard mt-3">
+<section class="container-fluid warehouse-dashboard mt-3" dir="ltr">
 
-    <!-- KPI ROW -->
-    <div class="row g-3 mb-3">
-        <div class="col-md-3">
+    <!-- ================= KPI CARDS ================= -->
+    <div class="row g-4 mb-5 justify-content-center text-center">
+        <div class="col-md-1"></div>
+        <div class="col-xl-2 col-md-2 py-0">
             <div class="kpi kpi-primary">
-                <span>Total Items</span>
+                <i class="bi bi-box-seam"></i>
+                <span class="fs-5">Total Items</span>
                 <h3>@Model.TotalItems</h3>
             </div>
         </div>
-        <div class="col-md-3">
+
+        <div class="col-xl-2 col-md-2 py-0">
             <div class="kpi kpi-success">
-                <span>Available Qty</span>
+                <i class="bi bi-stack"></i>
+                <span class="fs-5">Available Quantity</span>
                 <h3>@Model.TotalAvailableQty</h3>
             </div>
         </div>
-        <div class="col-md-3">
+
+        <div class="col-xl-2 col-md-2 py-0">
             <div class="kpi kpi-warning">
-                <span>Low Stock</span>
+                <i class="bi bi-exclamation-circle"></i>
+                <span class="fs-5">Low Stock</span>
                 <h3>@Model.UnderLimitItems</h3>
             </div>
         </div>
-        <div class="col-md-3">
+
+        <div class="col-xl-2 col-md-2 py-0">
             <div class="kpi kpi-danger">
-                <span>Expiring Lots</span>
+                <i class="bi bi-x-octagon"></i>
+                <span class="fs-5">Expiring Lots</span>
                 <h3>@Model.ExpiringLots</h3>
             </div>
         </div>
+        <div class="col-xl-2 col-md-2 py-0">
+            <div class="kpi kpi-info">
+                <i class="bi bi-archive-fill"></i>
+                <span class="fs-5">Total Lots</span>
+                <h3>@Model.TotalLots</h3>
+            </div>
+        </div>
+        <div class="col-md-1"></div>
     </div>
 
-    <!-- ALERTS -->
-    <div class="row mb-3">
-        @if (Model.HasUnderLimitAlert)
-        {
-            <div class="alert alert-danger shadow-sm">⚠️ Under Minimum Stock</div>
-        }
-        @if (Model.HasExpiryAlert)
-        {
-            <div class="alert alert-warning shadow-sm">⏳ Lots Near Expiry</div>
-        }
-        @if (Model.HasHazardAlert)
-        {
-            <div class="alert alert-info shadow-sm">☣️ Hazard Materials</div>
-        }
-    </div>
+    <!-- ================= ALERTS ================= -->
+    @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert)
+    {
+        <div class="row mb-4">
+            <div class="col-lg-4 mx-auto">
+                <div class="dashboard-card">
+                    <h6 class="dashboard-title">Stock Health Overview</h6>
+                    <div id="stockHealthChart"></div>
+                </div>
+            </div>
+            <div class="col-lg-4 mx-auto">
+                @if (Model.HasUnderLimitAlert)
+                {
+                    <div class="alert alert-danger alert-modern">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <b>Low Stock Alert:</b>
+                        <span class="fs-6">@Model.UnderLimitItems</span> items below minimum limit
+                    </div>
+                }
+
+                @if (Model.HasExpiryAlert)
+                {
+                    <div class="alert alert-warning alert-modern">
+                        <i class="bi bi-hourglass-split me-2"></i>
+                        <b>Expiry Warning:</b>
+                        <span class="fs-6">@Model.ExpiringLots</span> batches expiring soon
+                    </div>
+                }
+
+                @if (Model.HasHazardAlert)
+                {
+                    <div class="alert alert-info alert-modern">
+                        <i class="bi bi-biohazard-fill me-2"></i>
+                        <b>Hazard Materials:</b>
+                        <span class="fs-6">@Model.HazardItems</span> items require special handling
+                    </div>
+                }
+
+            </div>
+            <div class="col-lg-4 mx-auto">
+                <div class="dashboard-card text-center">
+                    <h6 class="dashboard-title">Risk Distribution</h6>
+                    <div id="riskChart"></div>
+                    <small class="text-muted">
+                        Click on any segment to drill down
+                    </small>
+                </div>
+            </div>
+            
+        </div>
+    }
+
 
     <!-- LOT TIMELINE + DONUT -->
     <div class="row g-3 mb-3">
@@ -119,118 +182,7 @@
 
 
 
-<!-- ================= HEADER (UNCHANGED) ================= -->
-<div class="text-center">
-    <div class="card border-0 py-3"
-         style="background-color:#032b42 !important; border-radius:0 0 75px 0 ">
-        <span class="text-center fs-1 fw-bold" style="color:#415E72 !important ">
-            <i class="bi bi-speedometer2 ps-2 fs-1"></i>
-            Dashboard
-        </span>
-    </div>
-</div>
 
-<section class="container-fluid mt-4" dir="ltr">
-
-    <!-- ================= KPI CARDS ================= -->
-    <div class="row g-4 mb-5 justify-content-center text-center">
-
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi kpi-primary">
-                <i class="bi bi-box-seam"></i>
-                <span>Total Items</span>
-                <h3>@Model.TotalItems</h3>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi kpi-success">
-                <i class="bi bi-stack"></i>
-                <span>Available Quantity</span>
-                <h3>@Model.TotalAvailableQty</h3>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi kpi-warning">
-                <i class="bi bi-exclamation-circle"></i>
-                <span>Low Stock</span>
-                <h3>@Model.UnderLimitItems</h3>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi kpi-danger">
-                <i class="bi bi-x-octagon"></i>
-                <span>Expiring Lots</span>
-                <h3>@Model.ExpiringLots</h3>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ================= ALERTS ================= -->
-    @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert)
-    {
-        <div class="row mb-4">
-            <div class="col-lg-10 mx-auto">
-
-                @if (Model.HasUnderLimitAlert)
-                {
-                    <div class="alert alert-danger alert-modern">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        <b>Low Stock Alert:</b>
-                        @Model.UnderLimitItems items below minimum limit
-                    </div>
-                }
-
-                @if (Model.HasExpiryAlert)
-                {
-                    <div class="alert alert-warning alert-modern">
-                        <i class="bi bi-hourglass-split me-2"></i>
-                        <b>Expiry Warning:</b>
-                        @Model.ExpiringLots batches expiring soon
-                    </div>
-                }
-
-                @if (Model.HasHazardAlert)
-                {
-                    <div class="alert alert-info alert-modern">
-                        <i class="bi bi-biohazard-fill me-2"></i>
-                        <b>Hazard Materials:</b>
-                        @Model.HazardItems items require special handling
-                    </div>
-                }
-
-            </div>
-        </div>
-    }
-
-    <!-- ================= STORY CHART ================= -->
-    <div class="row mb-5">
-        <div class="col-lg-10 mx-auto">
-            <div class="dashboard-card">
-                <h6 class="dashboard-title">Stock Health Overview</h6>
-                <div id="stockHealthChart"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= RISK DISTRIBUTION ================= -->
-    <div class="row mb-5">
-        <div class="col-lg-6 mx-auto">
-            <div class="dashboard-card text-center">
-                <h6 class="dashboard-title">Risk Distribution</h6>
-                <div id="riskChart"></div>
-                <small class="text-muted">
-                    Click on any segment to drill down
-                </small>
-            </div>
-        </div>
-    </div>
-
-   
-</section>
 
 <!-- ================= STYLES ================= -->
 <style>
@@ -290,8 +242,12 @@
             font-weight: bold;
         }
 
+    .kpi-info {
+        background: linear-gradient(135deg,#3F9AAE,#ABDADC);
+    }
+
     .kpi-primary {
-        background: linear-gradient(135deg,#0d6efd,#084298);
+        background: linear-gradient(135deg,#213C51,#084298);
     }
 
     .kpi-success {

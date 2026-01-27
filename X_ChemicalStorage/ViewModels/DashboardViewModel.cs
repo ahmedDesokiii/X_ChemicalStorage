@@ -7,6 +7,7 @@ namespace X_ChemicalStorage.ViewModels
     {
         //// KPIs
         public int TotalItems { get; set; }
+        public int TotalLots { get; set; }
         public double? TotalAvailableQty { get; set; }
         public int UnderLimitItems { get; set; }
         public int ExpiringLots { get; set; }
@@ -23,5 +24,6 @@ namespace X_ChemicalStorage.ViewModels
 
         public List<LotTimelineDto> LotTimeline { get; set; } = new();
         public List<TopRiskLotDto> TopRiskLots { get; set; } = new();
+        public List<ItemTimelineDto> ItemTimeline { get; set; }
     }
 }

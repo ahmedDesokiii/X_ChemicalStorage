@@ -12,6 +12,7 @@ namespace X_ChemicalStorage.Services
         public DashboardViewModel GetDashboard()
         {
             var totalItems = _context.Items.Count();
+            var totalLots = _context.Lots.Count();
 
             var totalAvailableQty = _context.Items
                 .Sum(i => (float?)i.AvilableQuantity) ?? 0;
@@ -43,6 +44,7 @@ namespace X_ChemicalStorage.Services
             return new DashboardViewModel
             {
                 TotalItems = totalItems,
+                TotalLots = totalLots,
                 TotalAvailableQty = totalAvailableQty,
                 UnderLimitItems = underLimitItems,
                 ExpiringLots = expiringLots,
