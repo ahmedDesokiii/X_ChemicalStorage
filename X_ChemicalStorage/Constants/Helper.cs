@@ -20,5 +20,12 @@
             Suspended = 1, // معلق
             Delete = 0 // غير نشط
         }
+        
+        public enum StorageCondition
+        {
+            Room = 1,
+            Freezer = 2,
+            Cold = 3
+        }
     }
 }

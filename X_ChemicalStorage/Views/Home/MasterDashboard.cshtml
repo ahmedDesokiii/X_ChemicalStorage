@@ -1,4 +1,5 @@
-﻿@model DashboardViewModel
+﻿@using static X_ChemicalStorage.Constants.Helper
+@model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -63,12 +64,18 @@
     @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert)
     {
         <div class="row mb-4">
+            <!-- ================= Storage Condition Card ================= -->
             <div class="col-lg-4 mx-auto">
-                <div class="dashboard-card">
-                    <h6 class="dashboard-title">Stock Health Overview</h6>
-                    <div id="stockHealthChart"></div>
+                <div class="dashboard-card text-center">
+                    <h6 class="dashboard-title">
+                        Storage Condition Overview
+                    </h6>
+
+                    <!-- REQUIRED -->
+                    <div id="storageConditionBar" style="min-height:260px;"></div>
                 </div>
             </div>
+
             <div class="col-lg-4 mx-auto">
                 @if (Model.HasUnderLimitAlert)
                 {
@@ -100,92 +107,226 @@
             </div>
             <div class="col-lg-4 mx-auto">
                 <div class="dashboard-card text-center">
-                    <h6 class="dashboard-title">Risk Distribution</h6>
-                    <div id="riskChart"></div>
-                    <small class="text-muted">
-                        Click on any segment to drill down
-                    </small>
+                    <h6 class="dashboard-title">
+                        SDS Status Overview
+                        @if (Model.SdsStatus.InvalidCount > 0)
+                        {
+                            <span class="badge bg-danger ms-2">
+                                @Model.SdsStatus.InvalidCount Invalid
+                            </span>
+                        }
+                    </h6>
+                    <div class=" d-flex justify-content-center align-items-center">
+            <div id="sdsStatusPie"></div>
+        </div>
+                  
                 </div>
             </div>
-            
         </div>
     }
 
-
-    <!-- LOT TIMELINE + DONUT -->
-    <div class="row g-3 mb-3">
-        <div class="col-md-8">
-            <div class="dash-card">
-                <h6>Lot Expiry Timeline</h6>
-                <div id="lotTimeline"></div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="dash-card">
-                <h6>Stock Distribution</h6>
-                <div id="stockDonut"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOP RISK LOTS -->
-    <div class="dash-card">
-        <h6>Top Risk Lots</h6>
-        <div class="lot-slider">
-            @foreach (var lot in Model.TopRiskLots)
-            {
-                <div class="lot-card @lot.RiskClass"
-                     onclick="openLot(@lot.LotId)">
-                    <strong>@lot.LotCode</strong>
-                    <small>@lot.DaysToExpire days</small>
-                    <div>@lot.MaterialName</div>
-                </div>
-            }
-        </div>
-    </div>
-
 </section>
 
-<!-- LOT DRILL DOWN -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="lotDetails">
-    <div class="offcanvas-header">
-        <h5>Lot Details</h5>
-        <button class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body" id="lotContent"></div>
-</div>
-
+<!-- ================= Scripts ================= -->
+<script>
+    window.storageCondition = {
+        room: @Model.StorageCondition.RoomTempCount,
+        freezer: @Model.StorageCondition.FreezerCount,
+        cold: @Model.StorageCondition.ColdCount
+    };
+</script>
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script>
-        const lotTimelineData = @Html.Raw(Json.Serialize(Model.LotTimeline));
-        const stockDonut = {
-            available: @Model.TotalAvailableQty,
-            low: @Model.UnderLimitItems,
-            expired: @Model.ExpiringLots
-        };
-    </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="~/js/warehouse-dashboard.js"></script>
+   
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var options = {
+                chart: {
+                    type: 'pie',
+                    height: 280
+                },
+                labels: ['Valid SDS', 'Invalid SDS'],
+                series: [
+                    @Model.SdsStatus.ValidCount,
+                    @Model.SdsStatus.InvalidCount
+                ],
+                colors: [
+                    '#198754', // Green - Valid
+                    '#dc3545'  // Red - Invalid
+                ],
+                legend: {
+                    position: 'bottom',
+                    fontSize: '14px'
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return opts.w.config.series[opts.seriesIndex];
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (value) {
+                            return value + " Items";
+                        }
+                    }
+                },
+                responsive: [{
+                    breakpoint: 768,
+                    options: {
+                        chart: {
+                            height: 240
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            var chart = new ApexCharts(
+                document.querySelector("#sdsStatusPie"),
+                options
+            );
+
+            chart.render();
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            if (typeof ApexCharts === "undefined") {
+                console.error("ApexCharts not loaded");
+                return;
+            }
+
+            if (!window.storageCondition) {
+                console.error("storageCondition not found");
+                return;
+            }
+
+            const el = document.querySelector("#storageConditionBar");
+            if (!el) {
+                console.error("storageConditionBar element not found");
+                return;
+            }
+
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 260,
+                    toolbar: { show: false }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        borderRadius: 8
+                    }
+                },
+                series: [{
+                    name: 'Items',
+                    data: [
+                        storageCondition.room || 0,
+                        storageCondition.freezer || 0,
+                        storageCondition.cold || 0
+                    ]
+                }],
+                xaxis: {
+                    categories: [
+                        'Room Temp',
+                        'Freezer -20°C',
+                        '2–8 °C'
+                    ]
+                },
+                colors: ['#dc3545'],
+                dataLabels: {
+                    enabled: true
+                }
+            };
+
+            new ApexCharts(el, options).render();
+        });
+    </script>
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- ================= STYLES ================= -->
+<!-- ================= Styles ================= -->
 <style>
+
+
+    /* ================= Storage Condition ================= */
+
+    .storage-chart-card {
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .storage-dash-header {
+        background: linear-gradient(135deg,#032b42,#064663);
+        color: #fff;
+        font-weight: 700;
+        padding: 14px 16px;
+        font-size: 1.05rem;
+    }
+
+    /* Chart */
+    .storage-chart {
+        min-height: 240px;
+    }
+
+    /* Mobile List */
+    .storage-list {
+        border-top: 1px solid #eee;
+    }
+
+    .storage-row {
+        display: flex;
+        align-items: center;
+        padding: 14px 16px;
+        font-weight: 600;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+        .storage-row:last-child {
+            border-bottom: none;
+        }
+
+        .storage-row .icon {
+            font-size: 1.4rem;
+            margin-right: 12px;
+        }
+
+        .storage-row .label {
+            flex-grow: 1;
+        }
+
+        .storage-row .count {
+            font-weight: 800;
+            font-size: 1.15rem;
+        }
+
+        /* Colors */
+        .storage-row.room {
+            color: #dc3545;
+        }
+
+        .storage-row.freezer {
+            color: #0d6efd;
+        }
+
+        .storage-row.cold {
+            color: #198754;
+        }
+
+    /* Glow Alert */
+    .room-alert-glow {
+        animation: softPulse 2s infinite;
+        border-radius: 14px;
+    }
+
+
     .lot-slider {
         display: flex;
         gap: 16px;
@@ -279,6 +420,7 @@
         padding: 14px 18px;
         box-shadow: 0 6px 18px rgba(0,0,0,.15);
     }
+
 </style>
 
 

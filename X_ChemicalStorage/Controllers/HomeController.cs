@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using static X_ChemicalStorage.Constants.Permissions;
 
 
 namespace X_ChemicalStorage.Controllers
@@ -35,113 +37,86 @@ namespace X_ChemicalStorage.Controllers
         public IActionResult MasterDashboard()
         {
             var model = _service.GetDashboard();
+
+            const int EXPIRING_DAYS = 30;
+            var today = DateTime.Today;
+            var lots = _context.Lots
+                .Include(l => l.Item)
+                .AsNoTracking()
+                .ToList();
+
+            var items = _context.Items
+                .Include(i => i.Lots)
+                .AsNoTracking()
+                .ToList();
+
+            /* ===== STOCK DONUT (LOTS – AVAILABLE QTY) ===== */
+            model.StockDonut = new StockDonutDto
+            {
+                Available = lots
+                    .Where(l => l.AvilableQuantity > 0 && l.ExpiryDate < today)
+                    .Sum(l => l.AvilableQuantity),
+
+                Low = lots
+                    .Where(l =>
+                        l.AvilableQuantity > 0 &&
+                        l.AvilableQuantity <= l.Item.Limit &&
+                        l.ExpiryDate < today)
+                    .Sum(l => l.AvilableQuantity),
+
+                Expired = lots
+                    .Where(l => l.ExpiryDate < today)
+                    .Sum(l => l.AvilableQuantity)
+            };
+
+            /* ===== ITEM DONUT (ITEM COUNT) ===== */
+            model.ItemStock = new ItemStockDonutDto
+            {
+                Available = items
+                    .Count(i => i.AvilableQuantity > 0 &&
+                           i.Lots.Any(l => l.ExpiryDate > today.AddDays(-1* EXPIRING_DAYS))),
+
+                Low = items
+                    .Count(i =>
+                        i.AvilableQuantity > 0 &&
+                        //i.AvilableQuantity <= i.Limit &&
+                        i.Lots.Any(l => l.ExpiryDate >= today && l.ExpiryDate <= today.AddDays(EXPIRING_DAYS))),
+
+                Expiring = items
+                    .Count(i => i.Lots.Any(l => l.ExpiryDate <= today))
+            };
+
+            model.LotTimeline = lots
+            .Where(l => l.ExpiryDate != null)
+            .Select(l => new LotTimelineDto
+            {
+                x = l.LotNumber,   //  حسب اسم العمود
+                y = new List<DateTime>
+                {
+                    Convert.ToDateTime(l.ManufactureDate),   // تاريخ التصنيع
+                    Convert.ToDateTime(l.ExpiryDate)         // تاريخ الانتهاء
+                }
+            })
+            .ToList();
+
+            
+            model.SdsStatus = new SdsStatusChartVm
+            {
+                ValidCount = items.Count(x => x.SDS==true),
+                InvalidCount = items.Count(x =>x.SDS == false)
+            };
+            var storageSummary = new StorageConditionSummaryVm
+            {
+                RoomTempCount = items.Count(x => x.StorageCondition == "RoomTemp"),
+                FreezerCount = items.Count(x => x.StorageCondition == "Freezer20"),
+                ColdCount = items.Count(x => x.StorageCondition == "2-8")
+            };
+
+            model.StorageCondition = storageSummary;
+
             return View(model);
         }
-        //public IActionResult MasterDashboard()
-        //{
-            
-        //    var today = DateTime.Today;
-        //    var next30Days = today.AddDays(30);
 
-        //    // 1️⃣ KPI CARDS
-        //    var totalItems =  _context.Items.CountAsync();
-
-        //    var lowStockItems =  _context.Items
-        //    .Where(i => i.AvilableQuantity <= i.Limit)
-        //    .CountAsync();
-
-        //    var expiredLots =  _context.Lots
-        //                    .Where(l => l.ExpiryDate < today)
-        //                    .CountAsync();
-
-
-        //    var expiringSoonLots =  _context.Lots
-        //        .Where(l => l.ExpiryDate >= today && l.ExpiryDate <= next30Days)
-        //        .CountAsync();
-
-        //    // 2️⃣ Stock IN vs OUT (Monthly)
-        //    var transactions =  _context.ItemTransactions
-        //        .Where(t => t.Move_Date.Value.Year == today.Year)
-        //        .GroupBy(t => new { t.Move_Date.Value.Month, t.Move_State })
-        //        .Select(g => new
-        //        {
-        //            Month = g.Key.Month,
-        //            Type = g.Key.Move_State,
-        //            Quantity = g.Sum(x => x.Move_Quantity)
-        //        })
-        //        .ToListAsync();
-
-        //    var months = Enumerable.Range(1, 12)
-        //    .Select(m => new DateTime(today.Year, m, 1).ToString("MMM"))
-        //    .ToList();
-
-        //    var stockIn = new List<decimal>();
-        //    var stockOut = new List<decimal>();
-
-        //    for (int m = 1; m <= 12; m++)
-        //    {
-        //        stockIn.Add((decimal)transactions.Result
-        //            .Where(t => t.Month == m && t.Type == true)
-        //            .Sum(t => t.Quantity)
-        //        );
-
-        //        stockOut.Add(
-        //            (decimal)transactions.Result
-        //            .Where(t => t.Month == m && t.Type == false)
-        //            .Sum(t => t.Quantity)
-        //        );
-        //    }
-
-        //    // 3️⃣ Top Used Chemicals
-        //    var topItems =  _context.ItemTransactions
-        //        .Where(t => t.Move_State == false)
-        //        .GroupBy(t => t.ItemId)
-        //        .Select(g => new
-        //        {
-        //            ItemName = g.First().Item.Name,
-        //            Quantity = g.Sum(x => x.Move_Quantity)
-        //        })
-        //        .OrderByDescending(x => x.Quantity)
-        //        .Take(5)
-        //        .ToListAsync();
-
-
-        //    // 4️⃣ Expired Lots Table
-        //    var expiredLotsList =  _context.Lots
-        //        .Include(l => l.Item)
-        //        .Include(l => l.Location)
-        //        .Where(l => l.ExpiryDate < today)
-        //        .Select(l => new Lot
-        //        {
-        //            //Item.Name = l.Item.Name,
-        //            LotNumber = l.LotNumber,
-        //            ExpiryDate = l.ExpiryDate,
-        //            AvilableQuantity = l.AvilableQuantity,
-        //            //LocationName = l.Location.Name
-        //        })
-        //        .ToListAsync();
-
-        //    // 5️⃣ ViewModel
-        //     model = new DashboardViewModel
-        //    {
-        //        //TotalItems = Convert.ToInt32(totalItems),
-        //        //UnderLimitItems = Convert.ToInt32(lowStockItems),
-        //        //ExpiringLots = Convert.ToInt32(expiredLots),
-        //        //ExpiringSoonLots = Convert.ToInt32(expiringSoonLots),
-
-        //        //Months = months,
-        //        //StockIn = stockIn,
-        //        //StockOut = stockOut,
-
-        //        //TopItemsNames = topItems.Result.Select(x => x.ItemName).ToList(),
-        //        //TopItemsQuantities = topItems.Result.Select(x => x.Quantity).ToList(),
-
-        //        //ExpiredLotsList = expiredLotsList.Result
-        //    };
-
-        //    return View(model);
-
-        //}
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

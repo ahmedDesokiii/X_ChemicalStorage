@@ -25,5 +25,22 @@ namespace X_ChemicalStorage.ViewModels
         public List<LotTimelineDto> LotTimeline { get; set; } = new();
         public List<TopRiskLotDto> TopRiskLots { get; set; } = new();
         public List<ItemTimelineDto> ItemTimeline { get; set; }
+        /* ===== DONUT DATA ===== */
+        public StockDonutDto StockDonut { get; set; }
+        public ItemStockDonutDto ItemStock { get; set; }
+        public SdsStatusChartVm SdsStatus { get; set; } = new();
+        public StorageConditionSummaryVm StorageCondition { get; set; }
+    }
+    // Item VM
+    public class SdsStatusChartVm
+    {
+        public int ValidCount { get; set; }
+        public int InvalidCount { get; set; }
+    }
+    public class StorageConditionSummaryVm
+    {
+        public int RoomTempCount { get; set; }
+        public int FreezerCount { get; set; }
+        public int ColdCount { get; set; }
     }
 }
