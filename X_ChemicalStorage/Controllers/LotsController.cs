@@ -52,7 +52,7 @@ namespace X_ChemicalStorage.Controllers
                                         .ToList(),
 
                 ExpiryLotsList = _servicesLot.GetAll()
-                                            .Where(x=>x.ExpiryDate < todayUtc)
+                                            .Where(x=>x.ExpiryDate.Value.Date <= DateTime.Today)
                                             .OrderBy(x => x.ExpiryDate)
                                             .ThenBy(x => x.ManufactureDate)
                                             .ThenBy(x => x.ReceivedDate)
@@ -238,14 +238,42 @@ namespace X_ChemicalStorage.Controllers
         public IActionResult Exchange(ItemViewModel model)
         {
             var userId = _userManager.GetUserId(User);
-            
-                if (_servicesOfLot.Exchange(model.NewLot))
-                    SessionMsg(Helper.Success, "Exchange Lot", "The Lot has been exchanged successfully !");
+
+            // نحدد هل دي Exchange كامل (يعني الكمية هتوصل صفر)
+            bool isFullExchange =
+                model.NewLot.ExchageQuantity == model.NewLot.AvilableQuantity;
+
+            if (_servicesOfLot.Exchange(model.NewLot))
+            {
+                if (isFullExchange)
+                {
+                    SessionMsg(
+                        Helper.Warning,
+                        "Lot Removed",
+                        "Lot quantity reached zero and was removed automatically."
+                    );
+                }
                 else
-                    SessionMsg(Helper.Error, "Error Exchanging Lot", "An error occurred while adding some data !");
-            
-            return RedirectToAction("index", "Lots");
+                {
+                    SessionMsg(
+                        Helper.Success,
+                        "Exchange Lot",
+                        "The Lot has been exchanged successfully !"
+                    );
+                }
+            }
+            else
+            {
+                SessionMsg(
+                    Helper.Error,
+                    "Error Exchanging Lot",
+                    "An error occurred while adding some data !"
+                );
+            }
+
+            return RedirectToAction("Index", "Lots");
         }
+
 
         #endregion
 

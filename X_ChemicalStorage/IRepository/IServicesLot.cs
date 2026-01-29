@@ -6,5 +6,6 @@
         public bool Exchange(Lot model);
         public Location? GetLocationDetailsOfLot(int Id);
         public List<LotTransaction> GetLotTransactionsOfLot(int id);
+
     }
 }

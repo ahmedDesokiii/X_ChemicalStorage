@@ -21,8 +21,13 @@ namespace X_ChemicalStorage.Services
             var underLimitItems = _context.Items
                 .Count(i => i.AvilableQuantity <= i.Limit);
 
-            // ⏳ Expiry (30 days)
+            // ⏳ Expiry 
             var expiringLots = _context.Lots
+                .Count(l => l.ExpiryDate <= DateTime.Today.AddDays(0)
+                         && l.AvilableQuantity > 0);
+
+            // ⏳ Near Expiry (30 days)
+            var nearexpiringLots = _context.Lots
                 .Count(l => l.ExpiryDate <= DateTime.Today.AddDays(30)
                          && l.AvilableQuantity > 0);
 
@@ -48,6 +53,7 @@ namespace X_ChemicalStorage.Services
                 TotalAvailableQty = totalAvailableQty,
                 UnderLimitItems = underLimitItems,
                 ExpiringLots = expiringLots,
+                NearExpiringLots = nearexpiringLots,
                 HazardItems = hazardItems,
 
                 ItemNames = chartData.Select(x => x.Name).ToList(),

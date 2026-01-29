@@ -40,6 +40,7 @@ namespace X_ChemicalStorage.Controllers
 
             const int EXPIRING_DAYS = 30;
             var today = DateTime.Today;
+
             var lots = _context.Lots
                 .Include(l => l.Item)
                 .AsNoTracking()
@@ -51,54 +52,6 @@ namespace X_ChemicalStorage.Controllers
                 .ToList();
 
             /* ===== STOCK DONUT (LOTS – AVAILABLE QTY) ===== */
-            model.StockDonut = new StockDonutDto
-            {
-                Available = lots
-                    .Where(l => l.AvilableQuantity > 0 && l.ExpiryDate < today)
-                    .Sum(l => l.AvilableQuantity),
-
-                Low = lots
-                    .Where(l =>
-                        l.AvilableQuantity > 0 &&
-                        l.AvilableQuantity <= l.Item.Limit &&
-                        l.ExpiryDate < today)
-                    .Sum(l => l.AvilableQuantity),
-
-                Expired = lots
-                    .Where(l => l.ExpiryDate < today)
-                    .Sum(l => l.AvilableQuantity)
-            };
-
-            /* ===== ITEM DONUT (ITEM COUNT) ===== */
-            model.ItemStock = new ItemStockDonutDto
-            {
-                Available = items
-                    .Count(i => i.AvilableQuantity > 0 &&
-                           i.Lots.Any(l => l.ExpiryDate > today.AddDays(-1* EXPIRING_DAYS))),
-
-                Low = items
-                    .Count(i =>
-                        i.AvilableQuantity > 0 &&
-                        //i.AvilableQuantity <= i.Limit &&
-                        i.Lots.Any(l => l.ExpiryDate >= today && l.ExpiryDate <= today.AddDays(EXPIRING_DAYS))),
-
-                Expiring = items
-                    .Count(i => i.Lots.Any(l => l.ExpiryDate <= today))
-            };
-
-            model.LotTimeline = lots
-            .Where(l => l.ExpiryDate != null)
-            .Select(l => new LotTimelineDto
-            {
-                x = l.LotNumber,   //  حسب اسم العمود
-                y = new List<DateTime>
-                {
-                    Convert.ToDateTime(l.ManufactureDate),   // تاريخ التصنيع
-                    Convert.ToDateTime(l.ExpiryDate)         // تاريخ الانتهاء
-                }
-            })
-            .ToList();
-
             
             model.SdsStatus = new SdsStatusChartVm
             {
@@ -107,11 +60,10 @@ namespace X_ChemicalStorage.Controllers
             };
             var storageSummary = new StorageConditionSummaryVm
             {
-                RoomTempCount = items.Count(x => x.StorageCondition == "RoomTemp"),
-                FreezerCount = items.Count(x => x.StorageCondition == "Freezer20"),
-                ColdCount = items.Count(x => x.StorageCondition == "2-8")
+                RoomTempCount = items.Count(x => x.StorageCondition.Trim().ToLower() == "room temp"),
+                FreezerCount = items.Count(x => x.StorageCondition.Trim().ToLower().Contains("freezer")),
+                ColdCount = items.Count(x => x.StorageCondition.Trim().Contains("2"))
             };
-
             model.StorageCondition = storageSummary;
 
             return View(model);

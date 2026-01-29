@@ -1,4 +1,19 @@
+﻿
 var builder = WebApplication.CreateBuilder(args);
+
+//builder.Services.AddHangfire(config =>
+//{
+//    config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+//          .UseSimpleAssemblyNameTypeSerializer()
+//          .UseRecommendedSerializerSettings()
+//          .UseSqlServerStorage(
+//              builder.Configuration.GetConnectionString("DefaultConnection"));
+//});
+
+//builder.Services.AddHangfireServer();
+
+
+
 
 // Add services to the container.
 //var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
@@ -83,6 +98,8 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IServicesRepository<Location>, ServicesLocation>();
 builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();
+//builder.Services.AddScoped<LotCleanupJob>();
+
 #endregion
 var app = builder.Build();
 app.UseSession();
@@ -107,6 +124,8 @@ using (var scope = app.Services.CreateScope())
     {
         logger.LogWarning(ex, "An error occurred seeding the DB");
     }
+    
+
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -132,6 +151,16 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+//app.UseHangfireDashboard("/hangfire");
+
+
+//RecurringJob.AddOrUpdate<LotCleanupJob>(
+//"lot-cleanup-job",
+//job => job.RunAsync(),
+//// Cron.Hourly); // كل ساعة
+//Cron.MinuteInterval(5)); // كل 5 دقايق
+
 
 app.Run();
         

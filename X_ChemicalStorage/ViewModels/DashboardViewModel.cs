@@ -8,26 +8,24 @@ namespace X_ChemicalStorage.ViewModels
         //// KPIs
         public int TotalItems { get; set; }
         public int TotalLots { get; set; }
+
         public double? TotalAvailableQty { get; set; }
         public int UnderLimitItems { get; set; }
         public int ExpiringLots { get; set; }
+        public int NearExpiringLots { get; set; }
         public int HazardItems { get; set; }
 
-        // Alerts
+        // Alerts Items
         public bool HasUnderLimitAlert => UnderLimitItems > 0;
         public bool HasExpiryAlert => ExpiringLots > 0;
+        public bool HasNearExpiryAlert => NearExpiringLots > 0;
         public bool HasHazardAlert => HazardItems > 0;
 
         // Charts
         public List<string> ItemNames { get; set; } = new();
         public List<double?> ItemQuantities { get; set; } = new();
 
-        public List<LotTimelineDto> LotTimeline { get; set; } = new();
-        public List<TopRiskLotDto> TopRiskLots { get; set; } = new();
-        public List<ItemTimelineDto> ItemTimeline { get; set; }
-        /* ===== DONUT DATA ===== */
-        public StockDonutDto StockDonut { get; set; }
-        public ItemStockDonutDto ItemStock { get; set; }
+       /* ===== DONUT DATA ===== */
         public SdsStatusChartVm SdsStatus { get; set; } = new();
         public StorageConditionSummaryVm StorageCondition { get; set; }
     }
@@ -42,5 +40,17 @@ namespace X_ChemicalStorage.ViewModels
         public int RoomTempCount { get; set; }
         public int FreezerCount { get; set; }
         public int ColdCount { get; set; }
+
+        public int Total =>
+            RoomTempCount + FreezerCount + ColdCount;
+
+        public int RoomTempPercent =>
+            Total == 0 ? 0 : (RoomTempCount * 100 / Total);
+
+        public int FreezerPercent =>
+            Total == 0 ? 0 : (FreezerCount * 100 / Total);
+
+        public int ColdPercent =>
+            Total == 0 ? 0 : (ColdCount * 100 / Total);
     }
 }

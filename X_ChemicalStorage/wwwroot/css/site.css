@@ -741,3 +741,181 @@ navbar-toggler-icon {
     }
 }
 
+
+.success-toast {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    background: linear-gradient(135deg,#198754,#0f5132);
+    color: #fff;
+    padding: 14px 22px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    animation: toastIn 0.5s ease forwards, toastOut 0.5s ease forwards 3s;
+    z-index: 9999;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: scale(.85) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes toastOut {
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* ================= KPI MODERN ================= */
+
+.kpi-row {
+    margin-top: 10px;
+}
+
+.kpi-card:hover::after {
+    animation: waveMove 1.6s ease;
+}
+
+@keyframes waveMove {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+.kpi-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 38px rgba(0,0,0,.25);
+}
+
+
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient( 120deg, transparent 30%, rgba(255,255,255,.25), transparent 70% );
+    opacity: .4;
+    transform: translateX(-100%);
+}
+
+/* ================= GOLDEN KPI BADGE ================= */
+
+.kpi-content span {
+    display: inline-block;
+    padding: 5px 14px;
+    font-size: 13px;
+    border-radius: 30px;
+    margin-bottom: 12px;
+    background: linear-gradient( 135deg, #b08d2f, #e6c46a, #9c7a1e );
+    color: #2a2208;
+    font-weight: 700;
+    letter-spacing: .3px;
+    box-shadow: 0 4px 10px rgba(176,141,47,.45), inset 0 1px 0 rgba(255,255,255,.4);
+    border: 1px solid rgba(255,255,255,.25);
+}
+.kpi-card {
+    background: linear-gradient( 145deg, #0b3a40, #0e4b52, #082f34 );
+    border-radius: 18px;
+    padding: 28px 18px 22px;
+    color: #eaf6f7;
+    box-shadow: 0 12px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    transition: all .35s ease;
+}
+
+    .kpi-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 18px;
+        background: linear-gradient( 120deg, transparent, rgba(255,255,255,.06), transparent );
+        opacity: .35;
+        pointer-events: none;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 35px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+/* Icon */
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.08);
+    font-size: 26px;
+}
+
+/* Content */
+.kpi-content span {
+    font-size: 13px;
+    opacity: .8;
+}
+
+.kpi-content h3 {
+    margin: 4px 0;
+    font-weight: 800;
+}
+
+.kpi-content small {
+    font-size: 12px;
+    opacity: .7;
+}
+.kpi-card:hover .kpi-content span {
+    filter: brightness(1.08);
+    transition: .3s ease;
+}
+
+/* ================= ACCENT STATES ================= */
+
+.kpi-lite {
+    position: relative;
+    padding: 20px 10px;
+    text-align: left;
+}
+
+.kpi-lite i {
+    font-size: 32px;
+    color: #c9a227;
+    opacity: .85;
+}
+
+.kpi-lite h2 {
+    font-size: 34px;
+    font-weight: 800;
+    margin: 6px 0;
+    color: #032b42;
+}
+
+.kpi-lite span {
+    font-size: 13px;
+    letter-spacing: .4px;
+    color: #6c757d;
+}
+
+.kpi-line {
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg,#c9a227,#ffe08a);
+    border-radius: 6px;
+    animation: pulseLine 2.5s infinite;
+}
+
+@keyframes pulseLine {
+    0% { opacity: .5 }
+    50% { opacity: 1 }
+    100% { opacity: .5 }
+}

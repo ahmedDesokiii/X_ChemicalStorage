@@ -14,116 +14,169 @@
     </div>
 </div>
 
-<section class="container-fluid warehouse-dashboard mt-3" dir="ltr">
+<section class="container-fluid warehouse-dashboard  mt-4" dir="ltr">
 
     <!-- ================= KPI CARDS ================= -->
+ 
     <div class="row g-4 mb-5 justify-content-center text-center">
         <div class="col-md-1"></div>
         <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-primary">
-                <i class="bi bi-box-seam"></i>
-                <span class="fs-5">Total Items</span>
-                <h3>@Model.TotalItems</h3>
+            <div class="kpi kpi-primary d-flex">
+                <i class="bi bi-box-seam p-2 rounded-3"></i>
+                <div class="px-3 pt-2">
+                    <span class="fs-5 fw-bold">Total Items</span>
+                    <h3 class="kpi-number" data-count="@Model.TotalItems">0</h3>
+                </div>
+                
             </div>
         </div>
 
         <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-success">
-                <i class="bi bi-stack"></i>
-                <span class="fs-5">Available Quantity</span>
-                <h3>@Model.TotalAvailableQty</h3>
+            <div class="kpi kpi-success d-flex">
+                <i class="bi bi-stack "></i>
+                <div class="px-3 pt-2">
+                <span class="fs-5 fw-bold">Available Qty</span>
+                <h3 class="kpi-number" data-count="@Model.TotalAvailableQty">0</h3>
+            </div>
             </div>
         </div>
 
         <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-warning">
+            <div class="kpi kpi-warning d-flex">
                 <i class="bi bi-exclamation-circle"></i>
-                <span class="fs-5">Low Stock</span>
+                <div class="px-3 pt-2">
+                <span class="fs-5 fw-bold">Low Stock</span>
                 <h3>@Model.UnderLimitItems</h3>
             </div>
+            </div>
         </div>
 
         <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-danger">
+            <div class="kpi kpi-danger d-flex">
                 <i class="bi bi-x-octagon"></i>
-                <span class="fs-5">Expiring Lots</span>
-                <h3>@Model.ExpiringLots</h3>
-            </div>
+                <div class="px-3 pt-2">
+                <span class="fs-5 fw-bold ">Expiring Lots</span>
+                    <h3 class="kpi-number" data-count="@Model.ExpiringLots">0</h3>
+        </div>
+        </div>
         </div>
         <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-info">
+            <div class="kpi kpi-info d-flex">
                 <i class="bi bi-archive-fill"></i>
-                <span class="fs-5">Total Lots</span>
-                <h3>@Model.TotalLots</h3>
+                    <div class="px-3 pt-2">
+                <span class="fs-5 fw-bold">Total Lots</span>
+                    <h3 class="kpi-number" data-count="@Model.TotalLots">0</h3>
+
+            </div>
             </div>
         </div>
         <div class="col-md-1"></div>
     </div>
+    <div class="card-body p-3">
+        <!-- ================= ALERTS ================= -->
+        
+            <div class="row mb-4">
+                <!-- ================= Storage Condition Card ================= -->
+                <div class="col-lg-4 mx-auto">
+                    <div class="dashboard-card text-center">
+                        <h6 class="dashboard-title">
+                            Storage Condition Overview
+                        </h6>
 
-    <!-- ================= ALERTS ================= -->
-    @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert)
-    {
-        <div class="row mb-4">
-            <!-- ================= Storage Condition Card ================= -->
-            <div class="col-lg-4 mx-auto">
-                <div class="dashboard-card text-center">
-                    <h6 class="dashboard-title">
-                        Storage Condition Overview
-                    </h6>
+                        <!-- REQUIRED -->
+                        <div id="storageConditionBar" style="min-height:260px;"></div>
+                    </div>
+                </div>
+            @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert || Model.HasNearExpiryAlert)
+            {
+                <div class="col-lg-4 mx-auto">
+                    @if (Model.HasNearExpiryAlert)
+                    {
+                        <div class="alert alert-dark alert-modern">
+                            <i class="bi bi-exclamation-diamond-fill me-2"></i>
+                            <b>Near Expiy Alert : </b>
+                            batches expiring soon → <span class="fs-5 fw-bold mx-2">@Model.NearExpiringLots</span>
+                        </div>
+                    }
+                    @if (Model.HasUnderLimitAlert)
+                    {
+                        <div class="alert alert-warning alert-modern">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <b>Low Stock Alert : </b>
+                            items below minimum limit → <span class="fs-5 fw-bold mx-2">@Model.UnderLimitItems</span>
+                        </div>
+                    }
 
-                    <!-- REQUIRED -->
-                    <div id="storageConditionBar" style="min-height:260px;"></div>
+                    @if (Model.HasExpiryAlert)
+                    {
+                        <div class="alert alert-danger alert-modern">
+                            <i class="bi bi-hourglass-split me-2"></i>
+                            <b>Expiry Warning : </b>
+                            batches expired → <span class="fs-5 fw-bold mx-2">@Model.ExpiringLots</span>
+                        </div>
+                    }
+
+                    @if (Model.HasHazardAlert)
+                    {
+                        <div class="alert alert-info alert-modern">
+                            <i class="bi bi-shield-fill-check me-2"></i>
+                            <b>Hazard Materials : </b>
+                            items require special handling → <span class="fs-5 fw-bold mx-2">@Model.HazardItems</span>
+                        </div>
+                    }
+
+                </div>
+            }
+                <div class="col-lg-4 mx-auto">
+                    <div class="dashboard-card text-center">
+                        <h6 class="dashboard-title">
+                            SDS Status Overview
+                            @if (Model.SdsStatus.InvalidCount > 0)
+                            {
+                                <span class="badge bg-danger ms-2">
+                                    @Model.SdsStatus.InvalidCount Invalid
+                                </span>
+                            }
+                        </h6>
+                        <div class=" d-flex justify-content-center align-items-center">
+                            <div id="sdsStatusPie"></div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
+        
 
-            <div class="col-lg-4 mx-auto">
-                @if (Model.HasUnderLimitAlert)
-                {
-                    <div class="alert alert-danger alert-modern">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        <b>Low Stock Alert:</b>
-                        <span class="fs-6">@Model.UnderLimitItems</span> items below minimum limit
-                    </div>
-                }
+    </div>
 
-                @if (Model.HasExpiryAlert)
-                {
-                    <div class="alert alert-warning alert-modern">
-                        <i class="bi bi-hourglass-split me-2"></i>
-                        <b>Expiry Warning:</b>
-                        <span class="fs-6">@Model.ExpiringLots</span> batches expiring soon
-                    </div>
-                }
+@* 
+    <div class="module-card" data-module="Items Dashboard">
+        <div class="card mb-4 shadow permission-card">
+            <div class="card-header fs-5 fw-bold d-flex justify-content-between align-items-center
+            collapse-header-amber"
+                 data-bs-toggle="collapse"
+                 data-bs-target="#collapseItem"
+                 aria-expanded="true"
+                 dir="ltr">
 
-                @if (Model.HasHazardAlert)
-                {
-                    <div class="alert alert-info alert-modern">
-                        <i class="bi bi-biohazard-fill me-2"></i>
-                        <b>Hazard Materials:</b>
-                        <span class="fs-6">@Model.HazardItems</span> items require special handling
-                    </div>
-                }
+                <span class="text-dark fw-bold fs-4">
+                    <i class="bi bi-pin-angle-fill fs-4 pe-3"></i>
+                    Items Dashboard
+                </span>
 
+                <i class="bi bi-chevron-down fs-4"></i>
             </div>
-            <div class="col-lg-4 mx-auto">
-                <div class="dashboard-card text-center">
-                    <h6 class="dashboard-title">
-                        SDS Status Overview
-                        @if (Model.SdsStatus.InvalidCount > 0)
-                        {
-                            <span class="badge bg-danger ms-2">
-                                @Model.SdsStatus.InvalidCount Invalid
-                            </span>
-                        }
-                    </h6>
-                    <div class=" d-flex justify-content-center align-items-center">
-            <div id="sdsStatusPie"></div>
+
         </div>
-                  
-                </div>
-            </div>
+        </div> 
+
+        
+
+        <div id="collapseItem" class="collapse show">
+            
         </div>
-    }
+    *@
+   
 
 </section>
 
@@ -139,7 +192,32 @@
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="~/js/warehouse-dashboard.js"></script>
-   
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const counters = document.querySelectorAll(".kpi-number");
+
+            counters.forEach(counter => {
+                const target = +counter.getAttribute("data-count");
+                let current = 0;
+                const increment = Math.max(1, Math.floor(target / 1000));
+
+                const update = () => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.innerText = target;
+                    } else {
+                        counter.innerText = current;
+                        requestAnimationFrame(update);
+                    }
+                };
+
+                update();
+            });
+
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
@@ -198,19 +276,18 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            if (typeof ApexCharts === "undefined") {
-                console.error("ApexCharts not loaded");
-                return;
-            }
-
-            if (!window.storageCondition) {
-                console.error("storageCondition not found");
-                return;
-            }
-
             const el = document.querySelector("#storageConditionBar");
-            if (!el) {
-                console.error("storageConditionBar element not found");
+            if (!el || !window.storageCondition) return;
+
+            const data = [
+                storageCondition.room || 0,
+                storageCondition.freezer || 0,
+                storageCondition.cold || 0
+            ];
+
+            // لو مفيش داتا
+            if (data.every(x => x === 0)) {
+                el.innerHTML = "<p class='text-muted mt-5'>No storage data available</p>";
                 return;
             }
 
@@ -223,17 +300,20 @@
                 plotOptions: {
                     bar: {
                         horizontal: true,
-                        borderRadius: 8
+                        borderRadius: 10,
+                        distributed: true, // 🔥 مهم
+                        barHeight: '55%'
                     }
                 },
                 series: [{
                     name: 'Items',
-                    data: [
-                        storageCondition.room || 0,
-                        storageCondition.freezer || 0,
-                        storageCondition.cold || 0
-                    ]
+                    data: data
                 }],
+                colors: [
+                    '#dc3545', // 🔴 Room Temp
+                    '#0d6efd', // 🔵 Freezer
+                    '#198754'  // 🟢 Cold
+                ],
                 xaxis: {
                     categories: [
                         'Room Temp',
@@ -241,9 +321,17 @@
                         '2–8 °C'
                     ]
                 },
-                colors: ['#dc3545'],
                 dataLabels: {
-                    enabled: true
+                    enabled: true,
+                    style: {
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: val => val + " Items"
+                    }
                 }
             };
 
@@ -251,6 +339,7 @@
         });
     </script>
 }
+
 
 <!-- ================= Styles ================= -->
 <style>
@@ -421,9 +510,41 @@
         box-shadow: 0 6px 18px rgba(0,0,0,.15);
     }
 
+    .collapse-header-amber {
+        position: relative;
+        background: linear-gradient( 120deg, rgba(255,193,7,.9), rgba(255,214,102,.7), rgba(255,193,7,.9) );
+        border-radius: 14px 14px 0 0;
+        padding: 14px 20px;
+        box-shadow: 0 0 16px rgba(255,193,7,.55);
+        transition: all .3s ease;
+    }
+
+        /* Glow Frame */
+        .collapse-header-amber::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            background: linear-gradient( 120deg, rgba(255,193,7,.9), rgba(255,214,102,.7), rgba(255,193,7,.9) );
+            filter: blur(10px);
+            opacity: .6;
+            z-index: -1;
+        }
+
+        /* Hover */
+        .collapse-header-amber:hover {
+            box-shadow: 0 0 24px rgba(255,193,7,.8);
+        }
+
+        /* Arrow Animation */
+        .collapse-header-amber .bi-chevron-down {
+            transition: transform .3s ease;
+        }
+
+        .collapse-header-amber[aria-expanded="true"] .bi-chevron-down {
+            transform: rotate(180deg);
+        }
+
 </style>
-
-
-
 
 

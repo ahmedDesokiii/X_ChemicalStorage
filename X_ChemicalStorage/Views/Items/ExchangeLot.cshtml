@@ -105,6 +105,14 @@
                 <div class="col-md-2"></div>
             </div>
         </div>
+        @if (TempData["Success"] != null)
+        {
+            <div class="success-toast">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                @TempData["Success"]
+            </div>
+        }
+
     </section>
 </form>
 
@@ -153,3 +161,5 @@
         });
     </script>
 }
+
+

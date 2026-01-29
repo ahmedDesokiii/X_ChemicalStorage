@@ -253,16 +253,18 @@
                                             cNo++;
                                        
                                             <tr class="text-center">
-                                                @* <td class="fs-6 text-center px-1"><span class="">@cNo</span></td> *@
-                                                <td class="fs-6 text-center py-0 px-1 mx-auto justify-content-center">
-                                                    <span class="link-dark fw-bold fs-6"> <img src="@item.BarcodeImage" style="height:40px" /></span>
-                                                    <hr class="p-0 m-0">
-                                                    <span class="link-dark " style="font-size:10px">@item.Code</span>
+                                                <td class="text-center">
+                                                    
+                                                    <img src="@item.BarcodeImage"
+                                                         class="barcode-img rounded-2 shadow-sm bg-white p-1 w-100" />
+                                                    <div style="font-size:12px" class="text-dark">
+                                                        @item.Code
+                                                    </div>
                                                 </td>
                                                 <td class="fs-6 text-center py-1 px-1 ">
                                                     <span class="link-primary fw-bold">@item.Name</span>
                                                 </td>
-                                                <td class="fs-6 text-center px-1">@item.Lots.Count</td>
+                                                <td class="fs-6 text-center px-1">@item.Lots.Count(x => x.AvilableQuantity > 0 && x.CurrentState > 0)</td>
                                                 @if(item.SDS == true)
                                                 {
                                                     <td class="text-center ">

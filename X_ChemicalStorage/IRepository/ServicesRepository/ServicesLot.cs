@@ -20,6 +20,25 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
             _context = context;
             _env = env;
         }
+        private void DeleteLotHard(Lot lot)
+        {
+            // 1️⃣ Delete barcode file
+            if (!string.IsNullOrEmpty(lot.BarcodeImage))
+            {
+                var barcodePath = Path.Combine(
+                    _env.WebRootPath,
+                    lot.BarcodeImage.TrimStart('/')
+                );
+
+                if (File.Exists(barcodePath))
+                {
+                    File.Delete(barcodePath);
+                }
+            }
+
+            // 2️⃣ Hard delete from DB
+            _context.Lots.Remove(lot);
+        }
 
         #region List Lots
         public List<Lot> GetAll()
@@ -109,13 +128,12 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     var trans = new LotTransaction();
                     int maxTr = _context.LotTransactions.Count() + 1;
                     trans.Move_Num = maxTr;
-                    trans.Move_Statement = "Add New Lot" + model.LotNumber;
+                    trans.Move_Statement = "Add New Lot :" + model.LotNumber;
                     trans.Move_Quantity = model.AvilableQuantity;
                     trans.Move_Date = DateTime.Now.Date;
-                    trans.Lot = model;
                     trans.LotId = model.Id;
                     trans.Move_State = true;
-                    trans.Total_Quantity = item.AvilableQuantity;
+                    trans.Total_Quantity = model.AvilableQuantity;
 
                     trans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
                     trans.DeviceUsing = Environment.MachineName;
@@ -171,77 +189,221 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
         #endregion
 
         #region Exchange Lot 
-        // Add | Update Lot
+        // Exchange Lot
+        /*
+          public bool Exchange(Lot model)
+          {
+              try
+              {
+                  //Update Avilable Quantity after Transaction in Item Table
+                  Item item = _context.Items.FirstOrDefault(x => x.Id == model.ItemId);
+                      if (item != null)
+                      {
+                          item.AvilableQuantity -= model.ExchageQuantity;
+                          _context.Items.Update(item);
+                      }
+                      _context.SaveChanges();
+
+                      //Update Avilable Quantity after Transaction in Lot Table
+                      Lot lot = _context.Lots.FirstOrDefault(x => x.Id == model.Id);
+                      if (lot != null)
+                      {
+                          lot.AvilableQuantity -= model.ExchageQuantity;
+                          _context.Lots.Update(lot);
+                      }
+                  _context.SaveChanges();
+
+                  using var transaction = _context.Database.BeginTransaction();
+                  // Add record to Lot Transaction
+                  var trans = new LotTransaction();
+                      int maxTr = _context.LotTransactions.Count() + 1;
+                      trans.Move_Num = maxTr;
+                      trans.Move_Statement = "Exchange Lot : " + model.LotNumber;
+                      trans.Move_Quantity = model.ExchageQuantity;
+                      trans.Move_Date = DateTime.Now.Date;
+                      //trans.Lot = model;
+                      trans.LotId = model.Id;
+                      trans.Move_State = false;
+                      trans.Total_Quantity = lot.AvilableQuantity;
+
+                      trans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
+                      trans.DeviceUsing = Environment.MachineName;
+                      trans.Recipient = model.Recipient;   
+
+                      trans.CurrentState = (int)Helper.eCurrentState.Active;
+                      _context.LotTransactions.Add(trans);
+                      _context.SaveChanges();
+
+                      // Add Item Transaction Record 
+                      var itemTrans = new ItemTransaction();
+
+                      int maxTrItem = _context.ItemTransactions.Count() + 1;
+                      itemTrans.Move_Num = maxTrItem;
+                      itemTrans.Move_Statement = "Exchange Lot  : " + model.LotNumber;
+                      itemTrans.Move_Quantity = model.ExchageQuantity;
+                      itemTrans.Move_Date = DateTime.Now.Date;
+                      itemTrans.Item = item;
+                      itemTrans.ItemId = item.Id;
+                      itemTrans.Move_State = false;
+                      itemTrans.Total_Quantity = item.AvilableQuantity;
+
+                      itemTrans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
+                      itemTrans.DeviceUsing = Environment.MachineName;
+
+                      itemTrans.CurrentState = (int)Helper.eCurrentState.Active;
+                      _context.ItemTransactions.Add(itemTrans);
+                      _context.SaveChanges();
+
+                  // 
+                  if (lot.AvilableQuantity <= 0)
+                  {
+                      // 1️⃣ حذف ملف الباركود
+                      var barcodePath = Path.Combine(
+                          _env.WebRootPath,
+                          lot.BarcodeImage.TrimStart('/')
+                      );
+
+                      if (File.Exists(barcodePath))
+                          File.Delete(barcodePath);
+
+                      // 2️⃣ Hard Delete للوت
+                      _context.Lots.Remove(lot);
+                  }
+
+                  _context.SaveChanges();
+                  transaction.Commit();
+                  return true;
+              }
+              catch
+              {
+                  return false;
+              }
+
+
+
+          }
+        */
         public bool Exchange(Lot model)
         {
+            using var dbTransaction = _context.Database.BeginTransaction();
+
             try
             {
-                //Update Avilable Quantity after Transaction in Item Table
-                Item item = _context.Items.FirstOrDefault(x => x.Id == model.ItemId);
-                    if (item != null)
+                var lot = _context.Lots
+                    .Include(l => l.Item)
+                    .FirstOrDefault(x => x.Id == model.Id);
+
+                if (lot == null)
+                    return false;
+
+                if (model.ExchageQuantity <= 0 ||
+                    model.ExchageQuantity > lot.AvilableQuantity)
+                    return false;
+
+                // ================= 1️⃣ Update Quantities =================
+                lot.AvilableQuantity -= model.ExchageQuantity;
+                lot.Item.AvilableQuantity -= model.ExchageQuantity;
+
+                _context.Lots.Update(lot);
+                _context.Items.Update(lot.Item);
+
+                // ================= 2️⃣ Lot Transaction =================
+                var lotTrans = new LotTransaction
+                {
+                    Move_Num = _context.LotTransactions.Count() + 1,
+                    Move_Statement = "Exchange Lot : " + lot.LotNumber,
+                    Move_Quantity = model.ExchageQuantity,
+                    Move_Date = DateTime.Now,
+                    Move_State = false,
+                    Total_Quantity = lot.AvilableQuantity,
+                    LotId = lot.Id,
+                    Recipient = model.Recipient,
+                    CreatedBy = _userManager.GetUserAsync(
+                        _httpContextAccessor.HttpContext.User).Result.FullName,
+                    DeviceUsing = Environment.MachineName,
+                    CurrentState = (int)Helper.eCurrentState.Active
+                };
+
+                _context.LotTransactions.Add(lotTrans);
+
+                // ================= 3️⃣ Item Transaction =================
+                var itemTrans = new ItemTransaction
+                {
+                    Move_Num = _context.ItemTransactions.Count() + 1,
+                    Move_Statement = "Exchange Lot : " + lot.LotNumber,
+                    Move_Quantity = model.ExchageQuantity,
+                    Move_Date = DateTime.Now,
+                    Move_State = false,
+                    Total_Quantity = lot.Item.AvilableQuantity,
+                    ItemId = lot.ItemId,
+                    CreatedBy = lotTrans.CreatedBy,
+                    DeviceUsing = lotTrans.DeviceUsing,
+                    CurrentState = (int)Helper.eCurrentState.Active
+                };
+
+                _context.ItemTransactions.Add(itemTrans);
+
+                // ================= 4️⃣ Auto Delete Lot =================
+                if (lot.AvilableQuantity == 0)
+                {
+                    var deleteItemTrans = new ItemTransaction
                     {
-                        item.AvilableQuantity -= model.ExchageQuantity;
-                        _context.Items.Update(item);
-                    }
-                    _context.SaveChanges();
-                
-                    //Update Avilable Quantity after Transaction in Lot Table
-                    Lot lot = _context.Lots.FirstOrDefault(x => x.Id == model.Id);
-                    if (lot != null)
+                        Move_Num = _context.ItemTransactions.Count() + 2,
+                        Move_Statement = "Auto Delete Lot (Quantity = 0)",
+                        Move_Quantity = 0,
+                        Move_Date = DateTime.Now,
+                        Move_State = false,
+                        Total_Quantity = lot.Item.AvilableQuantity,
+                        ItemId = lot.ItemId,
+                        CreatedBy = lotTrans.CreatedBy,
+                        DeviceUsing = lotTrans.DeviceUsing,
+                        CurrentState = (int)Helper.eCurrentState.Active
+                    };
+
+                    _context.ItemTransactions.Add(deleteItemTrans);
+
+                    var deleteTrans = new LotTransaction
                     {
-                        lot.AvilableQuantity -= model.ExchageQuantity;
-                        _context.Lots.Update(lot);
+                        Move_Num = _context.LotTransactions.Count() + 2,
+                        Move_Statement = "Auto Delete Lot (Quantity = 0)",
+                        Move_Quantity = 0,
+                        Move_Date = DateTime.Now,
+                        Move_State = false,
+                        Total_Quantity = 0,
+                        LotId = lot.Id,
+                        CreatedBy = lotTrans.CreatedBy,
+                        DeviceUsing = lotTrans.DeviceUsing,
+                        CurrentState = (int)Helper.eCurrentState.Active
+                    };
+
+                    _context.LotTransactions.Add(deleteTrans);
+
+                    // Delete barcode image
+                    if (!string.IsNullOrEmpty(lot.BarcodeImage))
+                    {
+                        var barcodePath = Path.Combine(
+                            _env.WebRootPath,
+                            lot.BarcodeImage.TrimStart('/'));
+
+                        if (File.Exists(barcodePath))
+                            File.Delete(barcodePath);
                     }
+
+                    _context.Lots.Remove(lot);
+                }
+
                 _context.SaveChanges();
+                dbTransaction.Commit();
 
-
-                // Add record to Lot Transaction
-                var trans = new LotTransaction();
-                    int maxTr = _context.LotTransactions.Count() + 1;
-                    trans.Move_Num = maxTr;
-                    trans.Move_Statement = "Exchange Lot : " + model.LotNumber;
-                    trans.Move_Quantity = model.ExchageQuantity;
-                    trans.Move_Date = DateTime.Now.Date;
-                    //trans.Lot = model;
-                    trans.LotId = model.Id;
-                    trans.Move_State = false;
-                    trans.Total_Quantity = lot.AvilableQuantity;
-
-                    trans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
-                    trans.DeviceUsing = Environment.MachineName;
-                    trans.Recipient = model.Recipient;   
-
-                    trans.CurrentState = (int)Helper.eCurrentState.Active;
-                    _context.LotTransactions.Add(trans);
-                    _context.SaveChanges();
-
-                    // Add Item Transaction Record 
-                    var itemTrans = new ItemTransaction();
-
-                    int maxTrItem = _context.ItemTransactions.Count() + 1;
-                    itemTrans.Move_Num = maxTrItem;
-                    itemTrans.Move_Statement = "Exchange Lot  : " + model.LotNumber;
-                    itemTrans.Move_Quantity = model.ExchageQuantity;
-                    itemTrans.Move_Date = DateTime.Now.Date;
-                    itemTrans.Item = item;
-                    itemTrans.ItemId = item.Id;
-                    itemTrans.Move_State = false;
-                    itemTrans.Total_Quantity = item.AvilableQuantity;
-
-                    itemTrans.CreatedBy = _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User).Result.FullName;
-                    itemTrans.DeviceUsing = Environment.MachineName;
-
-                    itemTrans.CurrentState = (int)Helper.eCurrentState.Active;
-                    _context.ItemTransactions.Add(itemTrans);
-                    _context.SaveChanges();
-                
                 return true;
             }
-            catch (Exception)
+            catch
             {
+                dbTransaction.Rollback();
                 return false;
             }
         }
+
         #endregion
 
         #region Delete Lot
@@ -303,7 +465,6 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
             try
             {
                 return _context.LotTransactions
-                                     .Include(lot => lot.Lot)
                                      .Where(x => x.CurrentState > 0 && x.LotId == id)
                                      .ToList();
             }
