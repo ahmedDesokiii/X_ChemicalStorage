@@ -75,18 +75,16 @@
     <div class="card-body p-3">
         <!-- ================= ALERTS ================= -->
         
-            <div class="row mb-4">
-                <!-- ================= Storage Condition Card ================= -->
-                <div class="col-lg-4 mx-auto">
-                    <div class="dashboard-card text-center">
-                        <h6 class="dashboard-title">
-                            Storage Condition Overview
-                        </h6>
+        <div class="row mb-4">
+            <div class="col-lg-4 mx-auto">
+                <div class="dashboard-card">
+                    <h6 class="dashboard-title">
+                        Items by Category
+                    </h6>
 
-                        <!-- REQUIRED -->
-                        <div id="storageConditionBar" style="min-height:260px;"></div>
-                    </div>
+                    <div id="categoryPieChart"></div>
                 </div>
+            </div>
             @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert || Model.HasNearExpiryAlert)
             {
                 <div class="col-lg-4 mx-auto">
@@ -98,9 +96,10 @@
                             batches expiring soon → <span class="fs-5 fw-bold mx-2">@Model.NearExpiringLots</span>
                         </div>
                     }
+                    
                     @if (Model.HasUnderLimitAlert)
                     {
-                        <div class="alert alert-warning alert-modern">
+                        <div class="alert alert-info alert-modern">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <b>Low Stock Alert : </b>
                             items below minimum limit → <span class="fs-5 fw-bold mx-2">@Model.UnderLimitItems</span>
@@ -118,35 +117,55 @@
 
                     @if (Model.HasHazardAlert)
                     {
-                        <div class="alert alert-info alert-modern">
+                        <div class="alert alert-warning alert-modern">
                             <i class="bi bi-shield-fill-check me-2"></i>
                             <b>Hazard Materials : </b>
-                            items require special handling → <span class="fs-5 fw-bold mx-2">@Model.HazardItems</span>
+                            items require special handling invalid SDS → <span class="fs-5 fw-bold mx-2">@Model.HazardItems</span>
                         </div>
                     }
 
                 </div>
             }
+            <div class="col-lg-4 mx-auto">
+                <div class="dashboard-card text-center">
+                    <h6 class="dashboard-title">
+                        SDS Status Wave
+                    </h6>
+                    <div id="sdsWaveChart"></div>
+                </div>
+            </div>
+            </div>
+  
+            <div class="row mb-4">
+            <div class="col-lg-4">
+                <div class="dashboard-card">
+                    <h6 class="dashboard-title">
+                        Lots Over Time
+                    </h6>
+                    <div id="lotsLineChart"></div>
+                </div>
+            </div>
+                <!-- ================= Storage Condition Card ================= -->
                 <div class="col-lg-4 mx-auto">
                     <div class="dashboard-card text-center">
                         <h6 class="dashboard-title">
-                            SDS Status Overview
-                            @if (Model.SdsStatus.InvalidCount > 0)
-                            {
-                                <span class="badge bg-danger ms-2">
-                                    @Model.SdsStatus.InvalidCount Invalid
-                                </span>
-                            }
+                            Storage Condition Overview
                         </h6>
-                        <div class=" d-flex justify-content-center align-items-center">
-                            <div id="sdsStatusPie"></div>
-                        </div>
-
+                        <!-- REQUIRED -->
+                        <div id="storageConditionBar" ></div>
                     </div>
                 </div>
-            </div>
-        
+            
 
+            <div class="col-lg-4">
+                <div class="dashboard-card">
+                    <h6 class="dashboard-title">
+                        Expiry Trend
+                    </h6>
+                    <div id="expiryLineChart"></div>
+                </div>
+            </div>
+            </div>
     </div>
 
 @* 
@@ -171,7 +190,6 @@
         </div> 
 
         
-
         <div id="collapseItem" class="collapse show">
             
         </div>
@@ -221,58 +239,105 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            var options = {
+            if (typeof ApexCharts === "undefined") {
+                console.error("ApexCharts not loaded");
+                return;
+            }
+
+            const waveData = [
+                @foreach (var item in Model.SdsWaveItems)
+                {
+                        var value = item.IsValid ? item.Quantity : -item.Quantity;
+                        <text>{
+                            x: "@item.ItemName",
+                            y: @value,
+                            status: "@(item.IsValid ? "Valid" : "Invalid")"
+                        },</text>
+                }
+            ];
+
+            const options = {
                 chart: {
-                    type: 'pie',
-                    height: 280
+                    type: 'bar',
+                    height: 260,
+                    toolbar: { show: false },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 1200,
+                        animateGradually: { enabled: true, delay: 40 },
+                        dynamicAnimation: { enabled: true, speed: 900 }
+                    }
                 },
-                labels: ['Valid SDS', 'Invalid SDS'],
-                series: [
-                    @Model.SdsStatus.ValidCount,
-                    @Model.SdsStatus.InvalidCount
-                ],
+
+                plotOptions: {
+                    bar: {
+                        columnWidth: '38%',
+                        borderRadius: 6
+                    }
+                },
+
+                series: [{
+                    name: 'SDS Status',
+                    data: waveData
+                }],
+
+                grid: {
+                    strokeDashArray: 4,
+                    borderColor: '#e9ecef'
+                },
+
+                xaxis: {
+                    labels: { show: false },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+
+                yaxis: {
+                    labels: {
+                        formatter: val => Math.abs(val)
+                    }
+                },
+
                 colors: [
-                    '#198754', // Green - Valid
-                    '#dc3545'  // Red - Invalid
+                    function ({ value }) {
+                        return value >= 0
+                            ? 'rgba(32,201,151,0.95)'   // Valid
+                            : 'rgba(255,107,107,0.95)'; // Invalid
+                    }
                 ],
-                legend: {
-                    position: 'bottom',
-                    fontSize: '14px'
-                },
-                dataLabels: {
-                    enabled: true,
-                    formatter: function (val, opts) {
-                        return opts.w.config.series[opts.seriesIndex];
-                    }
-                },
+
                 tooltip: {
-                    y: {
-                        formatter: function (value) {
-                            return value + " Items";
-                        }
+                    custom: function ({ seriesIndex, dataPointIndex, w }) {
+
+                        const point = w.config.series[seriesIndex].data[dataPointIndex];
+                        const qty = Math.abs(point.y);
+                        const isValid = point.status === "Valid";
+
+                        return `
+                            <div class="sds-tooltip ${isValid ? 'valid' : 'invalid'}">
+                                <div class="sds-title">${point.x}</div>
+                                <div class="sds-qty">Quantity: <b>${qty}</b></div>
+                                <div class="sds-badge">
+                                    <span class="badge ${isValid ? 'bg-success' : 'bg-danger'}">
+                                        ${point.status}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
                     }
                 },
-                responsive: [{
-                    breakpoint: 768,
-                    options: {
-                        chart: {
-                            height: 240
-                        },
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }]
+
+                dataLabels: { enabled: false }
             };
 
-            var chart = new ApexCharts(
-                document.querySelector("#sdsStatusPie"),
+            new ApexCharts(
+                document.querySelector("#sdsWaveChart"),
                 options
-            );
-
-            chart.render();
+            ).render();
         });
     </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
@@ -310,14 +375,14 @@
                     data: data
                 }],
                 colors: [
-                    '#dc3545', // 🔴 Room Temp
-                    '#0d6efd', // 🔵 Freezer
-                    '#198754'  // 🟢 Cold
+                    '#F96E5B', // 🔴 Room Temp
+                    '#AEDEFC', // 🔵 Freezer
+                    '#3BC1A8'  // 🟢 Cold
                 ],
                 xaxis: {
                     categories: [
                         'Room Temp',
-                        'Freezer -20°C',
+                        'Freezer °C',
                         '2–8 °C'
                     ]
                 },
@@ -338,14 +403,189 @@
             new ApexCharts(el, options).render();
         });
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var seriesData = @Html.Raw(Json.Serialize(
+                            Model.CategorySummary.Select(x => x.ItemsCount)
+                    ));
+
+        var labelsData = @Html.Raw(Json.Serialize(
+                        Model.CategorySummary.Select(x => x.CategoryName)
+                ));
+
+        var options = {
+            chart: {
+                type: 'pie',
+                height: 330,
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 900,
+                    animateGradually: {
+                        enabled: true,
+                        delay: 120
+                    },
+                    dynamicAnimation: {
+                        enabled: true,
+                        speed: 700
+                    }
+                }
+            },
+
+                series: seriesData,
+                labels: labelsData,
+
+                legend: {
+                    position: 'bottom',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    markers: {
+                        radius: 12
+                    }
+                },
+
+                dataLabels: {
+                    enabled: true,
+                    style: {
+                        fontSize: '13px',
+                        fontWeight: 'bold'
+                    },
+                    formatter: function (val, opts) {
+                        return opts.w.config.series[opts.seriesIndex];
+                    }
+                },
+
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + " Items";
+                        }
+                    }
+                },
+
+                colors: [
+                    '#FFCB61',
+                    '#00809D',
+                    '#FF894F',
+                    '#7A7A73',
+                    '#20c997',
+                    
+                ],
+
+                stroke: {
+                    width: 1,
+                    colors: ['#ffffff']
+                }
+            };
+
+            new ApexCharts(
+                document.querySelector("#categoryPieChart"),
+                options
+            ).render();
+
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const lotsLabels = @Html.Raw(Json.Serialize(Model.LotsOverTime.Select(x => x.Label)));
+            const lotsData = @Html.Raw(Json.Serialize(Model.LotsOverTime.Select(x => x.Value)));
+
+            const expiryLabels = @Html.Raw(Json.Serialize(Model.ExpiryTrend.Select(x => x.Label)));
+            const expiryData = @Html.Raw(Json.Serialize(Model.ExpiryTrend.Select(x => x.Value)));
+
+            function buildLineChart(el, data, labels, color) {
+                return new ApexCharts(document.querySelector(el), {
+                    chart: {
+                        type: 'line',
+                        height: 320,
+                        toolbar: { show: false },
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 900
+                        }
+                    },
+                    series: [{
+                        name: 'Count',
+                        data: data
+                    }],
+                    xaxis: {
+                        categories: labels
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 3
+                    },
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            shadeIntensity: 1,
+                            opacityFrom: 0.4,
+                            opacityTo: 0.05,
+                            stops: [0, 90, 100]
+                        }
+                    },
+                    colors: [color],
+                    markers: {
+                        size: 4,
+                        hover: { size: 6 }
+                    },
+                    grid: {
+                        borderColor: '#eee',
+                        strokeDashArray: 4
+                    },
+                    tooltip: {
+                        theme: 'dark',
+                        y: {
+                            formatter: val => val + " Lots"
+                        }
+                    }
+                });
+            }
+
+            buildLineChart(
+                "#lotsLineChart",
+                lotsData,
+                lotsLabels,
+                "#198754" // Green
+            ).render();
+
+            buildLineChart(
+                "#expiryLineChart",
+                expiryData,
+                expiryLabels,
+                "#dc3545" // Red
+            ).render();
+
+        });
+    </script>
+
+
+
+
 }
 
 
 <!-- ================= Styles ================= -->
 <style>
 
+    #lineChart,
+    #expiryLineChart {
+        margin-top: 10px;
+    }
 
-    /* ================= Storage Condition ================= */
+    .dashboard-card {
+        transition: .3s;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(0,0,0,.18);
+        }
+
+
 
     .storage-chart-card {
         border-radius: 18px;
@@ -544,6 +784,24 @@
         .collapse-header-amber[aria-expanded="true"] .bi-chevron-down {
             transform: rotate(180deg);
         }
+
+    /* Apex Bar Hover Glow */
+    .apexcharts-bar-area {
+        transition: all 0.3s ease;
+    }
+
+        .apexcharts-bar-area:hover {
+            filter: drop-shadow(0 0 10px rgba(0,255,180,0.6));
+            transform: scale(1.04);
+        }
+
+    #categoryRadialChart {
+        margin-top: 12px;
+    }
+
+    .apexcharts-radialbar .apexcharts-datalabel-value {
+        color: #0f5132;
+    }
 
 </style>
 

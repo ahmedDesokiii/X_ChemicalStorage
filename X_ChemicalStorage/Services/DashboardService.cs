@@ -33,7 +33,8 @@ namespace X_ChemicalStorage.Services
 
             // ☣️ Hazard (SDS)
             var hazardItems = _context.Items
-                .Count(i => i.SDS==true);
+                .Count(i => i.SDS==false);
+
 
             // Chart (Top Items)
             var chartData = _context.Items

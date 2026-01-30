@@ -24,16 +24,19 @@ namespace X_ChemicalStorage.ViewModels
         // Charts
         public List<string> ItemNames { get; set; } = new();
         public List<double?> ItemQuantities { get; set; } = new();
-
-       /* ===== DONUT DATA ===== */
-        public SdsStatusChartVm SdsStatus { get; set; } = new();
+        public List<CategorySummaryVm> CategorySummary { get; set; } = new();
+        public List<SdsWaveItemVm> SdsWaveItems { get; set; }
         public StorageConditionSummaryVm StorageCondition { get; set; }
+
+        public List<TimeSeriesPointVm> LotsOverTime { get; set; }
+        public List<TimeSeriesPointVm> ExpiryTrend { get; set; }
+
     }
-    // Item VM
-    public class SdsStatusChartVm
+    public class SdsWaveItemVm
     {
-        public int ValidCount { get; set; }
-        public int InvalidCount { get; set; }
+        public string ItemName { get; set; }
+        public int Quantity { get; set; }
+        public bool IsValid { get; set; }
     }
     public class StorageConditionSummaryVm
     {
@@ -53,4 +56,15 @@ namespace X_ChemicalStorage.ViewModels
         public int ColdPercent =>
             Total == 0 ? 0 : (ColdCount * 100 / Total);
     }
+    public class CategorySummaryVm
+    {
+        public string CategoryName { get; set; }
+        public int ItemsCount { get; set; }
+    }
+    public class TimeSeriesPointVm
+    {
+        public string Label { get; set; }   // Month / Date
+        public int Value { get; set; }
+    }
+
 }

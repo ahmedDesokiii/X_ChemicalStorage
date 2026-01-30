@@ -48,27 +48,63 @@ namespace X_ChemicalStorage.Controllers
 
             var items = _context.Items
                 .Include(i => i.Lots)
+                .Include(i => i.Category)
                 .AsNoTracking()
                 .ToList();
 
             /* ===== STOCK DONUT (LOTS – AVAILABLE QTY) ===== */
-            
-            model.SdsStatus = new SdsStatusChartVm
+            // Item SDS 
+            model.SdsWaveItems = items.Select(i => new SdsWaveItemVm
             {
-                ValidCount = items.Count(x => x.SDS==true),
-                InvalidCount = items.Count(x =>x.SDS == false)
-            };
+                ItemName = i.Name,
+                Quantity = (int)i.AvilableQuantity,
+                IsValid = i.SDS == true
+            })  .ToList();
+            //lot charts
+            model.LotsOverTime = lots
+                .GroupBy(x => x.ReceivedDate.Value.Month)
+                .Select(g => new TimeSeriesPointVm
+                {
+                    Label = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(g.Key),
+                    Value = g.Count()
+                })
+                .OrderBy(x => x.Label)
+                .ToList();
+
+            model.ExpiryTrend = lots
+                .Where(x => x.ExpiryDate <= DateTime.Today.AddMonths(6))
+                .GroupBy(x => x.ExpiryDate.Value.Month)
+                .Select(g => new TimeSeriesPointVm
+                {
+                    Label = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(g.Key),
+                    Value = g.Count()
+                })
+                .OrderBy(x => x.Label)
+                .ToList();
+
+            // Storage Condition
             var storageSummary = new StorageConditionSummaryVm
             {
                 RoomTempCount = items.Count(x => x.StorageCondition.Trim().ToLower() == "room temp"),
                 FreezerCount = items.Count(x => x.StorageCondition.Trim().ToLower().Contains("freezer")),
-                ColdCount = items.Count(x => x.StorageCondition.Trim().Contains("2"))
+                ColdCount = items.Count(x => x.StorageCondition.Trim().Contains("2-8"))
             };
             model.StorageCondition = storageSummary;
+
+            //Items By Category
+            model.CategorySummary = items
+            .GroupBy(x => x.Category.Name)
+            .Select(g => new CategorySummaryVm
+            {
+                CategoryName = g.Key,
+                ItemsCount = g.Count()
+            })
+            .ToList();
 
             return View(model);
         }
 
+       
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
