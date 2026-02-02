@@ -9,6 +9,14 @@ namespace X_ChemicalStorage.Constants
             var permissionsList = GenerateAllPermissions();
             return permissionsList;
         }
+        public static List<string> Generate_Dashboard_PermissionsList(string module)
+        {
+            return new List<string>()
+            {
+                 $"Permissions.{module}.Dashboard",
+                 $"Permissions.{module}.View Dashboard"
+            };
+        }
         public static List<string> Generate_Suppliers_PermissionsList(string module)
         {
             return new List<string>()
@@ -101,6 +109,7 @@ namespace X_ChemicalStorage.Constants
 
         public static List<string> GenerateAllPermissions()
         {
+            var allDashboardPermissions = new List<string>();
             var allSuppliersPermissions = new List<string>();
             var allCategoriesPermissions = new List<string>();
             var allUnitsPermissions = new List<string>();
@@ -110,6 +119,7 @@ namespace X_ChemicalStorage.Constants
             var allLotsPermissions = new List<string>();
             var allPermissions = new List<string>();
 
+                allSuppliersPermissions.AddRange(Generate_Dashboard_PermissionsList(Modules.Dashboard.ToString()));
                 allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
                 allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
                 allUnitsPermissions.AddRange(Generate_Units_PermissionsList(Modules.Units.ToString()));
@@ -118,6 +128,7 @@ namespace X_ChemicalStorage.Constants
                 allManufacutersPermissions.AddRange(Generate_Manufacuters_PermissionsList(Modules.Manufacuters.ToString()));
                 allLotsPermissions.AddRange(Generate_Lots_PermissionsList(Modules.Lots.ToString()));
                 allPermissions = allSuppliersPermissions
+                                .Concat(allDashboardPermissions)
                                 .Concat(allCategoriesPermissions)
                                 .Concat(allUnitsPermissions)
                                 .Concat(allItemsPermissions)
@@ -129,6 +140,13 @@ namespace X_ChemicalStorage.Constants
             return allPermissions;
         }
 
+        #region Dashboard Modules
+        public static class Dashboard
+        {
+            public const string View = "Permissions.Dashboard.Dashboard";
+            public const string View_Dashboard = "Permissions.Dashboard.View Dashboard";
+        }
+        #endregion
         #region Suppliers Modules
         public static class Suppliers
         {

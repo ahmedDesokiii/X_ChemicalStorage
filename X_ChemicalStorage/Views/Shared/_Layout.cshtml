@@ -89,12 +89,16 @@
                                         <i class="bi bi-collection-fill fs-4"></i><br />Roles
                                     </a>
                                 </li>
-                                <li class="nav-item mx-2">
-                                    <a class="nav-link fs-5" asp-controller="Home" asp-action="MasterDashboard">
-                                        <i class="bi bi-speedometer fs-4"></i><br />Dashboard
-                                    </a>
-                                </li>
+               
                             }
+                            @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Dashboard.View).Result.Succeeded))
+                                {
+                                    <li class="nav-item mx-2">
+                                        <a class="nav-link fs-5" asp-controller="Home" asp-action="MasterDashboard">
+                                            <i class="bi bi-speedometer fs-4"></i><br />Dashboard
+                                        </a>
+                                    </li>                    
+                                }
 
                             @* Inventory Links *@
                             <li class="nav-item mx-2">

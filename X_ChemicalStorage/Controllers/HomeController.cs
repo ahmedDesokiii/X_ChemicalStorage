@@ -33,7 +33,7 @@ namespace X_ChemicalStorage.Controllers
             return View();
         }
 
-        [AllowAnonymous]
+        [Authorize(Permissions.Dashboard.View_Dashboard)]
         public IActionResult MasterDashboard()
         {
             var model = _service.GetDashboard();

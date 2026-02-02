@@ -528,10 +528,14 @@
                         }
                     },
                     colors: [color],
-                    markers: {
-                        size: 4,
-                        hover: { size: 6 }
-                    },
+                            markers: {
+            size: 7,          // حجم النقطة الأساسي
+            strokeWidth: 2,
+            strokeColors: '#fff',
+            hover: {
+                size: 10      // حجمها وقت الـ hover
+            }
+        },
                     grid: {
                         borderColor: '#eee',
                         strokeDashArray: 4
@@ -559,6 +563,16 @@
                 "#dc3545" // Red
             ).render();
 
+        });
+    </script>
+    <script>
+        function showPageLoader() {
+            document.getElementById("pageLoader").classList.remove("d-none");
+        }
+
+        // أمان زيادة – لو رجع المستخدم Back
+        window.addEventListener("pageshow", function () {
+            document.getElementById("pageLoader")?.classList.add("d-none");
         });
     </script>
 
