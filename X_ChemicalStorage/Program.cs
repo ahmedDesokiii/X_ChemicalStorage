@@ -104,6 +104,7 @@ builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManu
 var app = builder.Build();
 app.UseSession();
 
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -111,6 +112,10 @@ using (var scope = app.Services.CreateScope())
     var logger = loggerFactory.CreateLogger("app");
     try
     {
+        // 🔥 Auto Apply Migrations
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
         await X_ChemicalStorage.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
@@ -122,7 +127,10 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
+        // log error
+        Console.WriteLine(ex.Message);
         logger.LogWarning(ex, "An error occurred seeding the DB");
+        throw;
     }
     
 

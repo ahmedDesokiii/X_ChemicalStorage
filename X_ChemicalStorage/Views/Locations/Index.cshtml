@@ -78,7 +78,7 @@
                                             <td class="py-1">
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Details_Locations).Result.Succeeded)
                                                 {
-                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="ManufacuterCompanies" asp-action="SelectedLocation" asp-route-Id="@loc.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
+                                                    <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Locations" asp-action="SelectedLocation" asp-route-Id="@loc.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Edit_Locations).Result.Succeeded)
                                                 {
