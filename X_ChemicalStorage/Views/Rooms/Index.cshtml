@@ -1,0 +1,303 @@
+﻿@model X_ChemicalStorage.Models.ViewModels.RoomsViewModel
+
+@{
+    ViewData["Title"] = "Rooms";
+}
+
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0;" dir="ltr">
+    <span class="text-center fw-bold fs-1" style="color:#415E72 !important;">
+        Rooms
+        <i class="bi bi-building ps-2 fs-1"></i>
+    </span>
+</div>
+
+<style>
+    .room-card {
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(3,43,66,0.08);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+        .room-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(3,43,66,0.14);
+        }
+
+    .unit-bar {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #dbe4ea;
+        cursor: pointer;
+        transition: border-color .2s;
+    }
+
+        .unit-bar:hover {
+            border-color: #0d6efd !important;
+        }
+
+    .shelf-row {
+        background: #fff;
+        border-radius: 8px;
+        border-left: 3px solid #0b4a6f;
+        transition: background .2s;
+    }
+
+        .shelf-row:hover {
+            background: #f0f7ff !important;
+        }
+
+    .expand-icon {
+        transition: transform .2s;
+    }
+
+        .expand-icon.rotated {
+            transform: rotate(90deg);
+        }
+
+    .add-room-card {
+        min-height: 320px;
+        border: 2px dashed #dbe4ea;
+        border-radius: 16px;
+        background: #f8fafb;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+        .add-room-card:hover {
+            border-color: #0d6efd;
+            background: #f0f7ff;
+        }
+</style>
+
+<section class="container-fluid mt-3" dir="ltr">
+    <!-- Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold text-muted mb-0"><i class="bi bi-diagram-3-fill me-2"></i>Storage Hierarchy</h5>
+            <small class="text-muted">Manage rooms, units, shelves & boxes</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Rooms" asp-action="GenerateWizard" class="btn btn-outline-primary fw-bold" style="border-radius:12px;">
+                <i class="bi bi-magic me-2"></i>Auto-Generate
+            </a>
+            <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#addRoomModal"
+                    style="border-radius:12px; background:#032b42; border-color:#032b42;">
+                <i class="bi bi-plus-lg me-2"></i>Add Room
+            </button>
+        </div>
+    </div>
+
+    <!-- Rooms Grid -->
+    <div class="row g-4">
+        @foreach (var room in Model.RoomsList)
+        {
+            var totalShelves = room.StorageUnits?.Sum(u => u.Shelves?.Count ?? 0) ?? 0;
+            var totalBoxes = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Count ?? 0) ?? 0) ?? 0;
+            var totalSlots = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Sum(b => b.RowsCount * b.ColumnsCount) ?? 0) ?? 0) ?? 0;
+
+            <div class="col-lg-4 col-md-6">
+                <div class="room-card">
+                    <!-- Header -->
+                    <div class="room-header d-flex justify-content-between align-items-center"
+                         style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 100%); color:#fff; padding:16px 20px; border-radius:16px 16px 0 0;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-door-open-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">@room.Name</h6>
+                                <small style="opacity:0.75;">@(room.StorageUnits?.Count ?? 0) Storage Units</small>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm text-white" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical fs-5"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <button type="button" class="dropdown-item" onclick="editRoom(@room.Id, '@room.Name')">
+                                        <i class="bi bi-pencil me-2"></i>Edit
+                                    </button>
+                                </li>
+                                <li>
+                                    <form asp-action="DeleteRoom" method="post" class="d-inline"
+                                          onsubmit="return confirm('هل أنت متأكد من حذف الغرفة؟');">
+                                        <input type="hidden" name="id" value="@room.Id" />
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Body: Storage Units -->
+                    <div class="p-3" style="background:#f8fafb;">
+                        @if (room.StorageUnits != null)
+                        {
+                            foreach (var unit in room.StorageUnits)
+                            {
+                                var unitTypeColor = unit.IsHazardous ? "#c62828" : "#0b4a6f";
+                                var unitBadgeBg = unit.IsHazardous ? "#fce4ec" : "#e3f2fd";
+                                var unitBadgeText = unit.IsHazardous ? "#c62828" : "#0d6efd";
+                                var unitIcon = unit.IsHazardous ? "bi-exclamation-triangle-fill" : "bi-box-seam";
+
+                                <div class="unit-block mb-2">
+                                    <div class="unit-bar d-flex align-items-center gap-2 p-2"
+                                         onclick="toggleExpand(this)">
+                                        <i class="bi bi-chevron-right small text-muted expand-icon"></i>
+                                        <span class="badge" style="background:@unitBadgeBg;color:@unitBadgeText;">
+                                            <i class="bi @unitIcon me-1"></i>@(unit.StorageUnitType?.Name ?? "Unit")
+                                        </span>
+                                        <span class="fw-bold small">@unit.Name</span>
+                                        @if (unit.IsHazardous)
+                                        {
+                                            <span class="ms-auto badge bg-danger-subtle text-danger small">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Hazardous
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="ms-auto badge bg-success-subtle text-success small">
+                                                <i class="bi bi-shield-check me-1"></i>Safe
+                                            </span>
+                                        }
+                                    </div>
+                                    <!-- Shelves -->
+                                    <div class="shelves-container ms-4 mt-1" style="display:none;">
+                                        @if (unit.Shelves != null)
+                                        {
+                                            foreach (var shelf in unit.Shelves)
+                                            {
+                                                <div class="shelf-row d-flex align-items-center gap-2 p-2 mb-1">
+                                                    <i class="bi bi-layers text-muted small"></i>
+                                                    <span class="small fw-semibold">@shelf.Name</span>
+                                                    <span class="ms-auto badge bg-light text-dark small">
+                                                        @(shelf.Boxes?.Count ?? 0) Boxes
+                                                    </span>
+                                                </div>
+                                            }
+                                        }
+                                        <form asp-action="AddShelf" method="post" class="d-flex gap-2 mt-1">
+                                            <input type="hidden" name="storageUnitId" value="@unit.Id" />
+                                            <input type="text" name="name" class="form-control form-control-sm" placeholder="Shelf name" required style="border-radius:8px;" />
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        <!-- Add Storage Unit -->
+                        <form asp-action="AddStorageUnit" method="post" class="mt-2">
+                            <input type="hidden" name="roomId" value="@room.Id" />
+                            <div class="input-group input-group-sm">
+                                <select name="storageUnitTypeId" class="form-select" required style="border-radius:10px 0 0 10px;">
+                                    <option value="" disabled selected>Type</option>
+                                    @foreach (var type in Model.ListStorageUnitTypes)
+                                    {
+                                        <option value="@type.Value">@type.Text</option>
+                                    }
+                                </select>
+                                <input type="text" name="name" class="form-control" placeholder="Unit name" required />
+                                <div class="input-group-text">
+                                    <input class="form-check-input mt-0" type="checkbox" name="isHazardous" value="true" title="Hazardous">
+                                </div>
+                                <button type="submit" class="btn btn-outline-primary" style="border-radius:0 10px 10px 0;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Footer Stats -->
+                    <div class="d-flex justify-content-around p-3" style="background:#eef3f6;border-radius:0 0 16px 16px;">
+                        <div class="text-center">
+                            <div class="fw-bold" style="color:#032b42;">@(room.StorageUnits?.Count ?? 0)</div>
+                            <small class="text-muted" style="font-size:0.7rem;">UNITS</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="fw-bold" style="color:#032b42;">@totalShelves</div>
+                            <small class="text-muted" style="font-size:0.7rem;">SHELVES</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="fw-bold" style="color:#032b42;">@totalBoxes</div>
+                            <small class="text-muted" style="font-size:0.7rem;">BOXES</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="fw-bold text-success">@totalSlots.ToString("N0")</div>
+                            <small class="text-muted" style="font-size:0.7rem;">SLOTS</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Add Room Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="add-room-card d-flex flex-column align-items-center justify-content-center"
+                 data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <div style="width:60px;height:60px;background:#e3f2fd;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                    <i class="bi bi-plus-lg fs-2" style="color:#0d6efd;"></i>
+                </div>
+                <h6 class="fw-bold text-muted">Add New Room</h6>
+                <small class="text-muted">Create a new storage location</small>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add/Edit Room Modal -->
+<div class="modal fade" id="addRoomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 100%); color:#fff; border-radius:16px 16px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-door-open-fill me-2"></i>Room</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="SaveRoom" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="Id" id="roomId" value="0" />
+                    <label class="form-label fw-bold text-muted">Room Name</label>
+                    <input type="text" name="Name" id="roomNameInput" required
+                           class="form-control form-control-lg fw-bold" placeholder="e.g. Cold Room 1" style="border-radius:12px;">
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold" style="border-radius:10px; background:#032b42; border-color:#032b42;">
+                        <i class="bi bi-check-circle-fill me-2"></i>Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleExpand(el) {
+            const shelves = el.nextElementSibling;
+            const icon = el.querySelector('.expand-icon');
+            if (shelves.style.display === 'none') {
+                shelves.style.display = 'block';
+                icon.classList.add('rotated');
+            } else {
+                shelves.style.display = 'none';
+                icon.classList.remove('rotated');
+            }
+        }
+
+        function editRoom(id, name) {
+            document.getElementById('roomId').value = id;
+            document.getElementById('roomNameInput').value = name;
+            new bootstrap.Modal(document.getElementById('addRoomModal')).show();
+        }
+
+        document.getElementById('addRoomModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('roomId').value = 0;
+            document.getElementById('roomNameInput').value = '';
+        });
+    </script>
+}

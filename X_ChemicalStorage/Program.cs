@@ -1,5 +1,4 @@
-﻿
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.AddHangfire(config =>
 //{
@@ -35,7 +34,7 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 
 builder.Services.AddControllersWithViews(); // Adds MVC services\
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>(); 
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Scoped);
 
 builder.Services.AddHttpContextAccessor();
@@ -95,7 +94,6 @@ builder.Services.AddScoped<IServicesItem, ServicesItem>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IServicesLot, ServicesLot>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
-builder.Services.AddScoped<IServicesRepository<Location>, ServicesLocation>();
 builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();
 //builder.Services.AddScoped<LotCleanupJob>();
@@ -113,8 +111,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         // 🔥 Auto Apply Migrations
-        var db = services.GetRequiredService<ApplicationDbContext>();
-        db.Database.Migrate();
+        //var db = services.GetRequiredService<ApplicationDbContext>();
+        //db.Database.Migrate();
 
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
@@ -132,7 +130,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogWarning(ex, "An error occurred seeding the DB");
         throw;
     }
-    
+
 
 }
 // Configure the HTTP request pipeline.
@@ -154,21 +152,24 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-//app.UseHangfireDashboard("/hangfire");
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+//app.Urls.Add("http://localhost:5000");
 
+//var url = "http://localhost:5000";
 
-//RecurringJob.AddOrUpdate<LotCleanupJob>(
-//"lot-cleanup-job",
-//job => job.RunAsync(),
-//// Cron.Hourly); // كل ساعة
-//Cron.MinuteInterval(5)); // كل 5 دقايق
-
+//System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+//{
+//    FileName = url,
+//    UseShellExecute = true
+//});
 
 app.Run();
-        

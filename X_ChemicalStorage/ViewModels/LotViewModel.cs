@@ -10,6 +10,8 @@ namespace X_ChemicalStorage.ViewModels
         // القديم (لأي استخدام تاني)
         public List<Lot>? LotsList { get; set; } = new();
 
+        public List<SelectListItem> ListRooms { get; set; } = new();
+
         // الجديد للعرض
         public List<LotDisplayViewModel>? LotsDisplay { get; set; } = new();
 

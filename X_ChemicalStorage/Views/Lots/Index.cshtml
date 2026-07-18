@@ -211,7 +211,7 @@
 
                                         <div class="data-row">
                                             <span class="data-label">Location:</span>
-                                            <span class="fw-bold">Room[@lot.Location?.RoomNum]</span>
+                                            <span class="fw-bold">@lot.ShortLocation</span>
                                         </div>
 
                                         <div class="data-row">
@@ -347,8 +347,8 @@
                                                     <td class="fs-6 text-center px-1 "><span class="fw-bold link-dark">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                                     <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.AvilableQuantity</span></td>
                                                     @* <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@lot.SupplierLots.FirstOrDefault()</span></td> *@
-                                                    <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">Room[@lot.Location?.RoomNum]</span></td>
-                                                    @if (lot.SDS == true)
+                                                <td class="fs-6 text-center px-1 "><span class="link-dark fw-bold">@lot.ShortLocation</span></td>
+                                                @if (lot.SDS == true)
                                                     {
                                                         <td class="text-center">
                                                             <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">

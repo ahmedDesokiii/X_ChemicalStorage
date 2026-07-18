@@ -19,8 +19,8 @@ namespace X_ChemicalStorage.Models
         
         public double? TotalQuantity { get; set; } = 0;
         public double? AvilableQuantity { get; set; } = 0;
-        [Required]
-        public string? StorageCondition { get; set; } // Storage Condition Details 
+        //[Required]
+        //public string? StorageCondition { get; set; } // Storage Condition Details 
         [Required]
         public string? BarcodeImage { get; set; } // مسار صورة الباركود
 
@@ -35,16 +35,25 @@ namespace X_ChemicalStorage.Models
         [ForeignKey("UnitId")]
         public Unit? Unit { get; set; }
         // Foreign Keys
-        [Required]
-        public int? LocationId { get; set; } // Location Details
-        [ForeignKey("LocationId")]
-        public Location? Location { get; set; }
-        // Foreign Keys
-        
-
+       
         public ICollection<Lot> Lots { get; set; } = new List<Lot>();
         public ICollection<ItemTransaction> ItemTransactions { get; set; } = new List<ItemTransaction>();
 
         public int? CurrentState { get; set; }
+
+        //public int BoxId { get; set; }
+        //public Box Box { get; set; } = null!;
+
+        public int RowIndex { get; set; }
+        public int ColumnIndex { get; set; }
+
+        // احذف السطر القديم ده:
+        // public string StorageCondition { get; set; }
+        // public int? LocationId { get; set; }
+        // public Location Location { get; set; }
+
+        // وضيف بدالهم:
+        public int StorageUnitTypeId { get; set; }
+        public StorageUnitType StorageUnitType { get; set; } = null!;
     }
 }

@@ -40,19 +40,14 @@
                                         <div class="d-block p-0 m-0" style="font-size:12px"> @item.Code</div>
                                     </div>
                                 </div>
+                                
                                 <div class="item-meta text-start ps-4">
                                     @{
-                                        var badgeClass = item.StorageCondition switch
-                                        {
-                                            "room temp" => "badge-room",
-                                            "2-8C" => "badge-cold",
-                                            _ => "badge-other"
-                                        };
+                                        var badgeClass = (item.StorageUnitType?.TemperatureValue < 0) ? "badge-cold" : "badge-room";
                                     }
-                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageCondition</span>
+                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span>
 
                                     <div class="ps-2"><strong>Category:</strong> @item.Category?.Name</div>
-                                    <div class="ps-2"><strong>Location:</strong> Room[@item.Location?.RoomNum]</div>
                                     <div class="ps-2">
                                         <strong>SDS:</strong>
                                         @if (item.SDS == true)

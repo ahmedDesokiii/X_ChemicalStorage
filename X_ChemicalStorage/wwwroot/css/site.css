@@ -84,7 +84,7 @@ body {
 
 /* Active style */
 .active {
-    background-color: green !important; /* Use !important if needed to override default */
+    /*background-color: green !important;*/ /* Use !important if needed to override default */
 }
 
 .cardBtn {

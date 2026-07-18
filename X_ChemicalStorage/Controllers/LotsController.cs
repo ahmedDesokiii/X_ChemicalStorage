@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq;
 using X_ChemicalStorage.IRepository;
-using Microsoft.AspNetCore.Authorization;
 using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Controllers
@@ -12,16 +13,17 @@ namespace X_ChemicalStorage.Controllers
     {
         private readonly IServicesRepository<Lot> _servicesLot ;
         private readonly IServicesLot _servicesOfLot ;
+        private readonly IServicesItem _servicesOfItem ;
         private readonly IServicesRepository<Item> _servicesItem ;
         private readonly IInventoryService _inventoryService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IAuthorizationService _authorizationService;
-
-        public LotsController(IServicesRepository<Lot> servicesLot, IServicesLot servicesOfLot, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IAuthorizationService authorizationService)
+        public LotsController(IServicesRepository<Lot> servicesLot, IServicesLot servicesOfLot, IServicesItem servicesOfItem, IServicesRepository<Item> servicesItem, IInventoryService inventoryService, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IAuthorizationService authorizationService)
         {
             _servicesLot = servicesLot;
             _servicesOfLot = servicesOfLot;
+            _servicesOfItem = servicesOfItem;
             _servicesItem = servicesItem;
             _inventoryService = inventoryService;
             _userManager = userManager;
@@ -59,7 +61,7 @@ namespace X_ChemicalStorage.Controllers
                                             .ToList(),
 
                 ItemsList = _servicesItem.GetAll()
-                                            .OrderByDescending(x => x.StorageCondition)
+                                            .OrderByDescending(x => x.StorageUnitTypeId)
                                             .ToList(),
                 ListLocations = _context.Locations
                                     .Where(l => l.CurrentState > 0)
@@ -213,24 +215,56 @@ namespace X_ChemicalStorage.Controllers
                 LotsList = _servicesLot.GetAll(),
                 LotTransactionsList = _servicesOfLot.GetLotTransactionsOfLot(id).OrderBy(x => x.Move_Num).ToList()
             };
-            model.LocationData = _servicesOfLot.GetLocationDetailsOfLot(id);
+            //model.LocationData = _servicesOfLot.GetLocationDetailsOfLot(id);
             return View(model);
         }
         #endregion
 
         #region Receiving → Lot Creation 
         [HttpGet]
+
+
         public IActionResult CreateLot(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            LotViewModel model = new()
+            ItemViewModel model = new()
             {
-                NewLot = _servicesLot.FindBy(id),
-                LotsList = _servicesLot.GetAll()
+                NewLot = new Lot(),
+                NewItem = _servicesItem.FindBy(id),
+                ItemsList = _servicesItem.GetAll(),
+                LotsList = _servicesOfItem.GetLotsOfItem(id),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
+
+                ListRooms = _context.Rooms
+                                    .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name })
+                                    .ToList(),
+
+                ListSuppliers = _context.Suppliers
+                                    .Where(s => s.CurrentState > 0)
+                                    .Include(s => s.Lot)
+                                    .Select(s => new SelectListItem
+                                    {
+                                        Value = s.Id.ToString(),
+                                        Text = s.Name
+                                    }).ToList(),
             };
+
             return View(model);
         }
+
+
+        //public IActionResult CreateLot(int id)
+        //{
+        //    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //    LotViewModel model = new()
+        //    {
+        //        NewLot = _servicesLot.FindBy(id),
+        //        LotsList = _servicesLot.GetAll()
+        //    };
+        //    return View(model);
+        //}
         #endregion
         #region Disbursing → Lot Exchange 
         [HttpPost]
@@ -238,8 +272,6 @@ namespace X_ChemicalStorage.Controllers
         public IActionResult Exchange(ItemViewModel model)
         {
             var userId = _userManager.GetUserId(User);
-
-            // نحدد هل دي Exchange كامل (يعني الكمية هتوصل صفر)
             bool isFullExchange =
                 model.NewLot.ExchageQuantity == model.NewLot.AvilableQuantity;
 

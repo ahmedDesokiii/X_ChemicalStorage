@@ -42,32 +42,28 @@
                                     
 
                                 </div>
+                               
                                 <div class="item-meta text-start ps-4">
                                     @{
-                                        var badgeClass = item.StorageCondition switch
-                                        {
-                                            "room temp" => "badge-room",
-                                            "2-8C" => "badge-cold",
-                                            _ => "badge-other"
-                                        };
+                                        var badgeClass = (item.StorageUnitType?.TemperatureValue < 0) ? "badge-cold" : "badge-room";
                                     }
-                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageCondition</span>
+                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span>
 
                                     <div class="ps-2"><strong>Category:</strong> @item.Category?.Name</div>
-                                    <div class="ps-2"><strong>Location:</strong> Room[@item.Location?.RoomNum]</div>
-                                    <div class="ps-2"><strong>SDS:</strong> 
-                                    @if (item.SDS == true)
-                                    {
+                                    <div class="ps-2">
+                                        <strong>SDS:</strong>
+                                        @if (item.SDS == true)
+                                        {
                                             <span class="py-1 px-3 bg-success-subtle link-success rounded-5">
                                                 Valid
                                             </span>
-                                    }
-                                    else
-                                    {
+                                        }
+                                        else
+                                        {
                                             <span class="py-1 px-3 bg-danger-subtle link-danger rounded-5">
                                                 Invalid
                                             </span>
-                                    }
+                                        }
                                     </div>
                                     <div class="ps-2"><strong>Available Quantity:</strong> <span class="rounded-4 bg-warning-subtle fw-bold px-3 py-1 text-dark">@item.AvilableQuantity</span></div>
 

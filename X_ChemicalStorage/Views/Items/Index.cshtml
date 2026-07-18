@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Iventory Catalog";
     int cNo = 0;
-    
+
     // Define colors for each category
     Dictionary<string, string>
     categoryColors = new Dictionary<string, string>
@@ -18,8 +18,8 @@
         };
 
 }
-        
 
+        
 <style>
     /* Card hover animation */
     .card-hover {
@@ -97,7 +97,6 @@
         overflow: hidden;
     }
 
-    
 </style>
 
 
@@ -124,10 +123,6 @@
                 <!-- /.card-header -->
 
                 <div class="card-body p-0">
-                    <!-- Tab links -->
-                    @*  <div class="tab">
-                        <button class="tablinks" onclick="openCity('event', 'Users')" id="defaultOpen">قائمة المستخدمين</button>
-                    </div> *@
                     <!-- Tab content -->
                     @if (!Model.ItemsList.Any())
                     {
@@ -147,9 +142,9 @@
                                 var categoryColor = categoryColors.ContainsKey(item.Category.Name) ? categoryColors[item.Category.Name] : "#415E72";
 
                                 <div class="card professional-card mb-3 shadow-sm border-0 card-hover" style="border-left: 6px solid @categoryColor;">
-                                    
-                                <!-- Card Header -->
-                                    <div class="card-header text-white p-3 rounded-top" 
+
+                                    <!-- Card Header -->
+                                    <div class="card-header text-white p-3 rounded-top"
                                          style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 50%, #415E72 100%);">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="flex-grow-1 overflow-hidden">
@@ -158,7 +153,7 @@
                                             <div class="text-center">
                                                 <img src="@item.BarcodeImage" class="barcode-img rounded-3" />
                                                 <small class="text-light">@item.Code</small>
-                                           </div>
+                                            </div>
 
                                         </div>
                                     </div>
@@ -166,7 +161,7 @@
                                     <!-- Card Body -->
                                     <div class="card-body pt-2 pb-1">
                                         <div class="data-row"><span class="data-label">Lots:</span> <span class="data-value bg-primary text-white px-3 py-1 rounded-4 ">@item.Lots.Count</span></div>
-                                        <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value" style="color:@(item.SDS==true ? "green" : "red")">@((item.SDS==true) ? "Valid" : "Invalid")</span></div>
+                                        <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value" style="color:@(item.SDS == true ? "green" : "red")">@((item.SDS == true) ? "Valid" : "Invalid")</span></div>
                                         <div class="data-row"><span class="data-label">Category:</span> <span class="data-value">@item.Category.Name</span></div>
                                         <div class="data-row"><span class="data-label">Limit:</span> <span class="data-value text-warning">@item.Limit</span></div>
                                         <div hidden class="data-row"><span class="data-label">Total Qty:</span> <span class="data-value">@item.TotalQuantity</span></div>
@@ -174,11 +169,10 @@
                                         <div class="data-row">
                                             <span class="data-label">Storage:</span>
                                             <span class="data-value">
-                                                <i class="bi bi-thermometer-half fs-4 @(item.StorageCondition == "2-8C" ? "storage-2-8c" : item.StorageCondition == "room temp" ? "storage-room-temp" : "storage-other")"></i>
-                                                @item.StorageCondition
+                                                <i class="bi bi-thermometer-half fs-4 @(item.StorageUnitType?.TemperatureValue < 0 ? "storage-other" : "storage-2-8c")"></i>
+                                                @item.StorageUnitType?.Name
                                             </span>
                                         </div>
-                                        <div class="data-row"><span class="data-label">Location:</span> <span class="data-value">Room[@item.Location.RoomNum]</span></div>
                                     </div>
 
                                     <!-- Card Footer Buttons -->
@@ -187,7 +181,7 @@
                                         {
                                             <a class="icon-btn" title="Add Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i></a>
                                         }
-                                        
+
                                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
                                         {
                                             <a class="icon-btn" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-2"></i></a>
@@ -195,7 +189,7 @@
 
                                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
                                         {
-                                            <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
+                                            <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageUnitTypeId','@item.CategoryId','@item.UnitId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
                                         }
 
                                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
@@ -234,7 +228,6 @@
                                 <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
                                     <thead>
                                         <tr class="text-center">
-                                            @* <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th> *@
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Barcode</th>
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
@@ -243,7 +236,6 @@
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
                                             <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Avilable<br class="m-0 p-0">Quantity</th>
                                             <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Storage<br class="m-0 p-0">Condition</th>
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
                                             <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                         </tr>
                                     </thead>
@@ -251,10 +243,10 @@
                                         @foreach (var item in Model.ItemsList)
                                         {
                                             cNo++;
-                                       
+
                                             <tr class="text-center">
                                                 <td class="text-center">
-                                                    
+
                                                     <img src="@item.BarcodeImage"
                                                          class="barcode-img rounded-2 shadow-sm bg-white p-1 w-100" />
                                                     <div style="font-size:12px" class="text-dark">
@@ -265,7 +257,7 @@
                                                     <span class="link-primary fw-bold">@item.Name</span>
                                                 </td>
                                                 <td class="fs-6 text-center px-1">@item.Lots.Count(x => x.AvilableQuantity > 0 && x.CurrentState > 0)</td>
-                                                @if(item.SDS == true)
+                                                @if (item.SDS == true)
                                                 {
                                                     <td class="text-center ">
                                                         <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
@@ -277,11 +269,11 @@
                                                 {
                                                     <td class="text-center ">
                                                         <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
-                                                           Invalid
+                                                            Invalid
                                                         </span>
                                                     </td>
                                                 }
-                                            
+
                                                 <td class="fs-6 text-center px-1">@item.Category.Name</td>
                                                 <td class="text-center ">
                                                     <span class="fw-bold py-2 px-3 bg-warning-subtle link-warning rounded-5">
@@ -289,25 +281,13 @@
                                                     </span>
                                                 </td>
                                                 <td class="fs-6 text-center px-1"><span class="fw-bold">@item.AvilableQuantity</span></td>
-                                               
-                                                @if (item.StorageCondition == "room temp")
-                                                {
-                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-danger fs-3 px-1"></i>@item.StorageCondition</span></td>
-                                                }
-                                                else if (item.StorageCondition == "2-8C")
-                                                {
-                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-success fs-3 px-1"></i>@item.StorageCondition</span></td>
-                                                }
-                                                else
-                                                {
-                                                    <td class=" text-start px-1 py-0"><span class="link-dark fw-bold px-3"><i class="bi bi-thermometer-half link-info fs-3 px-1"></i>@item.StorageCondition</span></td>
-                                                }
-                                                <td class="fs-6 text-center px-1">
-                                                    <a class="link-dark fw-bold text-decoration-none" title="Storage Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">
-                                                       Room[@item.Location.RoomNum]
-                                                    </a>
+
+                                                <td class="text-start px-1 py-0">
+                                                    <span class="link-dark fw-bold px-3">
+                                                        <i class="bi bi-thermometer-half @(item.StorageUnitType?.TemperatureValue < 0 ? "link-primary" : "link-success") fs-3 px-1"></i>
+                                                        @item.StorageUnitType?.Name
+                                                    </span>
                                                 </td>
-                                           
                                                 <td class="py-1">
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
                                                     {
@@ -319,7 +299,7 @@
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
                                                     {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageCondition','@item.CategoryId','@item.UnitId','@item.LocationId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageUnitTypeId','@item.CategoryId','@item.UnitId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
                                                     {
@@ -327,7 +307,7 @@
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
                                                     {
-                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code" ><i class="bi bi-printer-fill"></i></a>
+                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code"><i class="bi bi-printer-fill"></i></a>
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
                                                     {
@@ -346,16 +326,16 @@
                                                             <span class="icon-btn text-secondary"
                                                                   title="Cannot exchange — Available quantity is 0"
                                                                   style="cursor:not-allowed; opacity:.45;">
-                                                                
+
                                                                 <i class="bi bi-cart-dash-fill fs-2"></i>
                                                             </span>
                                                         }
-        }
+                                                    }
                                                     <style>
-                                                        .btn:hover {
-                                                            transform: scale(1.1);
-                                                            transition: 0.2s;
-                                                        }
+                                                                                                    .btn:hover {
+                                                                                                        transform: scale(1.1);
+                                                                                                        transition: 0.2s;
+                                                                                                    }
                                                     </style>
                                                 </td>
                                             </tr>
@@ -365,7 +345,7 @@
                             </div>
                         </div>
                     }
-                
+
                 </div>
                 <!-- /.card-body -->
             </div>
@@ -380,7 +360,7 @@
 <!-- /.content -->
 
 
-<partial name="_SaveItem"  />
+<partial name="_SaveItem" />
 
 @section Scripts {
     <script src="~/js/Users.js"></script>
@@ -391,10 +371,10 @@
             <script>
 
                 Swal.fire({
-                    title: '@Context.Session.GetString(Helper.Title)',
-                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
-                    confirmButtonText: 'Ok',
-                    icon: 'success'
+                title: '@Context.Session.GetString(Helper.Title)',
+                text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                confirmButtonText: 'Ok',
+                icon: 'success'
                 });
             </script>
 
@@ -404,10 +384,10 @@
             <script>
 
                 Swal.fire({
-                    title: '@Context.Session.GetString(Helper.Title)',
-                    text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
-                    confirmButtonText: 'Ok',
-                    icon: 'error'
+                title: '@Context.Session.GetString(Helper.Title)',
+                text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                confirmButtonText: 'Ok',
+                icon: 'error'
                 });
             </script>
         }
@@ -433,8 +413,3 @@
     </script>
 
 }
-
-
-
-
-

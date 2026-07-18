@@ -83,13 +83,13 @@ namespace X_ChemicalStorage.Controllers
                 .ToList();
 
             // Storage Condition
-            var storageSummary = new StorageConditionSummaryVm
-            {
-                RoomTempCount = items.Count(x => x.StorageCondition.Trim().ToLower() == "room temp"),
-                FreezerCount = items.Count(x => x.StorageCondition.Trim().ToLower().Contains("freezer")),
-                ColdCount = items.Count(x => x.StorageCondition.Trim().Contains("2-8"))
-            };
-            model.StorageCondition = storageSummary;
+            //var storageSummary = new StorageConditionSummaryVm
+            //{
+            //    RoomTempCount = items.Count(x => x.StorageCondition.Trim().ToLower() == "room temp"),
+            //    FreezerCount = items.Count(x => x.StorageCondition.Trim().ToLower().Contains("freezer")),
+            //    ColdCount = items.Count(x => x.StorageCondition.Trim().Contains("2-8"))
+            //};
+            //model.StorageCondition = storageSummary;
 
             //Items By Category
             model.CategorySummary = items

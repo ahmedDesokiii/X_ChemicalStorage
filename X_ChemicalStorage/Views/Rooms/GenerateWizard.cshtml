@@ -1,0 +1,292 @@
+﻿@model X_ChemicalStorage.Models.ViewModels.RoomsViewModel
+@{
+    ViewData["Title"] = "Generate Storage Structure";
+}
+
+<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
+    <div class="d-flex text-center mx-auto">
+        <a asp-controller="Rooms" asp-action="Index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Storage Locations</a>
+        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
+        <span class="text-center fs-1 fw-bold" style="color:#415E72 !important ">@ViewData["Title"]</span>
+    </div>
+</div>
+
+<style>
+    .wizard-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(3, 43, 66, 0.08);
+    }
+
+    .wizard-section-header {
+        background: linear-gradient(135deg, #032b42 0%, #0b4a6f 60%, #415E72 100%);
+        color: #fff;
+        border-radius: 16px 16px 0 0;
+        padding: 14px 22px;
+    }
+
+    .unit-row {
+        border: 1px solid #dbe4ea;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 14px;
+        background: #f8fafb;
+        position: relative;
+        transition: box-shadow .2s ease;
+    }
+
+        .unit-row:hover {
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        }
+
+        .unit-row .remove-unit-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
+
+    .summary-box {
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f8fafb 0%, #eef3f6 100%);
+        border: 1px solid #dbe4ea;
+        padding: 20px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .summary-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed #d3dde3;
+    }
+
+        .summary-stat:last-child {
+            border-bottom: none;
+        }
+
+        .summary-stat .value {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #032b42;
+        }
+
+    .btn-add-unit {
+        border: 2px dashed #0d6efd;
+        color: #0d6efd;
+        background: transparent;
+        border-radius: 12px;
+        width: 100%;
+        padding: 10px;
+        font-weight: 600;
+        transition: .2s;
+    }
+
+        .btn-add-unit:hover {
+            background: #0d6efd;
+            color: #fff;
+        }
+</style>
+
+<form method="post" asp-controller="Rooms" asp-action="GenerateWizard" id="wizardForm" dir="ltr">
+    <section class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-md-1"></div>
+
+            <!-- ================= LEFT: FORM ================= -->
+            <div class="col-md-7">
+                <div class="card wizard-card mb-4">
+                    <div class="wizard-section-header d-flex align-items-center">
+                        <i class="bi bi-door-open-fill fs-3 me-3"></i>
+                        <span class="fs-4 fw-bold">Room Info</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <label class="form-label fw-bold text-muted">Room Name</label>
+                        <input type="text" name="RoomName" id="roomName" required
+                               class="form-control form-control-lg fw-bold"
+                               placeholder="e.g. Cold Room 1" style="border-radius:12px;">
+                    </div>
+                </div>
+
+                <div class="card wizard-card mb-4">
+                    <div class="wizard-section-header d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-snow2 fs-3 me-3"></i>
+                            <span class="fs-4 fw-bold">Storage Units</span>
+                        </div>
+                        <span class="badge bg-light text-dark fs-6" id="unitCountBadge">0 types added</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="unitsContainer"></div>
+                        <button type="button" class="btn-add-unit mt-2" id="addUnitBtn">
+                            <i class="bi bi-plus-circle-fill me-2"></i> Add Storage Unit Type
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= RIGHT: LIVE PREVIEW ================= -->
+            <div class="col-md-3">
+                <div class="summary-box">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-clipboard-data-fill fs-3 text-primary me-2"></i>
+                        <span class="fs-5 fw-bold text-dark">Live Summary</span>
+                    </div>
+
+                    <div class="summary-stat">
+                        <span class="text-muted">Storage Units</span>
+                        <span class="value" id="sumUnits">0</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="text-muted">Shelves</span>
+                        <span class="value" id="sumShelves">0</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="text-muted">Boxes</span>
+                        <span class="value" id="sumBoxes">0</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="text-muted">Total Capacity</span>
+                        <span class="value text-success" id="sumCapacity">0</span>
+                    </div>
+
+                    <hr>
+                    <div id="breakdownList" class="small text-muted"></div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-4 py-2 fw-bold" style="border-radius:12px;">
+                        <i class="bi bi-check-circle-fill me-2"></i> Generate Structure
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </section>
+</form>
+
+<!-- Template Row (Hidden) -->
+<template id="unitRowTemplate">
+    <div class="unit-row" data-index="__INDEX__">
+        <div class="row g-2">
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted">Storage Unit Type</label>
+                <select name="Units[__INDEX__].StorageUnitTypeId" class="form-select unit-type-select" required>
+                    <option value="" selected disabled>Choose Type</option>
+                    @foreach (var type in Model.ListStorageUnitTypes)
+                    {
+                        <option value="@type.Value">@type.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">How Many Units?</label>
+                <input type="number" min="1" value="1" name="Units[__INDEX__].UnitsCount" class="form-control units-count" required>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check ps-1">
+                    <input class="form-check-input" type="checkbox" value="true" name="Units[__INDEX__].IsHazardous" id="haz___INDEX__">
+                    <input type="hidden" name="Units[__INDEX__].IsHazardous" value="false">
+                    <label class="form-check-label text-danger fw-bold" for="haz___INDEX__">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Hazardous
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Shelves / Unit</label>
+                <input type="number" min="1" value="1" name="Units[__INDEX__].ShelvesPerUnit" class="form-control shelves-count" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Boxes / Shelf</label>
+                <input type="number" min="1" value="1" name="Units[__INDEX__].BoxesPerShelf" class="form-control boxes-count" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Rows / Box</label>
+                <input type="number" min="1" value="9" name="Units[__INDEX__].RowsCount" class="form-control rows-count" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Columns / Box</label>
+                <input type="number" min="1" value="9" name="Units[__INDEX__].ColumnsCount" class="form-control cols-count" required>
+            </div>
+        </div>
+        <span class="remove-unit-btn" title="Remove"><i class="bi bi-x-circle-fill"></i></span>
+    </div>
+</template>
+
+@section Scripts {
+    <script>
+        let unitIndex = 0;
+
+        const unitsContainer = document.getElementById('unitsContainer');
+        const template = document.getElementById('unitRowTemplate').innerHTML;
+
+        function addUnitRow() {
+            const html = template.replaceAll('__INDEX__', unitIndex);
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html;
+            unitsContainer.appendChild(wrapper.firstElementChild);
+            unitIndex++;
+            bindRowEvents();
+            updateSummary();
+        }
+
+        function bindRowEvents() {
+            document.querySelectorAll('.unit-row').forEach(row => {
+                row.querySelectorAll('input, select').forEach(el => {
+                    el.removeEventListener('input', updateSummary);
+                    el.addEventListener('input', updateSummary);
+                    el.removeEventListener('change', updateSummary);
+                    el.addEventListener('change', updateSummary);
+                });
+
+                const removeBtn = row.querySelector('.remove-unit-btn');
+                removeBtn.onclick = () => {
+                    row.remove();
+                    updateSummary();
+                };
+            });
+        }
+
+        function updateSummary() {
+            let totalUnits = 0, totalShelves = 0, totalBoxes = 0, totalCapacity = 0;
+            const breakdown = [];
+
+            document.querySelectorAll('.unit-row').forEach(row => {
+                const unitsCount = parseInt(row.querySelector('.units-count').value) || 0;
+                const shelves = parseInt(row.querySelector('.shelves-count').value) || 0;
+                const boxes = parseInt(row.querySelector('.boxes-count').value) || 0;
+                const rows = parseInt(row.querySelector('.rows-count').value) || 0;
+                const cols = parseInt(row.querySelector('.cols-count').value) || 0;
+                const typeText = row.querySelector('.unit-type-select').selectedOptions[0]?.text || 'Unit';
+
+                const shelvesInRow = unitsCount * shelves;
+                const boxesInRow = shelvesInRow * boxes;
+                const capacityInRow = boxesInRow * rows * cols;
+
+                totalUnits += unitsCount;
+                totalShelves += shelvesInRow;
+                totalBoxes += boxesInRow;
+                totalCapacity += capacityInRow;
+
+                if (unitsCount > 0) {
+                    breakdown.push(`<div class="d-flex justify-content-between"><span>${typeText} × ${unitsCount}</span><span>${capacityInRow.toLocaleString()} slots</span></div>`);
+                }
+            });
+
+            document.getElementById('sumUnits').textContent = totalUnits;
+            document.getElementById('sumShelves').textContent = totalShelves.toLocaleString();
+            document.getElementById('sumBoxes').textContent = totalBoxes.toLocaleString();
+            document.getElementById('sumCapacity').textContent = totalCapacity.toLocaleString();
+            document.getElementById('unitCountBadge').textContent = `${document.querySelectorAll('.unit-row').length} types added`;
+            document.getElementById('breakdownList').innerHTML = breakdown.join('');
+        }
+
+        document.getElementById('addUnitBtn').addEventListener('click', addUnitRow);
+
+        // ابدأ بصف واحد جاهز
+        addUnitRow();
+    </script>
+}

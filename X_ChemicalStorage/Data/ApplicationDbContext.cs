@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 using X_ChemicalStorage.Models;
 
 namespace X_ChemicalStorage.Data
@@ -10,10 +11,10 @@ namespace X_ChemicalStorage.Data
         {
         }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        
+         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            //builder.UseCollation("Arabic_CI_AS");
 
             builder.Entity<ApplicationUser>().ToTable("ERP_WebUsers");
             builder.Entity<ApplicationRole>().ToTable("ERP_Roles");
@@ -23,26 +24,77 @@ namespace X_ChemicalStorage.Data
             builder.Entity<IdentityRoleClaim<int>>().ToTable("ERP_RoleClaims");
             builder.Entity<IdentityUserToken<int>>().ToTable("ERP_UserToken");
 
+            // منع تخزين أكتر من عينة في نفس المكان بالظبط
+            builder.Entity<Lot>()
+                .HasIndex(l => new { l.BoxId, l.RowIndex, l.ColumnIndex })
+                .IsUnique();
 
-            // Configure the composite primary key for the join entity
+            // ✅ منع الـ Cascade المتضارب - نحول كل العلاقات دي لـ Restrict
+            builder.Entity<Item>()
+                .HasOne(i => i.StorageUnitType)
+                .WithMany(t => t.Items)
+                .HasForeignKey(i => i.StorageUnitTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<StorageUnit>()
+                .HasOne(u => u.Room)
+                .WithMany(r => r.StorageUnits)
+                .HasForeignKey(u => u.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<StorageUnit>()
+                .HasOne(u => u.StorageUnitType)
+                .WithMany(t => t.StorageUnits)
+                .HasForeignKey(u => u.StorageUnitTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Shelf>()
+                .HasOne(s => s.StorageUnit)
+                .WithMany(u => u.Shelves)
+                .HasForeignKey(s => s.StorageUnitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Box>()
+                .HasOne(b => b.Shelf)
+                .WithMany(s => s.Boxes)
+                .HasForeignKey(b => b.ShelfId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Lot>()
+                .HasOne(l => l.Box)
+                .WithMany(b => b.Lots)
+                .HasForeignKey(l => l.BoxId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Lot>()
+                .HasOne(l => l.Item)
+                .WithMany(i => i.Lots)
+                .HasForeignKey(l => l.ItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<SupplierLot>()
                 .HasKey(sl => new { sl.SupplierId, sl.LotId });
 
-            // Define the relationship from Supplier to the join entity
-            //builder.Entity<SupplierLot>()
-            //    .HasOne(sl => sl.Supplier)
-            //    .WithMany(s => s.SupplierLots)
-            //    .HasForeignKey(sl => sl.SupplierId);
-
-            // Define the relationship from Lot to the join entity
-            //builder.Entity<SupplierLot>()
-            //    .HasOne(sl => sl.Lot)
-            //    .WithMany(l => l.SupplierLots)
-            //    .HasForeignKey(sl => sl.LotId);
-
+            // Seed لأنواع الوحدات الثابتة
+            builder.Entity<StorageUnitType>().HasData(
+                new StorageUnitType { Id = 1, Name = "Freezer-20°C", TemperatureValue = -20 },
+                new StorageUnitType { Id = 2, Name = "Freezer-80°C", TemperatureValue = -80 },
+                new StorageUnitType { Id = 3, Name = "Freezer-150°C", TemperatureValue = -150 },
+                new StorageUnitType { Id = 4, Name = "2°C-8°C", TemperatureValue = 4 },
+                new StorageUnitType { Id = 5, Name = "Liquid Nitrogen Tank", TemperatureValue = null },
+                new StorageUnitType { Id = 6, Name = "Room Temp", TemperatureValue = null }
+            );
         }
         //public DbSet<PrintSetting> PrintSettings { get; set; }
 
+
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<StorageUnitType> StorageUnitTypes { get; set; }
+        public DbSet<StorageUnit> StorageUnits { get; set; }
+        public DbSet<Shelf> Shelves { get; set; }
+        public DbSet<Box> Boxes { get; set; }
+
+       
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Unit> Units { get; set; }
@@ -61,5 +113,6 @@ namespace X_ChemicalStorage.Data
         {
             base.OnConfiguring(optionsBuilder);
         }
+        
     }
 }

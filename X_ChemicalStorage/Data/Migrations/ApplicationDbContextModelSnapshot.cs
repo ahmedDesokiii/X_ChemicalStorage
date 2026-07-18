@@ -244,6 +244,34 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("ERP_WebUsers", (string)null);
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Box", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ColumnsCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RowsCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShelfId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShelfId");
+
+                    b.ToTable("Boxes");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -265,7 +293,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
@@ -290,25 +318,30 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ColumnIndex")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CurrentState")
                         .HasColumnType("int");
 
                     b.Property<int>("Limit")
                         .HasColumnType("int");
 
-                    b.Property<int>("LocationId")
+                    b.Property<int?>("LocationId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RowIndex")
+                        .HasColumnType("int");
+
                     b.Property<bool>("SDS")
                         .HasColumnType("bit");
 
-                    b.Property<string>("StorageCondition")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("StorageUnitTypeId")
+                        .HasColumnType("int");
 
                     b.Property<double?>("TotalQuantity")
                         .HasColumnType("float");
@@ -322,9 +355,11 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("LocationId");
 
+                    b.HasIndex("StorageUnitTypeId");
+
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Items", (string)null);
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.ItemTransaction", b =>
@@ -369,7 +404,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("ItemTransactions", (string)null);
+                    b.ToTable("ItemTransactions");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Location", b =>
@@ -414,7 +449,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Locations", (string)null);
+                    b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Lot", b =>
@@ -431,6 +466,12 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<string>("BarcodeImage")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("BoxId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ColumnIndex")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CurrentState")
                         .HasColumnType("int");
 
@@ -441,9 +482,6 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("ItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LocationId")
                         .HasColumnType("int");
 
                     b.Property<string>("LotNumber")
@@ -458,6 +496,9 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<string>("Recipient")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RowIndex")
+                        .HasColumnType("int");
+
                     b.Property<bool?>("SDS")
                         .HasColumnType("bit");
 
@@ -468,9 +509,10 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.HasIndex("LocationId");
+                    b.HasIndex("BoxId", "RowIndex", "ColumnIndex")
+                        .IsUnique();
 
-                    b.ToTable("Lots", (string)null);
+                    b.ToTable("Lots");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.LotTransaction", b =>
@@ -516,7 +558,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LotTransactions", (string)null);
+                    b.ToTable("LotTransactions");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.ManufacuterCompany", b =>
@@ -543,7 +585,135 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ManufacuterCompanies", (string)null);
+                    b.ToTable("ManufacuterCompanies");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Room", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Shelf", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StorageUnitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StorageUnitId");
+
+                    b.ToTable("Shelves");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.StorageUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsHazardous")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StorageUnitTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("StorageUnitTypeId");
+
+                    b.ToTable("StorageUnits");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.StorageUnitType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("TemperatureValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StorageUnitTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Freezer-20°C",
+                            TemperatureValue = -20m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Freezer-80°C",
+                            TemperatureValue = -80m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Freezer-150°C",
+                            TemperatureValue = -150m
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "2°C-8°C",
+                            TemperatureValue = 4m
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Liquid Nitrogen Tank"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Room Temp"
+                        });
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
@@ -578,7 +748,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasIndex("LotId");
 
-                    b.ToTable("Suppliers", (string)null);
+                    b.ToTable("Suppliers");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.SupplierLot", b =>
@@ -589,11 +759,14 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<int>("LotId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.HasKey("SupplierId", "LotId");
 
                     b.HasIndex("LotId");
 
-                    b.ToTable("SupplierLots", (string)null);
+                    b.ToTable("SupplierLots");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>
@@ -617,7 +790,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Units", (string)null);
+                    b.ToTable("Units");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -671,6 +844,17 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Box", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Shelf", "Shelf")
+                        .WithMany("Boxes")
+                        .HasForeignKey("ShelfId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Shelf");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
                 {
                     b.HasOne("X_ChemicalStorage.Models.Category", "Category")
@@ -679,10 +863,14 @@ namespace X_ChemicalStorage.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("X_ChemicalStorage.Models.Location", "Location")
+                    b.HasOne("X_ChemicalStorage.Models.Location", null)
                         .WithMany("Items")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("LocationId");
+
+                    b.HasOne("X_ChemicalStorage.Models.StorageUnitType", "StorageUnitType")
+                        .WithMany("Items")
+                        .HasForeignKey("StorageUnitTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("X_ChemicalStorage.Models.Unit", "Unit")
@@ -693,7 +881,7 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.Navigation("Category");
 
-                    b.Navigation("Location");
+                    b.Navigation("StorageUnitType");
 
                     b.Navigation("Unit");
                 });
@@ -709,17 +897,50 @@ namespace X_ChemicalStorage.Data.Migrations
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Lot", b =>
                 {
+                    b.HasOne("X_ChemicalStorage.Models.Box", "Box")
+                        .WithMany("Lots")
+                        .HasForeignKey("BoxId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("X_ChemicalStorage.Models.Item", "Item")
                         .WithMany("Lots")
-                        .HasForeignKey("ItemId");
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("X_ChemicalStorage.Models.Location", "Location")
-                        .WithMany()
-                        .HasForeignKey("LocationId");
+                    b.Navigation("Box");
 
                     b.Navigation("Item");
+                });
 
-                    b.Navigation("Location");
+            modelBuilder.Entity("X_ChemicalStorage.Models.Shelf", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.StorageUnit", "StorageUnit")
+                        .WithMany("Shelves")
+                        .HasForeignKey("StorageUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("StorageUnit");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.StorageUnit", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Room", "Room")
+                        .WithMany("StorageUnits")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("X_ChemicalStorage.Models.StorageUnitType", "StorageUnitType")
+                        .WithMany("StorageUnits")
+                        .HasForeignKey("StorageUnitTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+
+                    b.Navigation("StorageUnitType");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
@@ -750,6 +971,11 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Box", b =>
+                {
+                    b.Navigation("Lots");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Category", b =>
                 {
                     b.Navigation("Items");
@@ -770,6 +996,28 @@ namespace X_ChemicalStorage.Data.Migrations
             modelBuilder.Entity("X_ChemicalStorage.Models.Lot", b =>
                 {
                     b.Navigation("Suppliers");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Room", b =>
+                {
+                    b.Navigation("StorageUnits");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Shelf", b =>
+                {
+                    b.Navigation("Boxes");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.StorageUnit", b =>
+                {
+                    b.Navigation("Shelves");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.StorageUnitType", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("StorageUnits");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>

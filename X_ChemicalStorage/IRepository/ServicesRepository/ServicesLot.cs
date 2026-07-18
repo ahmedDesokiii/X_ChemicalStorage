@@ -47,8 +47,11 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
             {
                 return _context.Lots
                     .Include(x=>x.Item)
-                    .Include(x=>x.Location)
                     .Include(x=>x.Suppliers)
+                    .Include(x => x.Box)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(s => s.StorageUnit)
+                            .ThenInclude(u => u.Room)
                     .Where(x => x.CurrentState > 0 && x.AvilableQuantity > 0)
                     .OrderBy(x=>x.ExpiryDate)
                     .ToList();
@@ -173,8 +176,10 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     result.ManufactureDate = model.ManufactureDate;
                     result.ExpiryDate = model.ExpiryDate;
                     result.SDS = model.SDS;
-                    result.LocationId = model.LocationId;
-                    
+                    result.BoxId = model.BoxId;
+                    result.RowIndex = model.RowIndex;
+                    result.ColumnIndex = model.ColumnIndex;
+
                     result.CurrentState = (int)Helper.eCurrentState.Active;
                     _context.Lots.Update(result);
                 }
@@ -350,21 +355,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
         }
         #endregion
 
-        #region Location Details
-        public Location? GetLocationDetailsOfLot(int Id)
-        {
-            try
-            {
-                var selectLot = FindBy(Id);
-
-                return selectLot.Location;
-            }
-            catch
-            {
-                return new Location();
-            }
-        }
-        #endregion
+        
 
         #region List Transactions Of Lot
         public List<LotTransaction> GetLotTransactionsOfLot(int id)

@@ -59,7 +59,70 @@
                         </div>
                         <!-- /.card -->
                     </div>
+                    <br>
+                    <!-- Lot Storage Location -->
+                    <div class="card p-0 mt-2 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                        <div class="card-header py-2 bg-success-subtle d-flex align-items-center">
+                            <i class="bi bi-geo-alt-fill link-success fs-4 pe-2"></i>
+                            <span class="fw-bold link-success fs-5">Storage Location</span>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="row g-2">
+                                <div class="col-md-6 col-6">
+                                    <label class="form-label small fw-bold text-muted">Room</label>
+                                    <select id="selRoom" class="form-select">
+                                        <option value="" selected disabled>Choose Room</option>
+                                        @foreach (var r in Model.ListRooms)
+                                        {
+                                            <option value="@r.Value">@r.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                </div>
+
+                                <div class="col-md-4 col-6">
+                                    <label class="form-label small fw-bold text-muted">Storage Unit</label>
+                                    <select id="selUnit" class="form-select" disabled>
+                                        <option value="" selected disabled>Choose Unit</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-6">
+                                    <label class="form-label small fw-bold text-muted">Shelf</label>
+                                    <select id="selShelf" class="form-select" disabled>
+                                        <option value="" selected disabled>Choose Shelf</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-6">
+                                    <label class="form-label small fw-bold text-muted">Box</label>
+                                    <select id="selBox" class="form-select" disabled>
+                                        <option value="" selected disabled>Choose Box</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="gridWrapper" class="mt-4 text-center" style="display:none;">
+                                <div class="d-flex justify-content-center gap-4 mb-3 small fw-bold">
+                                    <span><span class="legend-box legend-free"></span> Available</span>
+                                    <span><span class="legend-box legend-occupied"></span> Occupied</span>
+                                    <span><span class="legend-box legend-selected"></span> Selected</span>
+                                </div>
+                                <div class="table-responsive d-inline-block mx-auto">
+                                    <table id="boxGridTable" class="table table-bordered mb-0" style="width:auto;"></table>
+                                </div>
+                                <div class="mt-2 fw-bold text-primary" id="selectedSlotLabel">No slot selected yet</div>
+                            </div>
+
+                            <input type="hidden" asp-for="NewLot.BoxId" id="hiddenBoxId" />
+                            <input type="hidden" asp-for="NewLot.RowIndex" id="hiddenRowIndex" />
+                            <input type="hidden" asp-for="NewLot.ColumnIndex" id="hiddenColumnIndex" />
+                            <span asp-validation-for="NewLot.BoxId" class="text-danger"></span>
+                        </div>
+                    </div>
+
                 </div>
+
+                           
                 <div class="col-md-4 col-12">
                     <div class="card p-0">
                         <div class="card-header py-1 d-flex align-items-center justify-content-start bg-info-subtle">
@@ -126,20 +189,7 @@
                                 </span>
                             </div>
                             <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
-
-                            <!-- Lot Location -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Storage &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8 col-9"></span>
-                                <div class="row mt-1">
-                                    <select id="lotLocation" class="form-select text-start fw-bold" required asp-items="@Model.ListLocations" asp-for="@Model.NewLot.LocationId" style="border-top-right-radius : 20px ;font-size:14px">
-                                        <option selected disabled class="text-center " value=""> Choose Location </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.LocationId" class="text-danger"></span>
-                           
-                           
+                
                             <!-- Lot SDS -->
                             <div class="input-group mt-3 row mx-auto">
                                 <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 " id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -209,5 +259,177 @@
                 input.select();
             }, 100);
         });
+
+                const selRoom = document.getElementById('selRoom');
+        const selUnit = document.getElementById('selUnit');
+        const selShelf = document.getElementById('selShelf');
+        const selBox = document.getElementById('selBox');
+
+        function resetSelect(sel, placeholder) {
+            sel.innerHTML = `<option value="" selected disabled>${placeholder}</option>`;
+            sel.disabled = true;
+        }
+
+        function hideGrid() {
+            document.getElementById('gridWrapper').style.display = 'none';
+            document.getElementById('hiddenBoxId').value = '';
+            document.getElementById('hiddenRowIndex').value = '';
+            document.getElementById('hiddenColumnIndex').value = '';
+        }
+
+        selRoom.addEventListener('change', async () => {
+            resetSelect(selUnit, 'Choose Unit');
+            resetSelect(selShelf, 'Choose Shelf');
+            resetSelect(selBox, 'Choose Box');
+            hideGrid();
+
+            const res = await fetch(`/Rooms/GetStorageUnitsByRoom?roomId=${selRoom.value}`);
+            const units = await res.json();
+            units.forEach(u => selUnit.add(new Option(u.name, u.id)));
+            selUnit.disabled = false;
+        });
+
+        selUnit.addEventListener('change', async () => {
+            resetSelect(selShelf, 'Choose Shelf');
+            resetSelect(selBox, 'Choose Box');
+            hideGrid();
+
+            const res = await fetch(`/Rooms/GetShelvesByStorageUnit?storageUnitId=${selUnit.value}`);
+            const shelves = await res.json();
+            shelves.forEach(s => selShelf.add(new Option(s.name, s.id)));
+            selShelf.disabled = false;
+        });
+
+        selShelf.addEventListener('change', async () => {
+            resetSelect(selBox, 'Choose Box');
+            hideGrid();
+
+            const res = await fetch(`/Rooms/GetBoxesByShelf?shelfId=${selShelf.value}`);
+            const boxes = await res.json();
+            boxes.forEach(b => selBox.add(new Option(b.name, b.id)));
+            selBox.disabled = false;
+        });
+
+        selBox.addEventListener('change', async () => {
+            const res = await fetch(`/Rooms/GetBoxGrid?boxId=${selBox.value}`);
+            const gridData = await res.json();
+            if (!gridData) return;
+
+            renderGrid(gridData);
+            document.getElementById('hiddenBoxId').value = selBox.value;
+            document.getElementById('gridWrapper').style.display = 'block';
+        });
+
+        function renderGrid(data) {
+            const table = document.getElementById('boxGridTable');
+            table.innerHTML = '';
+
+            const occupiedMap = {};
+            data.occupied.forEach(o => {
+                occupiedMap[`${o.rowIndex}-${o.columnIndex}`] = o.lotNumber;
+            });
+
+            for (let r = 1; r <= data.rowsCount; r++) {
+                const tr = document.createElement('tr');
+                for (let c = 1; c <= data.columnsCount; c++) {
+                    const td = document.createElement('td');
+                    const key = `${r}-${c}`;
+
+                    if (occupiedMap[key]) {
+                        td.className = 'cell-occupied';
+                        td.title = `Occupied by Lot: ${occupiedMap[key]}`;
+                        td.innerHTML = '<i class="bi bi-x-lg" style="font-size:12px;color:#a94442;"></i>';
+                    } else {
+                        td.className = 'cell-free';
+                        td.title = `Row ${r}, Column ${c}`;
+                        td.addEventListener('click', () => selectCell(td, r, c));
+                    }
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
+
+        function selectCell(td, r, c) {
+            document.querySelectorAll('.cell-selected').forEach(el => el.classList.remove('cell-selected'));
+            td.classList.add('cell-selected');
+            td.classList.remove('cell-free');
+            td.classList.add('cell-free'); // يفضل قابل لإعادة الاختيار
+
+            document.getElementById('hiddenRowIndex').value = r;
+            document.getElementById('hiddenColumnIndex').value = c;
+            document.getElementById('selectedSlotLabel').textContent = `Selected: Row ${r}, Column ${c}`;
+        }
+
+        // منع الحفظ من غير ما يختار مكان فعلي
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const boxId = document.getElementById('hiddenBoxId').value;
+            const rowIndex = document.getElementById('hiddenRowIndex').value;
+
+            if (!boxId || !rowIndex) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Location Required',
+                    text: 'Please select a storage slot before saving.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        });
     </script>
 }
+<style>
+    .cell-free {
+        background: #d4edda;
+        border: 1px solid #b7dfc0;
+        width: 38px;
+        height: 38px;
+        cursor: pointer;
+        text-align: center;
+        vertical-align: middle;
+        transition: .15s;
+    }
+
+        .cell-free:hover {
+            background: #a9dcb5;
+            transform: scale(1.05);
+        }
+
+    .cell-occupied {
+        background: #f5c6cb;
+        border: 1px solid #eab5ba;
+        width: 38px;
+        height: 38px;
+        text-align: center;
+        vertical-align: middle;
+        cursor: not-allowed;
+    }
+
+    .cell-selected {
+        background: #0d6efd !important;
+        color: #fff;
+    }
+
+    .legend-box {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        margin-left: 4px;
+        vertical-align: middle;
+    }
+
+    .legend-free {
+        background: #d4edda;
+        border: 1px solid #b7dfc0;
+    }
+
+    .legend-occupied {
+        background: #f5c6cb;
+        border: 1px solid #eab5ba;
+    }
+
+    .legend-selected {
+        background: #0d6efd;
+    }
+</style>

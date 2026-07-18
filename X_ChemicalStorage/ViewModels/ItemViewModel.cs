@@ -15,7 +15,11 @@ namespace X_ChemicalStorage.ViewModels
         // Add other properties as needed for the ViewModel
         public IEnumerable<SelectListItem>? ListUnits { get; set; }
         public IEnumerable<SelectListItem>? ListCategories { get; set; }
-        public IEnumerable<SelectListItem>? ListLocations { get; set; }
+       
+        public List<SelectListItem> ListStorageUnitTypes { get; set; } = new();
+        public StorageUnitType? RequiredStorageType { get; set; }
+
+        public List<SelectListItem> ListRooms { get; set; } = new();
         public IEnumerable<SelectListItem>? ListLotsOfItem { get; set; }
         public IEnumerable<SelectListItem>? ListSuppliers { get; set; }
 

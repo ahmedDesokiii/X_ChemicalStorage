@@ -1,26 +1,20 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using X_ChemicalStorage.IRepository;
 using ZXing;
 using ZXing.Common;
-using ZXing.ImageSharp;
-using ZXing.QrCode;
 
 namespace X_ChemicalStorage.Controllers
 {
     public class ItemsController : Controller
     {
         private readonly IWebHostEnvironment _env;
-        private readonly IServicesRepository<Item> _servicesItem ;
-        private readonly IServicesRepository<Lot> _servicesLot ;
-        private readonly IServicesItem _servicesOfItem ;
+        private readonly IServicesRepository<Item> _servicesItem;
+        private readonly IServicesRepository<Lot> _servicesLot;
+        private readonly IServicesItem _servicesOfItem;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
@@ -48,43 +42,40 @@ namespace X_ChemicalStorage.Controllers
             var Items = new ItemViewModel();
 
             Items.ItemsList = _servicesItem.GetAll()
-                                            .OrderByDescending(x => x.StorageCondition)
+                                            .OrderByDescending(x => x.StorageUnitType.Name)
                                             .ToList();
             Items.NewItem = new Item();
 
-                Items.ListCategories = _context.Categories
-                                    .Where(c => c.CurrentState > 0)
-                                    .Include(l => l.Items)
-                                    .Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                                    {
-                                        Value = c.Id.ToString(),
-                                        Text = c.Name
-                                    }).ToList();
+            Items.ListCategories = _context.Categories
+                                .Where(c => c.CurrentState > 0)
+                                .Include(l => l.Items)
+                                .Select(c => new SelectListItem
+                                {
+                                    Value = c.Id.ToString(),
+                                    Text = c.Name
+                                }).ToList();
 
-                Items.ListLocations = _context.Locations
-                                    .Where(l => l.CurrentState > 0)
-                                    .Include(l => l.Items)
-                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                                    {
-                                        Value = l.Id.ToString(),
-                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
-                                    }).ToList();
-                Items.ListUnits = _context.Units
-                                    .Where(l => l.CurrentState > 0)
-                                    .Include(l => l.Items)
-                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                                    {
-                                        Value = l.Id.ToString(),
-                                        Text = l.Name
-                                    }).ToList();
+           Items.ListStorageUnitTypes = _context.StorageUnitTypes
+                                .Select(s => new SelectListItem
+                                {
+                                    Value = s.Id.ToString(),
+                                    Text = s.Name
+                                }).ToList();
 
-            
+            Items.ListUnits = _context.Units
+                                .Where(l => l.CurrentState > 0)
+                                .Include(l => l.Items)
+                                .Select(l => new SelectListItem
+                                {
+                                    Value = l.Id.ToString(),
+                                    Text = l.Name
+                                }).ToList();
+
             return View(Items);
         }
         #endregion
 
         #region Delete Item [Delete & Delete Log]
-        //Delete
         [Authorize(Permissions.Items.Delete_Items)]
         public IActionResult Delete(int Id)
         {
@@ -94,16 +85,6 @@ namespace X_ChemicalStorage.Controllers
 
             return RedirectToAction("index", "Items");
         }
-
-
-        ////Delete Log
-        //[Authorize(Permissions.Centers.DeleteLog)]
-        //public IActionResult DeleteLog(Guid Id)
-        //{
-        //    if (_servicesCenterLog.DeleteLog(Id))
-        //        return RedirectToAction("Centers", "Centers");
-        //    return RedirectToAction("Centers", "Centers");
-        //}
         #endregion
 
         #region Add|Edit Item [Create & Update] without print
@@ -115,32 +96,29 @@ namespace X_ChemicalStorage.Controllers
             var userId = _userManager.GetUserId(User);
 
             if (model?.NewItem?.Id == 0)
-            { //Create
-              //Exist
+            {
                 if (_servicesItem.FindBy(model.NewItem.Name) != null)
                     SessionMsg(Helper.Error, "Exist Item ", "This Item Name already exists !");
-                    
                 else
                 {
-                    if (_servicesItem.Save(model.NewItem))  
+                    if (_servicesItem.Save(model.NewItem))
                         SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
                     else
                         SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
                 }
             }
             else
-            { //Update
+            {
                 if (_servicesItem.Save(model.NewItem))
                     SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
                 else
                     SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
-
             }
             return RedirectToAction("index", "Items");
         }
         #endregion
 
-        #region Add with print |Edit Item [Create with print & Update] 
+        #region Add with print |Edit Item [Create with print & Update]
         [Authorize(Permissions.Items.Create_Items), Authorize(Permissions.Items.Edit_Items)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
@@ -149,40 +127,35 @@ namespace X_ChemicalStorage.Controllers
             var userId = _userManager.GetUserId(User);
 
             if (model?.NewItem?.Id == 0)
-            { //Create
-              //Exist
+            {
                 if (_servicesItem.FindBy(model.NewItem.Name) != null)
                     SessionMsg(Helper.Error, "Exist Item ", "This Item Name already exists !");
-
                 else
                 {
                     if (_servicesItem.Save(model.NewItem))
                     {
                         SessionMsg(Helper.Success, "Add Item", "The Item has been added successfully !");
-                        //To print Barcode After Save Item
-                        return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage , code = model.NewItem.Code });
+                        return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage, code = model.NewItem.Code });
                     }
                     else
                         SessionMsg(Helper.Error, "Error Adding Item", "An error occurred while adding some data !");
                 }
             }
             else
-            { //Update
+            {
                 if (_servicesItem.Save(model.NewItem))
                 {
                     SessionMsg(Helper.Success, "Edit Item", "The Item has been modified successfully !");
-                    //To print Barcode After Save Item
                     return RedirectToAction("PrintItemBarcode", "Items", new { barcodeFile = model.NewItem.BarcodeImage, code = model.NewItem.Code });
                 }
                 else
                     SessionMsg(Helper.Error, "Error Editting Item", "An error occurred while modifying some data !");
-
             }
             return RedirectToAction("index", "Items");
         }
         #endregion
 
-        #region Details Of Item 
+        #region Details Of Item
         [HttpGet]
         public IActionResult SelectedItem(int id)
         {
@@ -192,7 +165,7 @@ namespace X_ChemicalStorage.Controllers
             {
                 NewItem = _servicesItem.FindBy(id),
                 ItemsList = _servicesItem.GetAll()
-                                            .OrderByDescending(x => x.StorageCondition)
+                                            .OrderByDescending(x => x.StorageUnitType.Name)
                                             .ToList(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id)
                                         .OrderBy(x => x.ExpiryDate)
@@ -201,21 +174,23 @@ namespace X_ChemicalStorage.Controllers
                                         .ToList(),
 
                 ExpieredLots = _servicesLot.GetAll()
-                                        .Where(x => x.ItemId == id && x.ExpiryDate < todayUtc && x.CurrentState>0)
+                                        .Where(x => x.ItemId == id && x.ExpiryDate < todayUtc && x.CurrentState > 0)
                                         .OrderBy(x => x.ExpiryDate)
                                         .ThenBy(x => x.ManufactureDate)
                                         .ThenBy(x => x.ReceivedDate)
                                         .ToList(),
 
-                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id).OrderBy(x=>x.Move_Num).ToList(),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id).OrderBy(x => x.Move_Num).ToList(),
             };
-            model.LocationData = _servicesOfItem.GetLocationDetailsOfItem(id);
-            
+
+            // ✅ بدل GetLocationDetailsOfItem القديمة
+            model.RequiredStorageType = _servicesOfItem.GetRequiredStorageConditionOfItem(id);
+
             return View(model);
         }
         #endregion
 
-        #region Receiving → Lot Creation 
+        #region Receiving → Lot Creation
         [HttpGet]
         public IActionResult CreateLot(int id)
         {
@@ -228,85 +203,42 @@ namespace X_ChemicalStorage.Controllers
                 ItemsList = _servicesItem.GetAll(),
                 LotsList = _servicesOfItem.GetLotsOfItem(id),
                 ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
-                ListLocations = _context.Locations
-                                    .Where(l => l.CurrentState > 0)
-                                    .Include(l => l.Items)
-                                    .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                                    {
-                                        Value = l.Id.ToString(),
-                                        Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
-                                    }).ToList(),
+
+                // ✅ بدل ListLocations القديمة - أول خطوة في الكاسكيد
+                ListRooms = _context.Rooms
+                                    .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name })
+                                    .ToList(),
+
                 ListSuppliers = _context.Suppliers
                                     .Where(s => s.CurrentState > 0)
                                     .Include(s => s.Lot)
-                                    .Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                                    .Select(s => new SelectListItem
                                     {
                                         Value = s.Id.ToString(),
                                         Text = s.Name
                                     }).ToList(),
-                //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
             };
-            
+
             return View(model);
         }
         #endregion
 
-        #region Disbursing → Lot Exchange 
-
-        //public IActionResult ExchangeLot(int id)
-        //{
-        //    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        //    ItemViewModel model = new()
-        //    {
-        //        NewLot = _servicesLot.GetAll().OrderBy(x=>x.ExpiryDate).FirstOrDefault(x=>x.CurrentState>0) ,
-        //        NewItem = _servicesItem.FindBy(id),
-        //        ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
-        //        ListLocations = _context.Locations
-        //                            .Where(l => l.CurrentState > 0)
-        //                            .Include(l => l.Items)
-        //                            .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-        //                            {
-        //                                Value = l.Id.ToString(),
-        //                                Text = "Room[ " + l.RoomNum + " ] → Case[ " + l.CaseNum + " ] → Shelf[ " + l.ShelfNum + " ] → Rack[ " + l.RackNum + " ] → Box[ " + l.BoxNum + " ] → Tube[ " + l.TubeNum + " ] "
-        //                            }).ToList(),
-        //        //LocationData = _servicesOfItem.GetLocationDetailsOfItem(id)
-        //        ListLotsOfItem = _servicesOfItem.GetLotsOfItem(id)
-        //                            .Where(l => l.AvilableQuantity > 0)
-        //                            .OrderBy(x => x.ExpiryDate)
-        //                            .ThenBy(x => x.ManufactureDate)
-        //                            .ThenBy(x => x.ReceivedDate)
-        //                            .Select(l => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-        //                            {
-        //                                Value = l.Id.ToString(),
-        //                                Text = " Avilable Qty[ " + l.AvilableQuantity + " ] → Expiry Date[ " + (l.ExpiryDate.HasValue ? l.ExpiryDate.Value.ToString("yyyy-MM-dd") : "N/A") + " ] "
-        //                            }).ToList()
-        //    };
-
-        //    return View(model);
-
-
-        //}
-
-        // GET: Exchange Lot
+        #region Disbursing → Lot Exchange
         [HttpGet]
         public IActionResult ExchangeLot(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            // جلب بيانات الـ Item
+
             var item = _context.Items.FirstOrDefault(x => x.Id == id);
             if (item == null) return NotFound();
 
-            // جلب اللوتات المتاحة وترتيبها حسب تاريخ الانتهاء
             var lots = _context.Lots
                 .Where(x => x.ItemId == id && x.AvilableQuantity > 0)
                 .OrderBy(x => x.ExpiryDate)
                 .ToList();
 
-            // تعيين أول لوت كـ default
             var newLot = lots.FirstOrDefault();
 
-            // تجهيز الـ SelectList
             var listLotsOfItem = lots.Select(lot => new SelectListItem
             {
                 Value = lot.Id.ToString(),
@@ -324,14 +256,12 @@ namespace X_ChemicalStorage.Controllers
 
             return View(model);
         }
-        
         #endregion
 
         #region Print Barcode
-        public IActionResult PrintItemBarcode(string barcodeFile , string code)
+        public IActionResult PrintItemBarcode(string barcodeFile, string code)
         {
-            ViewBag.BarcodePath = "/barcodes/"+code+".png";
-            //ViewBag.BarcodePath = barcodeFile;
+            ViewBag.BarcodePath = "/barcodes/" + code + ".png";
             ViewBag.Code = code;
             return View();
         }

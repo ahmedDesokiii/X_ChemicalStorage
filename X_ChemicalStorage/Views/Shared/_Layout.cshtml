@@ -5,9 +5,15 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject RoleManager<ApplicationRole> RoleManager
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var servicesControllers = new[] { "Suppliers", "Categories", "Units", "ManufacuterCompanies", "Locations" };
+    var isServicesActive = servicesControllers.Contains(currentController);
+}
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ChemicalStorage</title>
@@ -25,7 +31,7 @@
 
     <!-- custom arabic font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&display=swap">
-    
+
     <!-- custom datatable css : ah-desoki-->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/columncontrol/1.1.1/css/columnControl.dataTables.css" />
@@ -33,14 +39,27 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.5/css/buttons.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.6.1/css/dataTables.dateTime.min.css" />
-    
+
     <!-- PWA : ah-desoki-->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0d6efd">
 
+    <!-- custom active link color -->
+    <style>
+        .navbar .nav-link.active,
+        .navbar .dropdown-item.active {
+        color: #ffc107 !important;
+        font-weight: bold;
+        }
+
+        .navbar .nav-link.dropdown-toggle.active {
+        border-bottom: 2px solid #ffc107;
+        }
+    </style>
+
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js');
+        navigator.serviceWorker.register('/service-worker.js');
         }
     </script>
 
@@ -69,7 +88,7 @@
                 <a asp-controller="Home" asp-action="Index" class="navbar-brand">
                     <img src="~/images/logo0.png" alt="Logo">
                 </a>
-                
+
                 <!-- Mobile Button -->
                 <button class="navbar-toggler" type="button"
                         data-bs-toggle="collapse"
@@ -90,63 +109,70 @@
                             @if (User.IsInRole(Roles.Admin.ToString()))
                             {
                                 <li class="nav-item mx-2">
-                                    <a class="nav-link fs-5" asp-controller="Users" asp-action="Index">
+                                    <a class="nav-link fs-5 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
                                         <i class="bi bi-people-fill fs-4"></i><br />Users
                                     </a>
                                 </li>
                                 <li class="nav-item mx-2">
-                                    <a class="nav-link fs-5" asp-controller="Roles" asp-action="Index">
+                                    <a class="nav-link fs-5 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
                                         <i class="bi bi-collection-fill fs-4"></i><br />Roles
                                     </a>
                                 </li>
-               
+
                             }
                             @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Dashboard.View).Result.Succeeded))
-                                {
-                                    <li class="nav-item mx-2">
-                                        <a class="nav-link fs-5" asp-controller="Home" asp-action="MasterDashboard">
-                                            <i class="bi bi-speedometer fs-4"></i><br />Dashboard
-                                        </a>
-                                    </li>                    
-                                }
+                            {
+                                <li class="nav-item mx-2">
+                                    <a class="nav-link fs-5 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
+                                        <i class="bi bi-speedometer fs-4"></i><br />Dashboard
+                                    </a>
+                                </li>
+                            }
 
                             @* Inventory Links *@
                             <li class="nav-item mx-2">
-                                <a class="nav-link fs-5" asp-controller="Items" asp-action="Index">
+                                <a class="nav-link fs-5 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
                                     <i class="bi bi-boxes fs-4"></i><br />Inventory Catalog
                                 </a>
                             </li>
                             <li class="nav-item mx-2">
-                                <a class="nav-link fs-5" asp-controller="Lots" asp-action="Index">
+                                <a class="nav-link fs-5 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
                                     <i class="bi bi-archive-fill fs-4"></i><br />Inventory Lots
                                 </a>
                             </li>
+                            @* Rooms Links *@
+                            <li class="nav-item mx-2">
+                                <a class="nav-link fs-5 @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">
+                                    <i class="bi bi-building fs-4"></i><br />Rooms
+                                </a>
+                            </li>
+                            
 
                             @* Services Dropdown *@
                             <li class="nav-item dropdown mx-2">
-                                <a class="nav-link dropdown-toggle fs-5" data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle fs-5 @(isServicesActive ? "active" : "")" data-bs-toggle="dropdown">
                                     <i class="bi bi-database-fill-gear fs-4"></i><br />Services
                                 </a>
                                 <ul class="dropdown-menu">
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
                                     {
-                                        <li><a class="dropdown-item" asp-controller="Suppliers" asp-action="Index">Suppliers</a></li>
+                                        <li><a class="dropdown-item @(currentController == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Index">Suppliers</a></li>
                                     }
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Categories.View).Result.Succeeded))
                                     {
-                                        <li><a class="dropdown-item" asp-controller="Categories" asp-action="Index">Categories</a></li>
+                                        <li><a class="dropdown-item @(currentController == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">Categories</a></li>
                                     }
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Units.View).Result.Succeeded))
                                     {
-                                        <li><a class="dropdown-item" asp-controller="Units" asp-action="Index">Units</a></li>
+                                        <li><a class="dropdown-item @(currentController == "Units" ? "active" : "")" asp-controller="Units" asp-action="Index">Units</a></li>
                                     }
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Manufacuters.View).Result.Succeeded))
                                     {
-                                        <li><a class="dropdown-item" asp-controller="ManufacuterCompanies" asp-action="Index">Manufacturers</a></li>
+                                        <li><a class="dropdown-item @(currentController == "ManufacuterCompanies" ? "active" : "")" asp-controller="ManufacuterCompanies" asp-action="Index">Manufacturers</a></li>
                                     }
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Locations.View).Result.Succeeded))
                                     {
-                                        <li><a class="dropdown-item" asp-controller="Locations" asp-action="Index">Locations</a></li>
+                                        <li><a class="dropdown-item @(currentController == "Locations" ? "active" : "")" asp-controller="Locations" asp-action="Index">Locations</a></li>
                                     }
                                 </ul>
                             </li>
@@ -174,13 +200,13 @@
         </main>
     </div>
 
-    @* 
+    @*
         <footer class=" border-top footer text-muted " style="background-color:#032b42 !important;border-radius:0 80px 0 0">
             <div class="container-fluid  text-center">
 
                 <a asp-area="" asp-controller="" asp-action="" class="fw-bold px-2 link-underline-opacity-0"> ادارة النظـم</a> <span class="text-light fw-light">&copy; ERP [ PackLine | Frist ] 2025 </span>
             </div>
-        </footer> 
+        </footer>
     *@
    
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -204,47 +230,47 @@
         let deferredPrompt;
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+        e.preventDefault();
+        deferredPrompt = e;
 
-            const btn = document.getElementById('installBtn');
-            if (btn) {
-                btn.classList.remove('d-none');
-            }
+        const btn = document.getElementById('installBtn');
+        if (btn) {
+        btn.classList.remove('d-none');
+        }
         });
 
         document.getElementById('installBtn')?.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
+        if (!deferredPrompt) return;
 
-            deferredPrompt.prompt();
-            const result = await deferredPrompt.userChoice;
+        deferredPrompt.prompt();
+        const result = await deferredPrompt.userChoice;
 
-            if (result.outcome === 'accepted') {
-                console.log('User accepted install');
-            }
+        if (result.outcome === 'accepted') {
+        console.log('User accepted install');
+        }
 
-            deferredPrompt = null;
+        deferredPrompt = null;
         });
     </script>
     <script>
         window.addEventListener('appinstalled', () => {
-            console.log('PWA Installed');
-            const btn = document.getElementById('installBtn');
-            if (btn) btn.style.display = 'none';
+        console.log('PWA Installed');
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'none';
         });
     </script>
 
     <script>
         function isPwaInstalled() {
-            return window.matchMedia('(display-mode: standalone)').matches
-                || window.navigator.standalone === true;
+        return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (isPwaInstalled()) {
-                const btn = document.getElementById('installBtn');
-                if (btn) btn.style.display = 'none';
-            }
+        if (isPwaInstalled()) {
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'none';
+        }
         });
     </script>
     <script>
@@ -252,36 +278,36 @@
         let installModal;
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+        e.preventDefault();
+        deferredPrompt = e;
 
-            installModal = new bootstrap.Modal(
-                document.getElementById('installModal')
-            );
+        installModal = new bootstrap.Modal(
+        document.getElementById('installModal')
+        );
 
-            installModal.show();
+        installModal.show();
         });
 
         document.getElementById('confirmInstall')?.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
+        if (!deferredPrompt) return;
 
-            deferredPrompt.prompt();
-            deferredPrompt = null;
-            installModal.hide();
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+        installModal.hide();
         });
     </script>
     <script>
         const installShown = localStorage.getItem('installPromptShown');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            if (installShown) return;
+        if (installShown) return;
 
-            e.preventDefault();
-            deferredPrompt = e;
+        e.preventDefault();
+        deferredPrompt = e;
 
-            localStorage.setItem('installPromptShown', 'true');
+        localStorage.setItem('installPromptShown', 'true');
 
-            installModal.show();
+        installModal.show();
         });
     </script>
 

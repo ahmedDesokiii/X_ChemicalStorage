@@ -5,6 +5,11 @@ namespace X_ChemicalStorage.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        [NotMapped]
+        public string ShortLocation =>
+            Box != null
+                ? $"{Box.Shelf.StorageUnit.Room.Name} / {Box.Shelf.StorageUnit.Name} / {Box.Name} (R{RowIndex},C{ColumnIndex})"
+                : "Not Assigned";
         public string? LotNumber { get; set; }
         public double? ExchageQuantity { get; set; }
         public string? Recipient { get; set; } // جهة الاستلام
@@ -24,10 +29,12 @@ namespace X_ChemicalStorage.Models
         public bool? SDS { get; set; }
         public string? BarcodeImage { get; set; } // مسار صورة الباركود
 
-        // Foreign Keys
-        public int? LocationId { get; set; } // Location Details
-        [ForeignKey("LocationId")]
-        public Location? Location { get; set; }
+        public int BoxId { get; set; }
+        public Box Box { get; set; } = null!;
+
+        public int RowIndex { get; set; }
+        public int ColumnIndex { get; set; }
+
         public int? ItemId { get; set; } 
         [ForeignKey("ItemId")]
         public Item? Item { get; set; }

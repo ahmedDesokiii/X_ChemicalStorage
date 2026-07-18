@@ -2,13 +2,12 @@
 {
     public class SupplierLot
     {
-        
-            // Foreign Key to Supplier
-            public int SupplierId { get; set; }
-            public Supplier Supplier { get; set; }
+        public int Id { get; set; }   // ✅ ضيف ده
 
-            // Foreign Key to Lot
-            public int LotId { get; set; }
-            public Lot Lot { get; set; }
+        public int SupplierId { get; set; }
+        public Supplier Supplier { get; set; }
+
+        public int LotId { get; set; }
+        public Lot Lot { get; set; }
     }
 }
