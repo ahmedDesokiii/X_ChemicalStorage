@@ -6,14 +6,38 @@
     int cNo = 0;
     string state = "";
 }
-<div class="card border-0 pt-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
-    <span class="text-center fw-bold fs-1  pb-3" style="color:#415E72 !important ">
-       Users
-        <i class="bi bi-people-fill ps-2 fs-1"></i>
-    </span>
+<!-- Hero Header -->
+<div class="page-hero" dir="ltr">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="hero-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <h1 class="hero-title">Users</h1>
+                        <p class="hero-subtitle">Manage Users & assign roles to users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="hero-stats d-inline-flex gap-4">
+                    <div class="stat-item text-center">
+@*                         <div class="stat-value">@(Model.Count ?? 0)</div>
+                        <div class="stat-label">Users</div> *@
+                    </div>
+                    <div class="stat-item text-center">
+                            @* <div class="stat-value">@(Model.?.Sum(r => r.StorageUnits?.Count ?? 0) ?? 0)</div>
+                            <div class="stat-label">Roles</div> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<!-- Main content -->
 
+<!-- Main content -->
 <section class="container-fluid my-3" dir="ltr">
     <div class="row">
 

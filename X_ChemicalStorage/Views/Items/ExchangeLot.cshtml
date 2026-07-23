@@ -6,14 +6,28 @@
     ViewData["Title"] = "Exchange Lot";
 }
 
-<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0" dir="ltr">
-    <div class="d-flex text-center mx-auto">
-        <span class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important">
-            @ViewData["Title"]
-            <i class="bi bi-cart-dash-fill ps-2 fs-1"></i>
-        </span>
+<!-- Hero Header -->
+<div class="lot-hero" dir="ltr">
+    <div class="container-fluid">
+        <!--  Modern Pill (Recommended) -->
+        <nav aria-label="breadcrumb" class="breadcrumb-nav-pill mx-auto text-center justify-content-center" dir="ltr">
+            <ol class="breadcrumb-list">
+                <li class="breadcrumb-step completed">
+                    <a asp-controller="Items" asp-action="Index" class="step-link">
+                        <span class="step-icon"><i class="bi bi-archive-fill"></i></span>
+                        <span class="step-label">Items</span>
+                    </a>
+                    <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+                </li>
+                <li class="breadcrumb-step active">
+                    <span class="step-icon"><i class="bi bi-cart-dash-fill"></i></span>
+                    <span class="step-label">@ViewData["Title"]</span>
+                </li>
+            </ol>
+        </nav>
     </div>
 </div>
+
 
 <form method="post">
     <section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
@@ -137,25 +151,23 @@
             const lotId = document.getElementById("lotId");
 
 
-            function updateLotDetails() {
-                const selectedOption = lotList.options[lotList.selectedIndex];
-                const barcode = selectedOption.dataset.barcode;
-                const code = selectedOption.dataset.code;
-                const available = parseInt(selectedOption.dataset.available);
-                const id = parseInt(selectedOption.dataset.id);
+        function updateLotDetails() {
+            const selectedOption = lotList.options[lotList.selectedIndex];
+            const barcode = selectedOption.dataset.barcode;
+            const code = selectedOption.dataset.code;
+            const available = parseInt(selectedOption.dataset.available);
+            const id = parseInt(selectedOption.dataset.id);
 
-
-                // تحديث صورة الباركود ورقم اللوت
-                lotBarcode.src = barcode;
-                lotNumber.textContent = code;
-                lotNum.value = code;
-                lotExQnty.max = available;
-                lotId.value = id;
-
-            }
-            // عند تغيير اللوت
+            // تحديث صورة الباركود ورقم اللوت
+            lotBarcode.src = barcode;
+            lotNumber.textContent = code;
+            lotNum.value = code;
+            lotExQnty.max = available;
+            lotExQnty.value = "";
+            lotExQnty.placeholder = "Max Quantity : " + available;
+            lotId.value = id;
+        }
             lotList.addEventListener("change", updateLotDetails);
-            // // تحديث عند تحميل الصفحة
             updateLotDetails();
 
         });

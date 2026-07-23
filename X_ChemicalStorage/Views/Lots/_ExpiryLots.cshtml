@@ -5,7 +5,7 @@
 
 
 <!-- Modal -->
-<div class="modal fade bd-example-modal-lg" id="ExpieryLotsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" dir="ltr">
+<div class="modal fade bd-example-modal-xl" id="ExpieryLotsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" dir="ltr">
     <div class="modal-dialog modal-lg card card-success card-outline">
         <div class="modal-content">
             <div class="modal-header" style="background-color:#758A93" dir="ltr">
@@ -22,18 +22,18 @@
                 }
                 else
                 {
-                    <div id="Roles" class="tabcontent mx-2">
+                    <div id="Roles" class="tabcontent mx-0">
                         <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableRole">
                             <thead>
                                 <tr class="text-center">
-                                    <th class=" text-white text-center px-0 fs-5 bg-danger"  >Lot Number</th>
-                                    <th class=" text-white text-center px-0 fs-5 bg-danger"  >Item</th>
-                                    <th class=" text-white text-center px-0 fs-5 bg-danger"  >Expiry Date</th>
-                                    <th class=" text-white text-center px-0 fs-6 bg-danger"  >Total<br class="m-0 p-0">Quantity</th>
-                                    <th class=" text-white text-center px-0 fs-5 bg-danger"  >Location</th>
-                                    <th class=" text-white text-center px-0 fs-5 bg-danger"  >Lot SDS</th>
-                                    <th class=" text-white text-center px-0 fs-6 bg-danger"  >Manufacture <br class="m-0 p-0">Date</th>
-                                    <th class=" text-white text-center px-0 fs-6 bg-danger" >Actions</th>
+                                    <th class=" text-white text-center px-1 fs-5 bg-danger"  >Lot Number</th>
+                                    <th class=" text-white text-center px-1 fs-5 bg-danger"  >Item</th>
+                                    <th class=" text-white text-center px-1 fs-5 bg-danger"  >Expiry Date</th>
+                                    <th class=" text-white text-center px-1 fs-6 bg-danger"  >Total<br class="m-0 p-0">Quantity</th>
+                                    <th class=" text-white text-center px-1 fs-5 bg-danger"  >Location</th>
+                                    <th class=" text-white text-center px-1 fs-5 bg-danger"  >Lot SDS</th>
+                                    @* <th class=" text-white text-center px-1 fs-6 bg-danger"  >Manufacture <br class="m-0 p-0">Date</th>
+                                     *@<th class=" text-white text-center px-1 fs-6 bg-danger" >Actions</th>
 
                                 </tr>
                             </thead>
@@ -63,10 +63,10 @@
                                         </td>
                                         <td class="fs-6 text-center px-1 bg-light-subtle"><span class="fw-bold link-danger">@Convert.ToDateTime(lot.ExpiryDate).ToShortDateString()</span></td>
                                         <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark fw-bold">@lot.TotalQuantity</span></td>
-                                        <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark fw-bold">@lot.ShortLocation</span></td>
+                                        <td class=" text-center px-1 bg-light-subtle" style="font-size:12px"><span class="link-dark fw-bold">@lot.ShortLocation</span></td>
                                             @if (lot.SDS == true)
                                             {
-                                            <td class="text-center bg-light-subtle">
+                                            <td class="fs-6 text-center bg-light-subtle">
                                                     <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
                                                         Valid
                                                     </span>
@@ -74,15 +74,15 @@
                                             }
                                             else
                                             {
-                                            <td class="text-center bg-light-subtle">
+                                            <td class="fs-6 text-center bg-light-subtle">
                                                     <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
                                                         Invalid
                                                     </span>
                                                 </td>
                                             }
                                         
-                                        <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
-                                        <td class="fs-6 text-center px-1 bg-light-subtle">
+                                       @*  <td class="fs-6 text-center px-1 bg-light-subtle"><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
+                                        *@ <td class="fs-6 text-center px-1 bg-light-subtle">
                                             @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded)
                                             {
                                                 <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>

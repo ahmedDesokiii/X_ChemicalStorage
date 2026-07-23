@@ -3,166 +3,657 @@
     ViewData["Title"] = "Generate Storage Structure";
 }
 
-<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
-    <div class="d-flex text-center mx-auto">
-        <a asp-controller="Rooms" asp-action="Index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Storage Locations</a>
-        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
-        <span class="text-center fs-1 fw-bold" style="color:#415E72 !important ">@ViewData["Title"]</span>
+<!-- Breadcrumb Header - Harmonized with Layout -->
+<div class="wizard-hero" dir="ltr">
+    <div class="container-fluid">
+        <!--  Modern Pill (Recommended) -->
+        <nav aria-label="breadcrumb" class="breadcrumb-nav-pill mx-auto text-center justify-content-center" dir="ltr">
+            <ol class="breadcrumb-list">
+                <li class="breadcrumb-step completed">
+                    <a asp-controller="Rooms" asp-action="Index" class="step-link">
+                        <span class="step-icon"><i class="bi bi-building me-1"></i></span>
+                        <span class="step-label">Rooms</span>
+                    </a>
+                    <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+                </li>
+                <li class="breadcrumb-step active">
+                    <span class="step-icon"><i class="bi bi-magic"></i></span>
+                    <span class="step-label">Generate Storage Structure</span>
+                </li>
+            </ol>
+        </nav>
+
+        <p class="wizard-subtitle">Configure and auto-generate your complete storage hierarchy</p>
     </div>
 </div>
 
 <style>
-    .wizard-card {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 4px 18px rgba(3, 43, 66, 0.08);
+    /* ===== CSS Variables - Harmonized with _Layout ===== */
+    :root {
+        --primary-dark: #032b42;
+        --primary-mid: #032b42;
+        --primary-light: #032b42;
+        --accent: #0d6efd;
+        --success: #198754;
+        --danger: #dc3545;
+        --warning: #ffc107;
+        --bg-light: #f8fafb;
+        --bg-card: #ffffff;
+        --border: #dbe4ea;
+        --text-dark: #1a2b3c;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 2px 8px rgba(3,43,66,0.06);
+        --shadow-md: 0 4px 20px rgba(3,43,66,0.10);
+        --shadow-lg: 0 8px 32px rgba(3,43,66,0.14);
+        --radius-sm: 10px;
+        --radius-md: 16px;
+        --radius-lg: 20px;
     }
 
-    .wizard-section-header {
-        background: linear-gradient(135deg, #032b42 0%, #0b4a6f 60%, #415E72 100%);
-        color: #fff;
-        border-radius: 16px 16px 0 0;
-        padding: 14px 22px;
-    }
-
-    .unit-row {
-        border: 1px solid #dbe4ea;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 14px;
-        background: #f8fafb;
+    /* ===== Wizard Hero - Matches Layout Colors ===== */
+    .wizard-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 50%, var(--primary-light) 100%);
+        padding: 35px 30px 30px;
+        border-radius: 0 0 var(--radius-lg) 0;
+        margin-bottom: 30px;
         position: relative;
-        transition: box-shadow .2s ease;
+        overflow: hidden;
+    }
+
+        .wizard-hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -5%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 50%;
+        }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255,255,255,0.4);
+        content: ">";
+    }
+
+    .breadcrumb-item.active {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+    }
+
+    .breadcrumb-link {
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+        .breadcrumb-link:hover {
+            color: #fff;
+        }
+
+    .wizard-title {
+        color: #fff;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 8px 0 4px;
+        letter-spacing: -0.5px;
+    }
+
+    .wizard-subtitle {
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    /* ===== Cards ===== */
+    .wizard-card {
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 24px;
+        transition: box-shadow 0.3s;
+    }
+
+        .wizard-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
+        color: #fff;
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .card-header-custom .header-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+            .card-header-custom .header-icon i {
+                font-size: 18px;
+            }
+
+        .card-header-custom .header-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .card-header-custom .header-badge {
+            margin-left: auto;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+    .card-body-custom {
+        padding: 24px;
+    }
+
+    /* ===== Form Elements ===== */
+    .form-label-custom {
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .form-label-custom i {
+            color: var(--primary-light);
+            font-size: 0.8rem;
+        }
+
+    .form-control-custom, .form-select-custom {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--border);
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        background: #fff;
+    }
+
+        .form-control-custom:focus, .form-select-custom:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+            background: #fff;
+        }
+
+        .form-control-custom::placeholder {
+            color: #adb5bd;
+            font-weight: 400;
+        }
+
+    .input-group-custom .form-control-custom,
+    .input-group-custom .form-select-custom {
+        border-radius: 0;
+    }
+
+        .input-group-custom .form-control-custom:first-child,
+        .input-group-custom .form-select-custom:first-child {
+            border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+        }
+
+        .input-group-custom .form-control-custom:last-child,
+        .input-group-custom .form-select-custom:last-child,
+        .input-group-custom .btn:last-child {
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+    .input-group-text-custom {
+        background: var(--bg-light);
+        border: 1.5px solid var(--border);
+        border-left: none;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    /* ===== Unit Rows ===== */
+    .unit-row {
+        background: linear-gradient(180deg, #fff 0%, var(--bg-light) 100%);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 16px;
+        position: relative;
+        transition: all 0.3s ease;
     }
 
         .unit-row:hover {
-            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+            border-color: var(--accent);
+            box-shadow: 0 4px 16px rgba(13, 110, 253, 0.08);
         }
 
-        .unit-row .remove-unit-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            color: #dc3545;
-            font-size: 1.2rem;
+        .unit-row .row-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--border);
         }
 
-    .summary-box {
-        border-radius: 16px;
-        background: linear-gradient(135deg, #f8fafb 0%, #eef3f6 100%);
-        border: 1px solid #dbe4ea;
-        padding: 20px;
-        position: sticky;
-        top: 20px;
+        .unit-row .row-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-mid));
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .unit-row .row-title {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 0.95rem;
+        }
+
+    .remove-unit-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #ffebee;
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1rem;
     }
+
+        .remove-unit-btn:hover {
+            background: var(--danger);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+    /* ===== Hazardous Checkbox ===== */
+    .hazard-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        background: #fff5f5;
+        border: 1.5px solid #ffcdd2;
+        cursor: pointer;
+        transition: all 0.2s;
+        height: fit-content;
+    }
+
+        .hazard-check:hover {
+            background: #ffebee;
+            border-color: var(--danger);
+        }
+
+        .hazard-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--danger);
+            cursor: pointer;
+        }
+
+        .hazard-check label {
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin: 0;
+        }
+
+    /* ===== Add Unit Button ===== */
+    .btn-add-unit {
+        border: 2px dashed var(--accent);
+        color: var(--accent);
+        background: transparent;
+        border-radius: var(--radius-sm);
+        width: 100%;
+        padding: 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .btn-add-unit:hover {
+            background: var(--accent);
+            color: #fff;
+            border-style: solid;
+        }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+        border-radius: var(--radius-md);
+        background: linear-gradient(180deg, #fff 0%, var(--bg-light) 100%);
+        border: 1.5px solid var(--border);
+        padding: 24px;
+        position: sticky;
+        top: 24px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .summary-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--border);
+    }
+
+        .summary-header i {
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        .summary-header h5 {
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 0;
+            font-size: 1.1rem;
+        }
 
     .summary-stat {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px dashed #d3dde3;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--border);
     }
 
         .summary-stat:last-child {
             border-bottom: none;
         }
 
-        .summary-stat .value {
+        .summary-stat .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .summary-stat .stat-value {
             font-weight: 800;
             font-size: 1.3rem;
-            color: #032b42;
+            color: var(--primary-dark);
         }
 
-    .btn-add-unit {
-        border: 2px dashed #0d6efd;
-        color: #0d6efd;
-        background: transparent;
-        border-radius: 12px;
-        width: 100%;
-        padding: 10px;
-        font-weight: 600;
-        transition: .2s;
+            .summary-stat .stat-value.success {
+                color: var(--success);
+            }
+
+            .summary-stat .stat-value.warning {
+                color: var(--warning);
+            }
+
+    .summary-divider {
+        border: none;
+        border-top: 2px solid var(--border);
+        margin: 16px 0;
     }
 
-        .btn-add-unit:hover {
-            background: #0d6efd;
-            color: #fff;
+    .breakdown-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .breakdown-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
         }
+
+        .breakdown-item .type-name {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .breakdown-item .type-count {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .breakdown-item .type-slots {
+            font-weight: 700;
+            color: var(--success);
+            font-size: 0.9rem;
+        }
+
+    .btn-generate {
+        width: 100%;
+        padding: 14px;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-size: 1rem;
+        border: none;
+        background: linear-gradient(135deg, var(--success) 0%, #2e7d32 100%);
+        color: #fff;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+    }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
+        }
+
+        .btn-generate:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+    /* ===== Alerts ===== */
+    .alert-floating {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        border-radius: var(--radius-sm);
+        padding: 14px 20px;
+        box-shadow: var(--shadow-lg);
+        border: none;
+        animation: slideInRight 0.4s ease;
+        min-width: 350px;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .alert-floating.alert-danger {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #c62828;
+    }
+
+    /* ===== Layout Color Harmony Classes ===== */
+    .text-warning-custom {
+        color: #ffc107 !important;
+    }
+
+    .bg-topbar {
+        background-color: #BBE0EF !important;
+    }
+
+    /* ===== Responsive ===== */
+    @@media (max-width: 991px) {
+        .summary-box {
+            position: relative;
+            top: 0;
+            margin-top: 24px;
+        }
+    }
+
+    /* ===== Animations ===== */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .unit-row {
+        animation: fadeInUp 0.3s ease;
+    }
 </style>
 
+<!-- Alerts -->
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-floating alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <form method="post" asp-controller="Rooms" asp-action="GenerateWizard" id="wizardForm" dir="ltr">
-    <section class="container-fluid mt-3">
+    @Html.AntiForgeryToken()
+    <section class="container-fluid">
         <div class="row">
-            <div class="col-md-1"></div>
+            <div class="col-lg-1"></div>
 
             <!-- ================= LEFT: FORM ================= -->
-            <div class="col-md-7">
-                <div class="card wizard-card mb-4">
-                    <div class="wizard-section-header d-flex align-items-center">
-                        <i class="bi bi-door-open-fill fs-3 me-3"></i>
-                        <span class="fs-4 fw-bold">Room Info</span>
+            <div class="col-lg-7">
+                <!-- Room Info Card -->
+                <div class="wizard-card">
+                    <div class="card-header-custom">
+                        <div class="header-icon">
+                            <i class="bi bi-door-open-fill"></i>
+                        </div>
+                        <span class="header-title">Room Information</span>
                     </div>
-                    <div class="card-body p-4">
-                        <label class="form-label fw-bold text-muted">Room Name</label>
-                        <input type="text" name="RoomName" id="roomName" required
-                               class="form-control form-control-lg fw-bold"
-                               placeholder="e.g. Cold Room 1" style="border-radius:12px;">
+                    <div class="card-body-custom">
+                        <div class="mb-3">
+                            <label class="form-label-custom">
+                                <i class="bi bi-tag-fill"></i> Room Name
+                            </label>
+                            <input type="text" name="RoomName" id="roomName" required
+                                   class="form-control form-control-custom form-control-lg"
+                                   placeholder="e.g. Cold Room 1, Main Storage A">
+                            <div class="form-text text-muted mt-2">
+                                <i class="bi bi-info-circle me-1"></i> This will be the display name for the new storage room.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card wizard-card mb-4">
-                    <div class="wizard-section-header d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-snow2 fs-3 me-3"></i>
-                            <span class="fs-4 fw-bold">Storage Units</span>
+                <!-- Storage Units Card -->
+                <div class="wizard-card">
+                    <div class="card-header-custom">
+                        <div class="header-icon">
+                            <i class="bi bi-box-seam"></i>
                         </div>
-                        <span class="badge bg-light text-dark fs-6" id="unitCountBadge">0 types added</span>
+                        <span class="header-title">Storage Units Configuration</span>
+                        <span class="header-badge" id="unitCountBadge">0 types</span>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body-custom">
                         <div id="unitsContainer"></div>
-                        <button type="button" class="btn-add-unit mt-2" id="addUnitBtn">
-                            <i class="bi bi-plus-circle-fill me-2"></i> Add Storage Unit Type
+                        <button type="button" class="btn-add-unit mt-3" id="addUnitBtn">
+                            <i class="bi bi-plus-circle-fill"></i> Add Storage Unit Type
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- ================= RIGHT: LIVE PREVIEW ================= -->
-            <div class="col-md-3">
+            <div class="col-lg-3">
                 <div class="summary-box">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-clipboard-data-fill fs-3 text-primary me-2"></i>
-                        <span class="fs-5 fw-bold text-dark">Live Summary</span>
+                    <div class="summary-header">
+                        <i class="bi bi-clipboard-data-fill"></i>
+                        <h5>Live Summary</h5>
                     </div>
 
                     <div class="summary-stat">
-                        <span class="text-muted">Storage Units</span>
-                        <span class="value" id="sumUnits">0</span>
+                        <span class="stat-label"><i class="bi bi-box-seam me-2 text-primary"></i>Storage Units</span>
+                        <span class="stat-value" id="sumUnits">0</span>
                     </div>
                     <div class="summary-stat">
-                        <span class="text-muted">Shelves</span>
-                        <span class="value" id="sumShelves">0</span>
+                        <span class="stat-label"><i class="bi bi-layers me-2 text-info"></i>Shelves</span>
+                        <span class="stat-value" id="sumShelves">0</span>
                     </div>
                     <div class="summary-stat">
-                        <span class="text-muted">Boxes</span>
-                        <span class="value" id="sumBoxes">0</span>
+                        <span class="stat-label"><i class="bi bi-grid-3x3 me-2 text-warning"></i>Boxes</span>
+                        <span class="stat-value" id="sumBoxes">0</span>
                     </div>
                     <div class="summary-stat">
-                        <span class="text-muted">Total Capacity</span>
-                        <span class="value text-success" id="sumCapacity">0</span>
+                        <span class="stat-label"><i class="bi bi-database me-2 text-success"></i>Total Capacity</span>
+                        <span class="stat-value success" id="sumCapacity">0</span>
                     </div>
 
-                    <hr>
-                    <div id="breakdownList" class="small text-muted"></div>
+                    <hr class="summary-divider">
 
-                    <button type="submit" class="btn btn-success w-100 mt-4 py-2 fw-bold" style="border-radius:12px;">
-                        <i class="bi bi-check-circle-fill me-2"></i> Generate Structure
+                    <div class="breakdown-list" id="breakdownList">
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                            <p class="small mt-2 mb-0">Add units to see breakdown</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-generate" id="generateBtn" disabled>
+                        <i class="bi bi-check-circle-fill"></i> Generate Structure
                     </button>
                 </div>
             </div>
-            <div class="col-md-1"></div>
+            <div class="col-lg-1"></div>
         </div>
     </section>
 </form>
@@ -170,11 +661,19 @@
 <!-- Template Row (Hidden) -->
 <template id="unitRowTemplate">
     <div class="unit-row" data-index="__INDEX__">
-        <div class="row g-2">
+        <div class="row-header">
+            <div class="row-number">__INDEX__</div>
+            <span class="row-title">Storage Unit Configuration</span>
+        </div>
+        <span class="remove-unit-btn" title="Remove this unit type"><i class="bi bi-x-lg"></i></span>
+
+        <div class="row g-3">
             <div class="col-md-5">
-                <label class="form-label small fw-bold text-muted">Storage Unit Type</label>
-                <select name="Units[__INDEX__].StorageUnitTypeId" class="form-select unit-type-select" required>
-                    <option value="" selected disabled>Choose Type</option>
+                <label class="form-label-custom">
+                    <i class="bi bi-box"></i> Storage Unit Type
+                </label>
+                <select name="Units[__INDEX__].StorageUnitTypeId" class="form-select form-select-custom unit-type-select" required>
+                    <option value="" selected disabled>Choose Type...</option>
                     @foreach (var type in Model.ListStorageUnitTypes)
                     {
                         <option value="@type.Value">@type.Text</option>
@@ -182,72 +681,149 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">How Many Units?</label>
-                <input type="number" min="1" value="1" name="Units[__INDEX__].UnitsCount" class="form-control units-count" required>
+                <label class="form-label-custom">
+                    <i class="bi bi-hash"></i> Quantity
+                </label>
+                <input type="number" min="1" value="1" name="Units[__INDEX__].UnitsCount"
+                       class="form-control form-control-custom units-count" required>
             </div>
             <div class="col-md-4 d-flex align-items-end">
-                <div class="form-check ps-1">
-                    <input class="form-check-input" type="checkbox" value="true" name="Units[__INDEX__].IsHazardous" id="haz___INDEX__">
+                <div class="hazard-check w-100">
+                    <input class="form-check-input" type="checkbox" value="true"
+                           name="Units[__INDEX__].IsHazardous" id="haz___INDEX__">
                     <input type="hidden" name="Units[__INDEX__].IsHazardous" value="false">
-                    <label class="form-check-label text-danger fw-bold" for="haz___INDEX__">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Hazardous
+                    <label for="haz___INDEX__">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Hazardous Material
                     </label>
                 </div>
             </div>
 
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Shelves / Unit</label>
-                <input type="number" min="1" value="1" name="Units[__INDEX__].ShelvesPerUnit" class="form-control shelves-count" required>
+                <label class="form-label-custom">
+                    <i class="bi bi-layers"></i> Shelves / Unit
+                </label>
+                <input type="number" min="1" value="1" name="Units[__INDEX__].ShelvesPerUnit"
+                       class="form-control form-control-custom shelves-count" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Boxes / Shelf</label>
-                <input type="number" min="1" value="1" name="Units[__INDEX__].BoxesPerShelf" class="form-control boxes-count" required>
+                <label class="form-label-custom">
+                    <i class="bi bi-grid"></i> Boxes / Shelf
+                </label>
+                <input type="number" min="1" value="1" name="Units[__INDEX__].BoxesPerShelf"
+                       class="form-control form-control-custom boxes-count" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Rows / Box</label>
-                <input type="number" min="1" value="9" name="Units[__INDEX__].RowsCount" class="form-control rows-count" required>
+                <label class="form-label-custom">
+                    <i class="bi bi-layout-three-columns"></i> Rows / Box
+                </label>
+                <input type="number" min="1" value="9" name="Units[__INDEX__].RowsCount"
+                       class="form-control form-control-custom rows-count" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Columns / Box</label>
-                <input type="number" min="1" value="9" name="Units[__INDEX__].ColumnsCount" class="form-control cols-count" required>
+                <label class="form-label-custom">
+                    <i class="bi bi-layout-three-columns" style="transform: rotate(90deg); display: inline-block;"></i> Cols / Box
+                </label>
+                <input type="number" min="1" value="9" name="Units[__INDEX__].ColumnsCount"
+                       class="form-control form-control-custom cols-count" required>
             </div>
         </div>
-        <span class="remove-unit-btn" title="Remove"><i class="bi bi-x-circle-fill"></i></span>
     </div>
 </template>
 
 @section Scripts {
     <script>
         let unitIndex = 0;
-
         const unitsContainer = document.getElementById('unitsContainer');
         const template = document.getElementById('unitRowTemplate').innerHTML;
+        const generateBtn = document.getElementById('generateBtn');
 
         function addUnitRow() {
             const html = template.replaceAll('__INDEX__', unitIndex);
             const wrapper = document.createElement('div');
             wrapper.innerHTML = html;
-            unitsContainer.appendChild(wrapper.firstElementChild);
+            const row = wrapper.firstElementChild;
+            unitsContainer.appendChild(row);
+
+            // Animate in
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(20px)';
+            requestAnimationFrame(() => {
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            });
+
             unitIndex++;
             bindRowEvents();
             updateSummary();
+            validateForm();
         }
 
         function bindRowEvents() {
             document.querySelectorAll('.unit-row').forEach(row => {
                 row.querySelectorAll('input, select').forEach(el => {
-                    el.removeEventListener('input', updateSummary);
-                    el.addEventListener('input', updateSummary);
-                    el.removeEventListener('change', updateSummary);
-                    el.addEventListener('change', updateSummary);
+                    el.removeEventListener('input', onInputChange);
+                    el.addEventListener('input', onInputChange);
+                    el.removeEventListener('change', onInputChange);
+                    el.addEventListener('change', onInputChange);
                 });
 
                 const removeBtn = row.querySelector('.remove-unit-btn');
                 removeBtn.onclick = () => {
-                    row.remove();
-                    updateSummary();
+                    row.style.transition = 'all 0.2s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        row.remove();
+                        reindexRows();
+                        updateSummary();
+                        validateForm();
+                    }, 200);
                 };
+
+                // Hazardous checkbox handling
+                const hazCheck = row.querySelector('input[type="checkbox"][name$=".IsHazardous"]');
+                if (hazCheck) {
+                    hazCheck.addEventListener('change', function() {
+                        const hidden = this.nextElementSibling;
+                        if (this.checked) {
+                            hidden.disabled = true;
+                        } else {
+                            hidden.disabled = false;
+                        }
+                    });
+                }
             });
+        }
+
+        function onInputChange() {
+            updateSummary();
+            validateForm();
+        }
+
+        function reindexRows() {
+            const rows = document.querySelectorAll('.unit-row');
+            rows.forEach((row, idx) => {
+                row.dataset.index = idx;
+                row.querySelector('.row-number').textContent = idx;
+                row.querySelectorAll('input, select').forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) {
+                        input.setAttribute('name', name.replace(/\[\d+\]/, `[${idx}]`));
+                    }
+                    const id = input.getAttribute('id');
+                    if (id) {
+                        input.setAttribute('id', id.replace(/___INDEX__/, `__${idx}`));
+                    }
+                });
+                row.querySelectorAll('label').forEach(label => {
+                    const forAttr = label.getAttribute('for');
+                    if (forAttr) {
+                        label.setAttribute('for', forAttr.replace(/___INDEX__/, `__${idx}`));
+                    }
+                });
+            });
+            unitIndex = rows.length;
         }
 
         function updateSummary() {
@@ -260,7 +836,9 @@
                 const boxes = parseInt(row.querySelector('.boxes-count').value) || 0;
                 const rows = parseInt(row.querySelector('.rows-count').value) || 0;
                 const cols = parseInt(row.querySelector('.cols-count').value) || 0;
-                const typeText = row.querySelector('.unit-type-select').selectedOptions[0]?.text || 'Unit';
+                const typeSelect = row.querySelector('.unit-type-select');
+                const typeText = typeSelect.selectedOptions[0]?.text || 'Unit';
+                const isHazardous = row.querySelector('input[type="checkbox"][name$=".IsHazardous"]').checked;
 
                 const shelvesInRow = unitsCount * shelves;
                 const boxesInRow = shelvesInRow * boxes;
@@ -271,22 +849,60 @@
                 totalBoxes += boxesInRow;
                 totalCapacity += capacityInRow;
 
-                if (unitsCount > 0) {
-                    breakdown.push(`<div class="d-flex justify-content-between"><span>${typeText} × ${unitsCount}</span><span>${capacityInRow.toLocaleString()} slots</span></div>`);
+                if (unitsCount > 0 && typeSelect.value) {
+                    const hazardIcon = isHazardous ? '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>' : '';
+                    breakdown.push(`
+                        <div class="breakdown-item">
+                            <div>
+                                <span class="type-name">${hazardIcon}${typeText}</span>
+                                <span class="type-count">× ${unitsCount}</span>
+                            </div>
+                            <span class="type-slots">${capacityInRow.toLocaleString()} slots</span>
+                        </div>
+                    `);
                 }
             });
 
-            document.getElementById('sumUnits').textContent = totalUnits;
+            document.getElementById('sumUnits').textContent = totalUnits.toLocaleString();
             document.getElementById('sumShelves').textContent = totalShelves.toLocaleString();
             document.getElementById('sumBoxes').textContent = totalBoxes.toLocaleString();
             document.getElementById('sumCapacity').textContent = totalCapacity.toLocaleString();
-            document.getElementById('unitCountBadge').textContent = `${document.querySelectorAll('.unit-row').length} types added`;
-            document.getElementById('breakdownList').innerHTML = breakdown.join('');
+            document.getElementById('unitCountBadge').textContent = `${document.querySelectorAll('.unit-row').length} types`;
+
+            const breakdownEl = document.getElementById('breakdownList');
+            if (breakdown.length > 0) {
+                breakdownEl.innerHTML = breakdown.join('');
+            } else {
+                breakdownEl.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                        <p class="small mt-2 mb-0">Add units to see breakdown</p>
+                    </div>
+                `;
+            }
+        }
+
+        function validateForm() {
+            const roomName = document.getElementById('roomName').value.trim();
+            const hasUnits = document.querySelectorAll('.unit-row').length > 0;
+            const allTypesSelected = Array.from(document.querySelectorAll('.unit-type-select'))
+                .every(s => s.value !== '');
+
+            generateBtn.disabled = !(roomName && hasUnits && allTypesSelected);
         }
 
         document.getElementById('addUnitBtn').addEventListener('click', addUnitRow);
+        document.getElementById('roomName').addEventListener('input', validateForm);
 
-        // ابدأ بصف واحد جاهز
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert-floating').forEach(alert => {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) bsAlert.close();
+            });
+        }, 5000);
+
+        // Start with one row
         addUnitRow();
     </script>
 }

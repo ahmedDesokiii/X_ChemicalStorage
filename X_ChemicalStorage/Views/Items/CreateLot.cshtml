@@ -5,248 +5,260 @@
     ViewData["Title"] = "Create New Lot";
     string lotNumGenerate = Guid.NewGuid().ToString("N").Substring(0, 8);
 }
-<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0 " dir="ltr">
-    <div class="d-flex text-center mx-auto">
-        @* <a asp-controller="Items" asp-action="index" class="text-center fs-4 fw-bold text-decoration-none" style="color:#415E72 !important ">Items</a>
-        <i class="bi bi-chevron-double-right fw-bold fs-3 mt-2 mx-3" style="color:#415E72 !important"></i>
-         *@
-        <span class="text-center fs-1 fw-bold text-decoration-none" style="color:#415E72 !important ">@ViewData["Title"]
-            <i class="bi bi-cart-plus-fill ps-2 fs-1"></i>
-        </span>
+
+<!-- Hero Header -->
+<div class="lot-hero" dir="ltr">
+    <div class="container-fluid">
+        <!--  Modern Pill (Recommended) -->
+        <nav aria-label="breadcrumb" class="breadcrumb-nav-pill mx-auto text-center justify-content-center" dir="ltr">
+            <ol class="breadcrumb-list">
+                <li class="breadcrumb-step completed">
+                    <a asp-controller="Items" asp-action="Index" class="step-link">
+                        <span class="step-icon"><i class="bi bi-archive-fill"></i></span>
+                        <span class="step-label">Items</span>
+                    </a>
+                    <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
+                </li>
+                <li class="breadcrumb-step active">
+                    <span class="step-icon"><i class="bi bi-cart-plus-fill"></i></span>
+                    <span class="step-label">@ViewData["Title"]</span>
+                </li>
+            </ol>
+        </nav>
     </div>
 </div>
+
+
+
+
 <form  method="post">
-    <section class="text-center py-3 d-flex container-fluid justify-content-center mx-auto" dir="ltr">
-        <section class="container-fluid mt-3 " dir="ltr">
-            <div class="row">
-                <div class="col-md-2"></div>
-                <div class="col-md-4 col-12">
-                    <div class="card p-0">
-                        <div class="card-header py-1 d-flex align-items-center justify-content-start bg-danger-subtle">
-                            <i class="bi bi-pin-angle-fill link-danger fs-4 pe-3"></i>
-                            <span class="fs-4 fw-bold link-danger">Item Data</span>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body mx-auto">
-                            <!-- Item Image -->
-                            <div class="input-group mt-2 row mx-auto">
-                                @* <img src="~/images/item.png" class="mx-auto w-50" /> *@
-                            </div>
-                            <!---------------------------- Item Data ----------------------------------->
-                            <input hidden asp-for="@Model.NewLot.ItemId" value="@Model.NewItem.Id" class="form-control text-center fw-bold" style="border-top-right-radius : 20px ;">
-
-                            <!-- Item Barcode -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <div class="card col-md-8 col-9 py-1" style="border-top-right-radius : 20px ;">
-                                    <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                        <img src="~/barcodes/0bfaec93.png" height="60" />
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Item Code -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input readonly  value="@Model.NewItem.Code" class="form-control text-center fw-bold col-md-8 col-9" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            </div>
-                            <!-- Item Name -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold col-md-8 col-9" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            </div>
-                        
-                            <!-- /.card-body -->
-                        </div>
-                        <!-- /.card -->
+    <section class="container-fluid mt-1 " dir="ltr">
+        <div class="row ">
+            <div class="col-md-4 col-12">
+                <div class="card p-0 mt-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                    <div class="card-header py-2 d-flex align-items-center justify-content-start bg-danger-subtle">
+                        <i class="bi bi-pin-angle-fill link-danger fs-4 pe-3"></i>
+                        <span class="fs-4 fw-bold link-danger">Item Data</span>
                     </div>
-                    <br>
-                    <!-- Lot Storage Location -->
-                    <div class="card p-0 mt-2 shadow-sm" style="border-radius:16px; overflow:hidden;">
-                        <div class="card-header py-2 bg-success-subtle d-flex align-items-center">
-                            <i class="bi bi-geo-alt-fill link-success fs-4 pe-2"></i>
-                            <span class="fw-bold link-success fs-5">Storage Location</span>
+                    <!-- /.card-header -->
+                    <div class="card-body mx-auto">
+                        <!-- Item Image -->
+                        <div class="input-group mt-2 row mx-auto">
+                            @* <img src="~/images/item.png" class="mx-auto w-50" /> *@
                         </div>
-                        <div class="card-body p-3">
-                            <div class="row g-2">
-                                <div class="col-md-6 col-6">
-                                    <label class="form-label small fw-bold text-muted">Room</label>
-                                    <select id="selRoom" class="form-select">
-                                        <option value="" selected disabled>Choose Room</option>
-                                        @foreach (var r in Model.ListRooms)
-                                        {
-                                            <option value="@r.Value">@r.Text</option>
-                                        }
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                </div>
+                        <!---------------------------- Item Data ----------------------------------->
+                        <input hidden asp-for="@Model.NewLot.ItemId" value="@Model.NewItem.Id" class="form-control text-center fw-bold" style="border-top-right-radius : 20px ;">
 
-                                <div class="col-md-4 col-6">
-                                    <label class="form-label small fw-bold text-muted">Storage Unit</label>
-                                    <select id="selUnit" class="form-select" disabled>
-                                        <option value="" selected disabled>Choose Unit</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 col-6">
-                                    <label class="form-label small fw-bold text-muted">Shelf</label>
-                                    <select id="selShelf" class="form-select" disabled>
-                                        <option value="" selected disabled>Choose Shelf</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 col-6">
-                                    <label class="form-label small fw-bold text-muted">Box</label>
-                                    <select id="selBox" class="form-select" disabled>
-                                        <option value="" selected disabled>Choose Box</option>
-                                    </select>
+                        <!-- Item Barcode -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <div class="card col-md-8 col-9 py-1" style="border-top-right-radius : 20px ;">
+                                <div class="card-body row p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                    <img src="~/barcodes/0bfaec93.png" height="60" />
                                 </div>
                             </div>
-
-                            <div id="gridWrapper" class="mt-4 text-center" style="display:none;">
-                                <div class="d-flex justify-content-center gap-4 mb-3 small fw-bold">
-                                    <span><span class="legend-box legend-free"></span> Available</span>
-                                    <span><span class="legend-box legend-occupied"></span> Occupied</span>
-                                    <span><span class="legend-box legend-selected"></span> Selected</span>
-                                </div>
-                                <div class="table-responsive d-inline-block mx-auto">
-                                    <table id="boxGridTable" class="table table-bordered mb-0" style="width:auto;"></table>
-                                </div>
-                                <div class="mt-2 fw-bold text-primary" id="selectedSlotLabel">No slot selected yet</div>
-                            </div>
-
-                            <input type="hidden" asp-for="NewLot.BoxId" id="hiddenBoxId" />
-                            <input type="hidden" asp-for="NewLot.RowIndex" id="hiddenRowIndex" />
-                            <input type="hidden" asp-for="NewLot.ColumnIndex" id="hiddenColumnIndex" />
-                            <span asp-validation-for="NewLot.BoxId" class="text-danger"></span>
                         </div>
-                    </div>
-
-                </div>
-
-                           
-                <div class="col-md-4 col-12">
-                    <div class="card p-0">
-                        <div class="card-header py-1 d-flex align-items-center justify-content-start bg-info-subtle">
-                            <i class="bi bi-pin-angle-fill link-primary fs-4 pe-3"></i>
-                            <span class="fs-4 fw-bold link-primary">Lot Data</span>
+                        <!-- Item Code -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Code &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input readonly value="@Model.NewItem.Code" class="form-control text-center fw-bold col-md-8 col-9" autocomplete="on" aria-required="true" placeholder="Item Code ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
                         </div>
-                        <!-- /.card-header -->
-                        <div class="card-body mx-auto ">
-                            <!-- Item Image -->
-                            <div class="input-group mt-2 row mx-auto">
-                            </div>
-                        
-                            <!---------------------------- Lot Data ----------------------------------->
-                            <!-- Lot Barcode -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="card col-md-8 col-9 py-1 border-start" style="border-top-right-radius : 20px ;">
-                                    <span class="col-md-8">
-                                        <img src="~/lotbarcodes/184799d5.png" height="60" />
-                                    </span>
-                                </span>
-                            </div>
-
-                            <!-- Lot Number -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8 col-9">
-                                <input id="lotNum"  required asp-for="@Model.NewLot.LotNumber" value="@lotNumGenerate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Lot Number" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;" >
-                                </span>
-                            </div>
-                            
-                        
-                            <!-- Lot Quantity -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8 col-9">
-                                    <input id="lotQnty" value="1" asp-for="@Model.NewLot.TotalQuantity" required class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
-                                </span>
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
-                        
-                            <!-- Lot Expiry Date -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Expiry Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8 col-8">
-                                <input type="date" id="lotExpiryDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ExpiryDate" class="form-control text-center col-md-8 col-9" style="border-top-right-radius : 20px ;">
-                                </span>
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.ExpiryDate" class="text-danger"></span>
-                            <!-- Lot Supplier -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Supplier &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <span class="col-md-8 col-9">
-                                    <select id="lotSupp" class="form-select text-start " required asp-items="@Model.ListSuppliers" style="border-top-right-radius : 20px ;">
-                                        <option selected disabled class="text-center " value=""> Choose Supplier </option>
-                                    </select>
-                                </span>
-                            </div>
-                            <!-- Lot Manufacture Date -->
-                            <div class="input-group mt-2 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">Manufacture Date </span>
-                                <span class="col-md-8 col-8">
-                                    <input type="date" id="lotManufactureDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center " style="border-top-right-radius : 20px ;">
-                                </span>
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
-                
-                            <!-- Lot SDS -->
-                            <div class="input-group mt-3 row mx-auto">
-                                <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 " id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;">
-                                    <div class="card-body col-md-8 p-0 mx-auto" style="border-top-right-radius : 20px ;">
-                                       <div class="row">
-                                            @* <div class="col-md-1 col-1"></div> *@
-                                            <div class="col-md-3 col-3 text-center my-0">
-                                                <label for="sdsYes" class="radio-card" onclick="document.getElementById('itemSDS').value = 'True'; ">
-                                                    <input type="radio" hidden name="radio-card" id="sdsYes" />
-                                                    <div class="card-content-wrapper rounded-3 py-2 px-4">
-                                                        <span class="bi bi-shield-fill-check link-success fs-3"></span>
-                                                        <br class="m-0 p-0">
-                                                        <span class="link-dark mb-0">Valid</span>
-                                                    </div>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-4 col-4 text-center"></div>
-                                            <div class=" col-md-3 col-3 text-center my-0">
-                                                <label for="sdsNo" class="radio-card" onclick="document.getElementById('itemSDS').value = 'False'; ">
-                                                    <input type="radio" hidden name="radio-card" id="sdsNo" />
-                                                    <div class="card-content-wrapper rounded-3 py-2 px-3">
-                                                        <span class="bi bi-shield-x link-danger fs-3"></span>
-                                                        <br class="m-0 p-0">
-                                                        <span class="link-dark mb-0">Invalid</span>
-                                                    </div>
-                                                </label>
-                                            </div>
-                                       </div>
-                                        
-                                    </div>
-                                </div>
-                                <input id="itemSDS" required hidden asp-for="@Model.NewLot.SDS" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
-                            </div>
-                            <span asp-validation-for="@Model.NewLot.SDS" class="text-danger"></span>
+                        <!-- Item Name -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-danger-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Item Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <input readonly value="@Model.NewItem.Name" class="form-control text-center fw-bold col-md-8 col-9" autocomplete="on" aria-required="true" placeholder="Item Name ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
 
                         <!-- /.card-body -->
-                    </div>
-                    <div class=" d-flex mx-auto py-3 mt-2 bg-transparent" style="padding:0 15px 15px 0">
-                            <button class="btn btn-outline-primary btn-sm mx-2 d-flex rounded rounded-3 " type="submit" title="Print lot Barcode" 
-                                asp-controller="Lots" 
-                                asp-action="PrintLotBarcode" 
-                                asp-route-barcodeFile="@Model.NewLot.BarcodeImage" 
-                                asp-route-ItemName="@Model.NewItem.Name" 
-                                asp-route-LotNumber="@Model.NewLot.LotNumber" 
-                                asp-route-ExpiryDate="@Model.NewLot.ExpiryDate">
-                                <img src="~/images/barcode.png" alt="SaveAndPrint" height="30"  class="mx-2">
-                                <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
-                        </button>
-                        <input type="submit" class="btn btn-success mx-2" value="Save changes Only" id="btnSave" asp-action="Save" asp-controller="Lots" />  
                     </div>
                     <!-- /.card -->
                 </div>
             </div>
+            <div class="col-md-4 col-12">
+
+                <div class="card p-0 mt-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                    <div class="card-header py-2 d-flex align-items-center justify-content-start bg-info-subtle">
+                        <i class="bi bi-pin-angle-fill link-primary fs-4 pe-3"></i>
+                        <span class="fs-4 fw-bold link-primary">Lot Data</span>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body mx-auto ">
+                        <!-- Item Image -->
+                        <div class="input-group mt-2 row mx-auto">
+                        </div>
+
+                        <!---------------------------- Lot Data ----------------------------------->
+                        <!-- Lot Barcode -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Barcode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span class="card col-md-8 col-9 py-1 border-start" style="border-top-right-radius : 20px ;">
+                                <span class="col-md-8">
+                                    <img src="~/lotbarcodes/184799d5.png" height="60" />
+                                </span>
+                            </span>
+                        </div>
+
+                        <!-- Lot Number -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span class="col-md-8 col-9">
+                                <input id="lotNum" required asp-for="@Model.NewLot.LotNumber" value="@lotNumGenerate" class="form-control text-center fw-bold" autocomplete="on" aria-required="true" placeholder="Enter Lot Number" type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                            </span>
+                        </div>
+
+                            
+                        <!-- Lot Quantity -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span class="col-md-8 col-9">
+                                <input id="lotQnty" value="1" asp-for="@Model.NewLot.TotalQuantity" required class="form-control text-center " placeholder="Enter Quantity Lot " type="number" min="0" style="border-top-right-radius : 20px ;" autofocus>
+                            </span>
+                        </div>
+                        <span asp-validation-for="@Model.NewLot.TotalQuantity" class="text-danger"></span>
+
+                        <!-- Lot Expiry Date -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Expiry Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span class="col-md-8 col-8">
+                                <input type="date" id="lotExpiryDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ExpiryDate" class="form-control text-center col-md-8 col-9" style="border-top-right-radius : 20px ;">
+                            </span>
+                        </div>
+                        <span asp-validation-for="@Model.NewLot.ExpiryDate" class="text-danger"></span>
+                        <!-- Lot Supplier -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-3" id="inputGroup-sizing-default ">Lot Supplier &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <span class="col-md-8 col-9">
+                                <select id="lotSupp" class="form-select text-start " required asp-items="@Model.ListSuppliers" style="border-top-right-radius : 20px ;">
+                                    <option selected disabled class="text-center " value=""> Choose Supplier </option>
+                                </select>
+                            </span>
+                        </div>
+                        <!-- Lot Manufacture Date -->
+                        <div class="input-group mt-2 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4" id="inputGroup-sizing-default ">Manufacture Date </span>
+                            <span class="col-md-8 col-8">
+                                <input type="date" id="lotManufactureDate" value="@DateTime.Now.ToShortDateString()" asp-for="@Model.NewLot.ManufactureDate" class="form-control text-center " style="border-top-right-radius : 20px ;">
+                            </span>
+                        </div>
+                        <span asp-validation-for="@Model.NewLot.ManufactureDate" class="text-danger"></span>
+
+                        <!-- Lot SDS -->
+                        <div class="input-group mt-3 row mx-auto">
+                            <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 " id="inputGroup-sizing-default ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Lot SDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            <div class="card col-md-8 py-0" style="border-top-right-radius : 20px ;">
+                                <div class="card-body col-md-8 p-0 mx-auto" style="border-top-right-radius : 20px ;">
+                                    <div class="row">
+                                        @* <div class="col-md-1 col-1"></div> *@
+                                        <div class="col-md-3 col-3 text-center my-0">
+                                            <label for="sdsYes" class="radio-card" onclick="document.getElementById('itemSDS').value = 'True'; ">
+                                                <input type="radio" hidden name="radio-card" id="sdsYes" />
+                                                <div class="card-content-wrapper rounded-3 py-2 px-4">
+                                                    <span class="bi bi-shield-fill-check link-success fs-3"></span>
+                                                    <br class="m-0 p-0">
+                                                    <span class="link-dark mb-0">Valid</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-4 col-4 text-center"></div>
+                                        <div class=" col-md-3 col-3 text-center my-0">
+                                            <label for="sdsNo" class="radio-card" onclick="document.getElementById('itemSDS').value = 'False'; ">
+                                                <input type="radio" hidden name="radio-card" id="sdsNo" />
+                                                <div class="card-content-wrapper rounded-3 py-2 px-3">
+                                                    <span class="bi bi-shield-x link-danger fs-3"></span>
+                                                    <br class="m-0 p-0">
+                                                    <span class="link-dark mb-0">Invalid</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <input id="itemSDS" required hidden asp-for="@Model.NewLot.SDS" class="form-control text-center" autocomplete="on" aria-required="true" placeholder="Enter Item SDS ..." type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;">
+                        </div>
+                        <span asp-validation-for="@Model.NewLot.SDS" class="text-danger"></span>
+
+                        <!-- /.card-body -->
+                    </div>
+                    <div class=" d-flex mx-auto py-3 mt-2 bg-transparent" style="padding:0 15px 15px 0">
+                        <button class="btn btn-outline-primary btn-sm mx-2 d-flex rounded rounded-3 " type="submit" title="Print lot Barcode"
+                                asp-controller="Lots"
+                                asp-action="PrintLotBarcode"
+                                asp-route-barcodeFile="@Model.NewLot.BarcodeImage"
+                                asp-route-ItemName="@Model.NewItem.Name"
+                                asp-route-LotNumber="@Model.NewLot.LotNumber"
+                                asp-route-ExpiryDate="@Model.NewLot.ExpiryDate">
+                            <img src="~/images/barcode.png" alt="SaveAndPrint" height="30" class="mx-2">
+                            <span class="fw-bold fs-6 pt-1 pe-3">Print Barcode</span>
+                        </button>
+                        <input type="submit" class="btn btn-success mx-2" value="Save changes Only" id="btnSave" asp-action="Save" asp-controller="Lots" />
+                    </div>
+                    <!-- /.card -->
+                </div>
             </div>
-            <!-- /.row -->
-        </section>
+            <div class="col-md-4 col-12">
+                <!-- Lot Storage Location -->
+                <div class="card p-0 mt-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                    <div class="card-header py-2 bg-success-subtle d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill link-success fs-4 pe-2"></i>
+                        <span class="fw-bold link-success fs-5">Storage Location</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="row g-2">
+                            <div class="col-md-6 col-6">
+                                <label class="form-label small fw-bold text-muted">Room</label>
+                                <select id="selRoom" class="form-select">
+                                    <option value="" selected disabled>Choose Room</option>
+                                    @foreach (var r in Model.ListRooms)
+                                    {
+                                        <option value="@r.Value">@r.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                            </div>
+
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-muted">Storage Unit</label>
+                                <select id="selUnit" class="form-select" disabled>
+                                    <option value="" selected disabled>Choose Unit</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-muted">Shelf</label>
+                                <select id="selShelf" class="form-select" disabled>
+                                    <option value="" selected disabled>Choose Shelf</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-muted">Box</label>
+                                <select id="selBox" class="form-select" disabled>
+                                    <option value="" selected disabled>Choose Box</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="gridWrapper" class="mt-4 text-center" style="display:none;">
+                            <div class="d-flex justify-content-center gap-4 mb-3 small fw-bold">
+                                <span><span class="legend-box legend-free"></span> Available</span>
+                                <span><span class="legend-box legend-occupied"></span> Occupied</span>
+                                <span><span class="legend-box legend-selected"></span> Selected</span>
+                            </div>
+                            <div class="table-responsive d-inline-block mx-auto">
+                                <table id="boxGridTable" class="table table-bordered mb-0" style="width:auto;"></table>
+                            </div>
+                            <div class="mt-2 fw-bold text-primary" id="selectedSlotLabel">No slot selected yet</div>
+                        </div>
+
+                        <input type="hidden" asp-for="NewLot.BoxId" id="hiddenBoxId" />
+                        <input type="hidden" asp-for="NewLot.RowIndex" id="hiddenRowIndex" />
+                        <input type="hidden" asp-for="NewLot.ColumnIndex" id="hiddenColumnIndex" />
+                        <span asp-validation-for="NewLot.BoxId" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
     </section>
 </form>
 @section Scripts{

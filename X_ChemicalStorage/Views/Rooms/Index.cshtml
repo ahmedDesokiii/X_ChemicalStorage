@@ -1,273 +1,1127 @@
 ﻿@model X_ChemicalStorage.Models.ViewModels.RoomsViewModel
 
 @{
-    ViewData["Title"] = "Rooms";
+    ViewData["Title"] = "Storage Locations";
 }
 
-<div class="card border-0 py-3" style="background-color:#032b42 !important; border-radius:0 0 75px 0;" dir="ltr">
-    <span class="text-center fw-bold fs-1" style="color:#415E72 !important;">
-        Rooms
-        <i class="bi bi-building ps-2 fs-1"></i>
-    </span>
+<!-- Hero Header -->
+<div class="page-hero" dir="ltr">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="hero-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h1 class="hero-title">Storage Locations</h1>
+                        <p class="hero-subtitle">Manage rooms, storage units, shelves & sample boxes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="hero-stats d-inline-flex gap-4">
+                    <div class="stat-item text-center">
+                        <div class="stat-value">@(Model.RoomsList?.Count ?? 0)</div>
+                        <div class="stat-label">Rooms</div>
+                    </div>
+                    <div class="stat-item text-center">
+                        <div class="stat-value">@(Model.RoomsList?.Sum(r => r.StorageUnits?.Count ?? 0) ?? 0)</div>
+                        <div class="stat-label">Units</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
+    /* ===== CSS Variables - Harmonized with Layout ===== */
+    :root {
+        --primary-dark: #032b42;
+        --primary-mid: #032b42;
+        --primary-light: #032b42;
+        --accent: #0d6efd;
+        --success: #198754;
+        --danger: #dc3545;
+        --warning: #ffc107;
+        --bg-light: #f8fafb;
+        --bg-card: #ffffff;
+        --border: #dbe4ea;
+        --text-dark: #1a2b3c;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 2px 8px rgba(3,43,66,0.06);
+        --shadow-md: 0 4px 20px rgba(3,43,66,0.10);
+        --shadow-lg: 0 8px 32px rgba(3,43,66,0.14);
+        --radius-sm: 10px;
+        --radius-md: 16px;
+        --radius-lg: 20px;
+    }
+
+    /* ===== Hero Header ===== */
+    .page-hero {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 50%, var(--primary-light) 100%);
+        padding: 40px 30px;
+        border-radius: 0 0 var(--radius-lg) 0;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 50%;
+        }
+
+    .hero-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(255,255,255,0.15);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .hero-icon i {
+            font-size: 28px;
+            color: #fff;
+        }
+
+    .hero-title {
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    .hero-subtitle {
+        color: rgba(255,255,255,0.7);
+        margin: 4px 0 0 0;
+        font-size: 0.95rem;
+    }
+
+    .hero-stats .stat-value {
+        color: #fff;
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .hero-stats .stat-label {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    /* ===== Toolbar ===== */
+    .toolbar {
+        background: var(--bg-card);
+        border-radius: var(--radius-md);
+        padding: 16px 24px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .toolbar-info h5 {
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .toolbar-info small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .btn-action {
+        border-radius: var(--radius-sm);
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
+        color: #fff;
+    }
+
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, var(--primary-mid) 0%, var(--primary-dark) 100%);
+            color: #fff;
+        }
+
+    .btn-outline-custom {
+        border: 2px solid var(--border);
+        color: var(--primary-light);
+        background: var(--bg-card);
+    }
+
+        .btn-outline-custom:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #f0f7ff;
+        }
+
+    /* ===== Room Cards ===== */
+    .room-grid {
+        margin-bottom: 30px;
+    }
+
     .room-card {
-        border-radius: 16px;
-        box-shadow: 0 4px 18px rgba(3,43,66,0.08);
-        transition: transform .2s, box-shadow .2s;
+        background: var(--bg-card);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        
+        border: 1px solid var(--border);
     }
 
         .room-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 28px rgba(3,43,66,0.14);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent);
         }
 
-    .unit-bar {
-        background: #fff;
+    .room-header {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
+        padding: 20px;
+        position: relative;
+        /* overflow: hidden; */
+    }
+
+        .room-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+    .room-icon-wrap {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+        .room-icon-wrap i {
+            color: #fff;
+            font-size: 22px;
+        }
+
+    .room-name {
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .room-meta {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.8rem;
+        margin-top: 2px;
+    }
+
+    /* ===== FIXED: Room Menu Button & Dropdown ===== */
+    .room-menu-btn {
+        background: rgba(255,255,255,0.15) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: #fff !important;
+        width: 36px;
+        height: 36px;
         border-radius: 10px;
-        border: 1px solid #dbe4ea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
         cursor: pointer;
-        transition: border-color .2s;
+        position: relative;
+        z-index: 10;
+    }
+
+        .room-menu-btn:hover,
+        .room-menu-btn:focus,
+        .room-menu-btn:active {
+            background: rgba(255,255,255,0.25) !important;
+            color: #fff !important;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
+        }
+
+        .room-menu-btn::after {
+            display: none !important;
+        }
+
+        .room-menu-btn i {
+            font-size: 18px;
+        }
+
+    /* Dropdown fixes */
+    .room-dropdown-menu {
+        border: none;
+        box-shadow: 0 8px 32px rgba(3,43,66,0.18);
+        border-radius: 12px;
+        padding: 8px;
+        min-width: 200px;
+        background: #fff;
+        margin-top: 8px !important;
+    }
+
+        .room-dropdown-menu .dropdown-item {
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .room-dropdown-menu .dropdown-item:hover {
+                background: #f0f7ff;
+                color: var(--accent);
+            }
+
+            .room-dropdown-menu .dropdown-item i {
+                width: 18px;
+                text-align: center;
+            }
+
+            .room-dropdown-menu .dropdown-item.text-danger {
+                color: var(--danger);
+            }
+
+                .room-dropdown-menu .dropdown-item.text-danger:hover {
+                    background: #fff0f0;
+                    color: #c62828;
+                }
+
+        .room-dropdown-menu .dropdown-divider {
+            margin: 6px 0;
+            border-color: var(--border);
+        }
+
+    /* ===== Units Section ===== */
+    .units-section {
+        padding: 16px;
+        background: var(--bg-light);
+        flex: 1;
+    }
+
+    .unit-block {
+        margin-bottom: 8px;
+    }
+
+    .unit-bar {
+        background: var(--bg-card);
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--border);
+        padding: 12px 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
         .unit-bar:hover {
-            border-color: #0d6efd !important;
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.08);
         }
 
-    .shelf-row {
-        background: #fff;
-        border-radius: 8px;
-        border-left: 3px solid #0b4a6f;
-        transition: background .2s;
-    }
-
-        .shelf-row:hover {
-            background: #f0f7ff !important;
+        .unit-bar.active {
+            border-color: var(--accent);
+            background: #f0f7ff;
         }
 
-    .expand-icon {
-        transition: transform .2s;
+    .expand-chevron {
+        color: var(--text-muted);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.8rem;
     }
 
-        .expand-icon.rotated {
+        .expand-chevron.rotated {
             transform: rotate(90deg);
         }
 
+    .unit-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+        .unit-badge.safe {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .unit-badge.hazardous {
+            background: #ffebee;
+            color: var(--danger);
+        }
+
+    .unit-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--primary-dark);
+    }
+
+    .unit-status {
+        margin-left: auto;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+
+        .unit-status.safe {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .unit-status.hazardous {
+            background: #ffebee;
+            color: var(--danger);
+        }
+
+    /* ===== Shelves ===== */
+    .shelves-wrapper {
+        margin-left: 24px;
+        margin-top: 6px;
+        display: none;
+        animation: slideDown 0.25s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .shelf-item {
+        background: var(--bg-card);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary-mid);
+        padding: 10px 14px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+
+        .shelf-item:hover {
+            background: #f0f7ff;
+            border-left-color: var(--accent);
+        }
+
+        .shelf-item i {
+            color: var(--primary-light);
+            font-size: 0.85rem;
+        }
+
+    .shelf-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary-dark);
+    }
+
+    .shelf-count {
+        margin-left: auto;
+        background: #f1f3f5;
+        color: var(--text-muted);
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* ===== NEW: Box List within Shelf ===== */
+    .box-list {
+        margin-left: 16px;
+        margin-top: 4px;
+        padding-left: 12px;
+        border-left: 2px dashed var(--border);
+    }
+
+    .box-item {
+        background: var(--bg-card);
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+
+        .box-item:hover {
+            border-color: var(--accent);
+            background: #f0f7ff;
+        }
+
+        .box-item i {
+            color: var(--primary-light);
+            font-size: 0.8rem;
+        }
+
+    .box-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .box-dims {
+        margin-left: auto;
+        background: #e3f2fd;
+        color: var(--primary-mid);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    /* ===== Add Forms ===== */
+    .add-form {
+        margin-top: 10px;
+    }
+
+        .add-form .form-control, .add-form .form-select {
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+        }
+
+            .add-form .form-control:focus, .add-form .form-select:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+            }
+
+    .btn-add-sm {
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* ===== NEW: Add Box Form ===== */
+    .add-box-form {
+        margin-top: 8px;
+        padding: 12px;
+        background: var(--bg-light);
+        border-radius: 8px;
+        border: 1.5px dashed var(--border);
+    }
+
+        .add-box-form .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .add-box-form .form-control {
+            font-size: 0.8rem;
+            padding: 6px 10px;
+        }
+
+    /* ===== Footer Stats ===== */
+    .room-footer {
+        background: linear-gradient(180deg, #eef3f6 0%, #e8eef2 100%);
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-around;
+        border-top: 1px solid var(--border);
+    }
+
+    .footer-stat {
+        text-align: center;
+    }
+
+        .footer-stat .value {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary-dark);
+            line-height: 1;
+        }
+
+            .footer-stat .value.success {
+                color: var(--success);
+            }
+
+        .footer-stat .label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+    /* ===== Add Room Card ===== */
     .add-room-card {
         min-height: 320px;
-        border: 2px dashed #dbe4ea;
-        border-radius: 16px;
-        background: #f8fafb;
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-md);
+        background: var(--bg-light);
         cursor: pointer;
-        transition: .2s;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
     }
 
         .add-room-card:hover {
-            border-color: #0d6efd;
+            border-color: var(--accent);
             background: #f0f7ff;
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
         }
+
+    .add-room-icon {
+        width: 64px;
+        height: 64px;
+        background: #e3f2fd;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .add-room-card:hover .add-room-icon {
+        background: var(--accent);
+    }
+
+    .add-room-icon i {
+        font-size: 28px;
+        color: var(--accent);
+        transition: all 0.3s;
+    }
+
+    .add-room-card:hover .add-room-icon i {
+        color: #fff;
+    }
+
+    .add-room-title {
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin: 0;
+    }
+
+    .add-room-desc {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    /* ===== Modal ===== */
+    .modal-content {
+        border: none;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .modal-header-custom {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
+        color: #fff;
+        padding: 20px 24px;
+        border: none;
+    }
+
+        .modal-header-custom .modal-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+    .btn-close-white {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    .modal-body-custom {
+        padding: 24px;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+    .form-control-custom {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid var(--border);
+        padding: 12px 16px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .form-control-custom:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+        }
+
+    .modal-footer-custom {
+        border: none;
+        padding: 0 24px 24px;
+    }
+
+    /* ===== Alerts ===== */
+    .alert-floating {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        border-radius: var(--radius-sm);
+        padding: 14px 20px;
+        box-shadow: var(--shadow-lg);
+        border: none;
+        animation: slideInRight 0.4s ease;
+        min-width: 300px;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .alert-floating.alert-success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #2e7d32;
+    }
+
+    .alert-floating.alert-danger {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #c62828;
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--bg-light);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        border: 2px dashed var(--border);
+    }
+
+        .empty-state-icon i {
+            font-size: 36px;
+            color: var(--primary-light);
+        }
+
+    .empty-state h4 {
+        color: var(--primary-dark);
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        max-width: 400px;
+        margin: 0 auto 20px;
+    }
+
+    /* ===== Layout Color Harmony ===== */
+    /* Match with navbar active color #ffc107 */
+    .text-warning-custom {
+        color: #ffc107 !important;
+    }
+
+    /* Match with top bar #BBE0EF */
+    .bg-topbar {
+        background-color: #BBE0EF !important;
+    }
+
+    /* Subtle animations */
+    .unit-block, .shelf-item, .box-item {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
 </style>
 
-<section class="container-fluid mt-3" dir="ltr">
-    <!-- Toolbar -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h5 class="fw-bold text-muted mb-0"><i class="bi bi-diagram-3-fill me-2"></i>Storage Hierarchy</h5>
-            <small class="text-muted">Manage rooms, units, shelves & boxes</small>
-        </div>
-        <div class="d-flex gap-2">
-            <a asp-controller="Rooms" asp-action="GenerateWizard" class="btn btn-outline-primary fw-bold" style="border-radius:12px;">
-                <i class="bi bi-magic me-2"></i>Auto-Generate
-            </a>
-            <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#addRoomModal"
-                    style="border-radius:12px; background:#032b42; border-color:#032b42;">
-                <i class="bi bi-plus-lg me-2"></i>Add Room
-            </button>
-        </div>
+<!-- Alerts -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-floating alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Success!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+}
 
-    <!-- Rooms Grid -->
-    <div class="row g-4">
-        @foreach (var room in Model.RoomsList)
-        {
-            var totalShelves = room.StorageUnits?.Sum(u => u.Shelves?.Count ?? 0) ?? 0;
-            var totalBoxes = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Count ?? 0) ?? 0) ?? 0;
-            var totalSlots = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Sum(b => b.RowsCount * b.ColumnsCount) ?? 0) ?? 0) ?? 0;
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-floating alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
-            <div class="col-lg-4 col-md-6">
-                <div class="room-card">
-                    <!-- Header -->
-                    <div class="room-header d-flex justify-content-between align-items-center"
-                         style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 100%); color:#fff; padding:16px 20px; border-radius:16px 16px 0 0;">
-                        <div class="d-flex align-items-center gap-3">
-                            <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                                <i class="bi bi-door-open-fill fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-0">@room.Name</h6>
-                                <small style="opacity:0.75;">@(room.StorageUnits?.Count ?? 0) Storage Units</small>
-                            </div>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-sm text-white" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots-vertical fs-5"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <button type="button" class="dropdown-item" onclick="editRoom(@room.Id, '@room.Name')">
-                                        <i class="bi bi-pencil me-2"></i>Edit
-                                    </button>
-                                </li>
-                                <li>
-                                    <form asp-action="DeleteRoom" method="post" class="d-inline"
-                                          onsubmit="return confirm('هل أنت متأكد من حذف الغرفة؟');">
-                                        <input type="hidden" name="id" value="@room.Id" />
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="bi bi-trash me-2"></i>Delete
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+<!-- Toolbar -->
+<div class="toolbar" dir="ltr">
+    <div class="toolbar-info">
+        <h5><i class="bi bi-diagram-3-fill" style="color: var(--accent);"></i> Storage Hierarchy</h5>
+        <small>Organize your chemical storage locations</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Rooms" asp-action="GenerateWizard" class="btn btn-action btn-outline-custom">
+            <i class="bi bi-magic"></i> Auto-Generate
+        </a>
+        <button type="button" class="btn btn-action btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+            <i class="bi bi-plus-lg"></i> Add Room
+        </button>
+    </div>
+</div>
 
-                    <!-- Body: Storage Units -->
-                    <div class="p-3" style="background:#f8fafb;">
-                        @if (room.StorageUnits != null)
-                        {
-                            foreach (var unit in room.StorageUnits)
-                            {
-                                var unitTypeColor = unit.IsHazardous ? "#c62828" : "#0b4a6f";
-                                var unitBadgeBg = unit.IsHazardous ? "#fce4ec" : "#e3f2fd";
-                                var unitBadgeText = unit.IsHazardous ? "#c62828" : "#0d6efd";
-                                var unitIcon = unit.IsHazardous ? "bi-exclamation-triangle-fill" : "bi-box-seam";
+<!-- Rooms Grid -->
+<div class="container-fluid room-grid" dir="ltr">
+    @if (Model.RoomsList != null && Model.RoomsList.Any())
+    {
+        <div class="row g-4">
+            @foreach (var room in Model.RoomsList)
+            {
+                var totalShelves = room.StorageUnits?.Sum(u => u.Shelves?.Count ?? 0) ?? 0;
+                var totalBoxes = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Count ?? 0) ?? 0) ?? 0;
+                var totalSlots = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Sum(b => b.RowsCount * b.ColumnsCount) ?? 0) ?? 0) ?? 0;
 
-                                <div class="unit-block mb-2">
-                                    <div class="unit-bar d-flex align-items-center gap-2 p-2"
-                                         onclick="toggleExpand(this)">
-                                        <i class="bi bi-chevron-right small text-muted expand-icon"></i>
-                                        <span class="badge" style="background:@unitBadgeBg;color:@unitBadgeText;">
-                                            <i class="bi @unitIcon me-1"></i>@(unit.StorageUnitType?.Name ?? "Unit")
-                                        </span>
-                                        <span class="fw-bold small">@unit.Name</span>
-                                        @if (unit.IsHazardous)
-                                        {
-                                            <span class="ms-auto badge bg-danger-subtle text-danger small">
-                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Hazardous
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="ms-auto badge bg-success-subtle text-success small">
-                                                <i class="bi bi-shield-check me-1"></i>Safe
-                                            </span>
-                                        }
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="room-card rounded-4">
+                        <!-- Header -->
+                        <div class="room-header rounded-top-4 d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="room-icon-wrap">
+                                    <i class="bi bi-door-open-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="room-name">@room.Name</h6>
+                                    <div class="room-meta">
+                                        <i class="bi bi-box-seam me-1"></i>
+                                        @(room.StorageUnits?.Count ?? 0) Storage Units
                                     </div>
-                                    <!-- Shelves -->
-                                    <div class="shelves-container ms-4 mt-1" style="display:none;">
-                                        @if (unit.Shelves != null)
-                                        {
-                                            foreach (var shelf in unit.Shelves)
-                                            {
-                                                <div class="shelf-row d-flex align-items-center gap-2 p-2 mb-1">
-                                                    <i class="bi bi-layers text-muted small"></i>
-                                                    <span class="small fw-semibold">@shelf.Name</span>
-                                                    <span class="ms-auto badge bg-light text-dark small">
-                                                        @(shelf.Boxes?.Count ?? 0) Boxes
-                                                    </span>
-                                                </div>
-                                            }
-                                        }
-                                        <form asp-action="AddShelf" method="post" class="d-flex gap-2 mt-1">
-                                            <input type="hidden" name="storageUnitId" value="@unit.Id" />
-                                            <input type="text" name="name" class="form-control form-control-sm" placeholder="Shelf name" required style="border-radius:8px;" />
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;">
-                                                <i class="bi bi-plus"></i>
+                                </div>
+                            </div>
+                            <!-- FIXED: Dropdown with proper Bootstrap attributes -->
+                            <div class="dropdown">
+                                <button class="room-menu-btn" type="button"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-auto-close="true"
+                                        aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu room-dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <button type="button" class="dropdown-item" onclick="editRoom(@room.Id, '@room.Name')">
+                                            <i class="bi bi-pencil text-primary"></i>Edit Room
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="DeleteRoom" method="post" class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this room? All associated data will be removed.');">
+                                            <input type="hidden" name="id" value="@room.Id" />
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-trash"></i>Delete Room
                                             </button>
                                         </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Body: Storage Units -->
+                        <div class="units-section">
+                            @if (room.StorageUnits != null && room.StorageUnits.Any())
+                            {
+                                foreach (var unit in room.StorageUnits)
+                                {
+                                    var unitTypeName = unit.StorageUnitType?.Name ?? "Unit";
+                                    var unitIcon = unit.IsHazardous ? "bi-exclamation-triangle-fill" : "bi-box-seam";
+                                    var unitBadgeClass = unit.IsHazardous ? "hazardous" : "safe";
+                                    var unitStatusClass = unit.IsHazardous ? "hazardous" : "safe";
+                                    var unitStatusText = unit.IsHazardous ? "Hazardous" : "Safe";
+
+                                    <div class="unit-block">
+                                        <div class="unit-bar" onclick="toggleExpand(this)">
+                                            <i class="bi bi-chevron-right expand-chevron"></i>
+                                            <span class="unit-badge @unitBadgeClass">
+                                                <i class="bi @unitIcon"></i>
+                                                @unitTypeName
+                                            </span>
+                                            <span class="unit-name">@unit.Name</span>
+                                            <span class="unit-status @unitStatusClass">
+                                                <i class="bi @(unit.IsHazardous ? "bi-exclamation-triangle" : "bi-shield-check") me-1"></i>
+                                                @unitStatusText
+                                            </span>
+                                        </div>
+                                        <!-- Shelves -->
+                                        <div class="shelves-wrapper">
+                                            @if (unit.Shelves != null && unit.Shelves.Any())
+                                            {
+                                                foreach (var shelf in unit.Shelves)
+                                                {
+                                                    <div class="shelf-item" onclick="toggleBoxExpand(this)">
+                                                        <i class="bi bi-layers"></i>
+                                                        <span class="shelf-name">@shelf.Name</span>
+                                                        <span class="shelf-count">
+                                                            @(shelf.Boxes?.Count ?? 0) Boxes
+                                                        </span>
+                                                    </div>
+                                                    <!-- NEW: Boxes List -->
+                                                    <div class="box-list" style="display:none;">
+                                                        @if (shelf.Boxes != null && shelf.Boxes.Any())
+                                                        {
+                                                            foreach (var box in shelf.Boxes)
+                                                            {
+                                                                <div class="box-item">
+                                                                    <i class="bi bi-grid-3x3"></i>
+                                                                    <span class="box-name">@box.Name</span>
+                                                                    <span class="box-dims">
+                                                                        @box.RowsCount × @box.ColumnsCount
+                                                                    </span>
+                                                                </div>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="box-item" style="opacity:0.5;">
+                                                                <i class="bi bi-inbox"></i>
+                                                                <span class="text-muted">No boxes yet</span>
+                                                            </div>
+                                                        }
+                                                        <!-- NEW: Add Box Form -->
+                                                        <form asp-action="AddBox" method="post" class="add-box-form">
+                                                            <input type="hidden" name="shelfId" value="@shelf.Id" />
+                                                            <div class="row g-2">
+                                                                <div class="col-4">
+                                                                    <label class="form-label">Box Name</label>
+                                                                    <input type="text" name="name" class="form-control" placeholder="Box name" required />
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <label class="form-label">Rows</label>
+                                                                    <input type="number" name="rowsCount" class="form-control" value="9" min="1" required />
+                                                                </div>
+                                                                <div class="col-3">
+                                                                    <label class="form-label">Columns</label>
+                                                                    <input type="number" name="columnsCount" class="form-control" value="9" min="1" required />
+                                                                </div>
+                                                                <div class="col-2 d-flex align-items-end">
+                                                                    <button type="submit" class="btn btn-sm btn-primary-custom w-100" style="border-radius:8px;">
+                                                                        <i class="bi bi-plus-lg"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="shelf-item" style="opacity:0.6;">
+                                                    <i class="bi bi-inbox"></i>
+                                                    <span class="shelf-name text-muted">No shelves yet</span>
+                                                </div>
+                                            }
+                                            <form asp-action="AddShelf" method="post" class="add-form d-flex gap-2 mt-2">
+                                                <input type="hidden" name="storageUnitId" value="@unit.Id" />
+                                                <input type="text" name="name" class="form-control form-control-sm" placeholder="New shelf name..." required />
+                                                <button type="submit" class="btn btn-add-sm btn-outline-secondary">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                                    <p class="text-muted small mt-2 mb-0">No storage units yet</p>
                                 </div>
                             }
-                        }
-                        <!-- Add Storage Unit -->
-                        <form asp-action="AddStorageUnit" method="post" class="mt-2">
-                            <input type="hidden" name="roomId" value="@room.Id" />
-                            <div class="input-group input-group-sm">
-                                <select name="storageUnitTypeId" class="form-select" required style="border-radius:10px 0 0 10px;">
-                                    <option value="" disabled selected>Type</option>
-                                    @foreach (var type in Model.ListStorageUnitTypes)
-                                    {
-                                        <option value="@type.Value">@type.Text</option>
-                                    }
-                                </select>
-                                <input type="text" name="name" class="form-control" placeholder="Unit name" required />
-                                <div class="input-group-text">
-                                    <input class="form-check-input mt-0" type="checkbox" name="isHazardous" value="true" title="Hazardous">
+
+                            <!-- Add Storage Unit -->
+                            <form asp-action="AddStorageUnit" method="post" class="add-form mt-3">
+                                <input type="hidden" name="roomId" value="@room.Id" />
+                                <div class="input-group input-group-sm">
+                                    <select name="storageUnitTypeId" class="form-select" required style="max-width: 120px;">
+                                        <option value="" disabled selected>Type</option>
+                                        @foreach (var type in Model.ListStorageUnitTypes)
+                                        {
+                                            <option value="@type.Value">@type.Text</option>
+                                        }
+                                    </select>
+                                    <input type="text" name="name" class="form-control" placeholder="Unit name" required />
+                                    <div class="input-group-text bg-white border-start-0">
+                                        <input class="form-check-input mt-0" type="checkbox" name="isHazardous" value="true" title="Hazardous material">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary-custom btn-add-sm">
+                                        <i class="bi bi-plus-lg"></i> Add
+                                    </button>
                                 </div>
-                                <button type="submit" class="btn btn-outline-primary" style="border-radius:0 10px 10px 0;">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Footer Stats -->
+                        <div class="room-footer rounded-bottom-4">
+                            <div class="footer-stat">
+                                <div class="value">@(room.StorageUnits?.Count ?? 0)</div>
+                                <div class="label">Units</div>
                             </div>
-                        </form>
-                    </div>
-
-                    <!-- Footer Stats -->
-                    <div class="d-flex justify-content-around p-3" style="background:#eef3f6;border-radius:0 0 16px 16px;">
-                        <div class="text-center">
-                            <div class="fw-bold" style="color:#032b42;">@(room.StorageUnits?.Count ?? 0)</div>
-                            <small class="text-muted" style="font-size:0.7rem;">UNITS</small>
-                        </div>
-                        <div class="text-center">
-                            <div class="fw-bold" style="color:#032b42;">@totalShelves</div>
-                            <small class="text-muted" style="font-size:0.7rem;">SHELVES</small>
-                        </div>
-                        <div class="text-center">
-                            <div class="fw-bold" style="color:#032b42;">@totalBoxes</div>
-                            <small class="text-muted" style="font-size:0.7rem;">BOXES</small>
-                        </div>
-                        <div class="text-center">
-                            <div class="fw-bold text-success">@totalSlots.ToString("N0")</div>
-                            <small class="text-muted" style="font-size:0.7rem;">SLOTS</small>
+                            <div class="footer-stat">
+                                <div class="value">@totalShelves</div>
+                                <div class="label">Shelves</div>
+                            </div>
+                            <div class="footer-stat">
+                                <div class="value">@totalBoxes</div>
+                                <div class="label">Boxes</div>
+                            </div>
+                            <div class="footer-stat">
+                                <div class="value success">@totalSlots.ToString("N0")</div>
+                                <div class="label">Slots</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
 
-        <!-- Add Room Card -->
-        <div class="col-lg-4 col-md-6">
-            <div class="add-room-card d-flex flex-column align-items-center justify-content-center"
-                 data-bs-toggle="modal" data-bs-target="#addRoomModal">
-                <div style="width:60px;height:60px;background:#e3f2fd;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
-                    <i class="bi bi-plus-lg fs-2" style="color:#0d6efd;"></i>
+            <!-- Add Room Card -->
+            <div class="col-xl-4 col-lg-6 col-md-6">
+                <div class="add-room-card" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                    <div class="add-room-icon">
+                        <i class="bi bi-plus-lg"></i>
+                    </div>
+                    <h6 class="add-room-title">Add New Room</h6>
+                    <small class="add-room-desc">Create a new storage location</small>
                 </div>
-                <h6 class="fw-bold text-muted">Add New Room</h6>
-                <small class="text-muted">Create a new storage location</small>
             </div>
         </div>
-    </div>
-</section>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <h4>No Rooms Found</h4>
+            <p>Get started by creating your first storage room. You can also use the auto-generation wizard to quickly set up multiple rooms.</p>
+            <button type="button" class="btn btn-action btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <i class="bi bi-plus-lg me-2"></i> Create First Room
+            </button>
+        </div>
+    }
+</div>
 
 <!-- Add/Edit Room Modal -->
 <div class="modal fade" id="addRoomModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:16px;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 100%); color:#fff; border-radius:16px 16px 0 0;">
-                <h5 class="modal-title fw-bold"><i class="bi bi-door-open-fill me-2"></i>Room</h5>
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title"><i class="bi bi-door-open-fill me-2"></i><span id="modalTitle">Add Room</span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="SaveRoom" method="post">
-                <div class="modal-body p-4">
+                @Html.AntiForgeryToken()
+                <div class="modal-body modal-body-custom">
                     <input type="hidden" name="Id" id="roomId" value="0" />
-                    <label class="form-label fw-bold text-muted">Room Name</label>
-                    <input type="text" name="Name" id="roomNameInput" required
-                           class="form-control form-control-lg fw-bold" placeholder="e.g. Cold Room 1" style="border-radius:12px;">
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom">Room Name</label>
+                        <input type="text" name="Name" id="roomNameInput" required
+                               class="form-control form-control-custom" placeholder="e.g. Cold Room 1">
+                        <div class="form-text text-muted mt-2">
+                            <i class="bi bi-info-circle me-1"></i> Choose a descriptive name for easy identification.
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer border-0 px-4 pb-4">
-                    <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:10px;">Cancel</button>
-                    <button type="submit" class="btn btn-primary fw-bold" style="border-radius:10px; background:#032b42; border-color:#032b42;">
-                        <i class="bi bi-check-circle-fill me-2"></i>Save
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-action btn-primary-custom">
+                        <i class="bi bi-check-circle-fill me-2"></i>Save Room
                     </button>
                 </div>
             </form>
@@ -277,27 +1131,72 @@
 
 @section Scripts {
     <script>
+        // Toggle shelves expand/collapse
         function toggleExpand(el) {
             const shelves = el.nextElementSibling;
-            const icon = el.querySelector('.expand-icon');
-            if (shelves.style.display === 'none') {
+            const icon = el.querySelector('.expand-chevron');
+            const isHidden = shelves.style.display === 'none' || !shelves.style.display || shelves.style.display === '';
+
+            if (isHidden) {
                 shelves.style.display = 'block';
                 icon.classList.add('rotated');
+                el.classList.add('active');
             } else {
                 shelves.style.display = 'none';
                 icon.classList.remove('rotated');
+                el.classList.remove('active');
             }
         }
 
+        // Toggle boxes expand/collapse within shelf
+        function toggleBoxExpand(shelfEl) {
+            // Find the next sibling that is a box-list
+            let boxList = shelfEl.nextElementSibling;
+            while (boxList && !boxList.classList.contains('box-list')) {
+                boxList = boxList.nextElementSibling;
+            }
+
+            if (boxList) {
+                const isHidden = boxList.style.display === 'none' || !boxList.style.display || boxList.style.display === '';
+                if (isHidden) {
+                    boxList.style.display = 'block';
+                    shelfEl.style.borderLeftColor = 'var(--accent)';
+                } else {
+                    boxList.style.display = 'none';
+                    shelfEl.style.borderLeftColor = '';
+                }
+            }
+        }
+
+        // Edit room
         function editRoom(id, name) {
             document.getElementById('roomId').value = id;
             document.getElementById('roomNameInput').value = name;
-            new bootstrap.Modal(document.getElementById('addRoomModal')).show();
+            document.getElementById('modalTitle').textContent = 'Edit Room';
+            var modal = new bootstrap.Modal(document.getElementById('addRoomModal'));
+            modal.show();
         }
 
+        // Reset modal on close
         document.getElementById('addRoomModal').addEventListener('hidden.bs.modal', function () {
-            document.getElementById('roomId').value = 0;
+            document.getElementById('roomId').value = '0';
             document.getElementById('roomNameInput').value = '';
+            document.getElementById('modalTitle').textContent = 'Add Room';
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.alert-floating').forEach(alert => {
+                var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) bsAlert.close();
+            });
+        }, 5000);
+
+        // Prevent shelf click from triggering unit expand
+        document.querySelectorAll('.shelf-item').forEach(shelf => {
+            shelf.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
         });
     </script>
 }

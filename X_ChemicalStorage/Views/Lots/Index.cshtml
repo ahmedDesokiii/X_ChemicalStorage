@@ -70,13 +70,38 @@
     }
 </style>
 
-<!-- ================= HEADER ================= -->
-<div class="card border-0 py-3" dir="ltr"
-     style="background-color:#032b42;border-radius:0 0 75px 0">
-    <span class="text-center fw-bold fs-1" style="color:#415E72">
-        Inventory Lots <i class="bi bi-archive-fill ps-2"></i>
-    </span>
+
+<!-- Hero Header -->
+<div class="page-hero" dir="ltr">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="hero-icon">
+                        <i class="bi bi-archive-fill"></i>
+                    </div>
+                    <div>
+                        <h1 class="hero-title"> Lots</h1>
+                        <p class="hero-subtitle">Manage Lots , exchange lots & get expiered lots list </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="hero-stats d-inline-flex gap-4">
+                    <div class="stat-item text-center">
+                        @*                         <div class="stat-value">@(Model.Count ?? 0)</div>
+                        <div class="stat-label">Users</div> *@
+                    </div>
+                    <div class="stat-item text-center">
+                        @* <div class="stat-value">@(Model.?.Sum(r => r.StorageUnits?.Count ?? 0) ?? 0)</div>
+                            <div class="stat-label">Roles</div> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 <section class="container-fluid mt-3" dir="ltr">
     <div class="row">
@@ -280,7 +305,7 @@
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Location</th>
                                             <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lot SDS</th>
                                             <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;"> Recived<br class="m-0 p-0">Date</th>
-                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Manufacture <br class="m-0 p-0">Date</th>
+                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Storage Type </th>
 
                                             <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                         </tr>
@@ -366,7 +391,13 @@
                                                     }
 
                                                     <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ReceivedDate).ToShortDateString()</span></td>
-                                                    <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td>
+@*                                                     <td class="fs-6 text-center px-1 "><span class="link-dark ">@Convert.ToDateTime(lot.ManufactureDate).ToShortDateString()</span></td> *@
+                                                <td class="text-start px-1 py-0">
+                                                    <span class="link-dark fw-bold px-3">
+                                                        <i class="bi bi-thermometer-half @(lot.Item?.StorageUnitType?.TemperatureValue < 0 ? "link-primary" : "link-success") fs-3 px-1"></i>
+                                                        @lot.Item?.StorageUnitType?.Name
+                                                    </span>
+                                                </td>
 
                                                     <td class="py-1">
 
