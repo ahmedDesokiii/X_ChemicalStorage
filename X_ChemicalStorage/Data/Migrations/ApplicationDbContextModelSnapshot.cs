@@ -343,6 +343,9 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<int>("StorageUnitTypeId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SubCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<double?>("TotalQuantity")
                         .HasColumnType("float");
 
@@ -356,6 +359,8 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.HasIndex("LocationId");
 
                     b.HasIndex("StorageUnitTypeId");
+
+                    b.HasIndex("SubCategoryId");
 
                     b.HasIndex("UnitId");
 
@@ -716,6 +721,35 @@ namespace X_ChemicalStorage.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.SubCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CurrentState")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("SubCategories");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
                 {
                     b.Property<int>("Id")
@@ -873,6 +907,11 @@ namespace X_ChemicalStorage.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("X_ChemicalStorage.Models.SubCategory", "SubCategory")
+                        .WithMany("Items")
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("X_ChemicalStorage.Models.Unit", "Unit")
                         .WithMany("Items")
                         .HasForeignKey("UnitId")
@@ -882,6 +921,8 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("StorageUnitType");
+
+                    b.Navigation("SubCategory");
 
                     b.Navigation("Unit");
                 });
@@ -943,6 +984,17 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("StorageUnitType");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.SubCategory", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Category", "Category")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Supplier", b =>
                 {
                     b.HasOne("X_ChemicalStorage.Models.Lot", "Lot")
@@ -979,6 +1031,8 @@ namespace X_ChemicalStorage.Data.Migrations
             modelBuilder.Entity("X_ChemicalStorage.Models.Category", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("SubCategories");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Item", b =>
@@ -1018,6 +1072,11 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("StorageUnits");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.SubCategory", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>

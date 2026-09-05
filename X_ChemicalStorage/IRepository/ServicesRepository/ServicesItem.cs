@@ -33,6 +33,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                                      .Include(item => item.StorageUnitType)
                                      .Include(item => item.Lots)
                                      .Include(item => item.Category)
+                                     .Include(item => item.SubCategory)   // NEW
                                      .Include(item => item.Unit)
                                      .Where(x => x.CurrentState > 0)
                                      .ToList();
@@ -113,6 +114,7 @@ namespace X_ChemicalStorage.IRepository.ServicesRepository
                     result.SDS = model.SDS;
                     result.StorageUnitTypeId = model.StorageUnitTypeId;
                     result.CategoryId = model.CategoryId;
+                    result.SubCategoryId = model.SubCategoryId;   // NEW — was missing, Edit was silently dropping this
                     result.UnitId = model.UnitId;
 
                     result.CurrentState = (int)Helper.eCurrentState.Active;

@@ -23,13 +23,16 @@
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 <div class="hero-stats d-inline-flex gap-4">
                     <div class="stat-item text-center">
-                        @*                         <div class="stat-value">@(Model.Count ?? 0)</div>
+                        @*  <div class="stat-value">@(Model.Count ?? 0)</div>
                         <div class="stat-label">Users</div> *@
                     </div>
                     <div class="stat-item text-center">
                         @* <div class="stat-value">@(Model.?.Sum(r => r.StorageUnits?.Count ?? 0) ?? 0)</div>
                             <div class="stat-label">Roles</div> *@
-                    </div>
+                    
+                        
+                        
+                        </div>
                 </div>
             </div>
         </div>
@@ -75,6 +78,7 @@
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;"></th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
                                         <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Description</th>
+                                        <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SubCategories</th>
                                         <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
                                     </tr>
                                 </thead>
@@ -87,8 +91,39 @@
                                             <td class="fs-6 text-center px-1"><span class="">@cNo</span></td>
                                             <td class="fs-6 text-center px-1"><span class="link-dark fw-bold">@cat.Name</span></td>
                                             <td class="fs-6 text-center px-1">@cat.Details</td>
-                                            
+                                            <td>
+                                                @{
+                                                    var subCats = Model.SubCategoriesList?.Where(sc => sc.CategoryId == cat.Id).ToList();
+                                                }
+                                                @if (subCats != null && subCats.Any())
+                                                {
+                                                    foreach (var sc in subCats)
+                                                    {
+                                                        <span class="badge bg-secondary m-1">
+                                                            @sc.Name
+                                                            <a href="#" class="text-white" title="Edit"
+                                                               onclick="EditSubCategory('@sc.Id','@sc.Name','@sc.Details','@cat.Id')"
+                                                               data-bs-toggle="modal" data-bs-target="#subCategoryModal">
+                                                                <i class="bi bi-pencil-fill"></i>
+                                                            </a>
+                                                            <a href="#" class="text-white" title="Delete" onclick="DeleteSubCategory('@sc.Id')">
+                                                                <i class="bi bi-x-lg"></i>
+                                                            </a>
+                                                        </span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">No subcategories</span>
+                                                }
+                                            </td>
                                             <td class="py-1">
+                                                <a class="btn fw-bold btn-outline-primary bg-transparent border-0 p-0 mx-1 fs-4"
+                                                   title="Add SubCategory"
+                                                   onclick="ResetSubCategory('@cat.Id')"
+                                                   data-bs-toggle="modal" data-bs-target="#subCategoryModal">
+                                                    <i class="bi bi-diagram-3-fill"></i>
+                                                </a>
                                                 @if (AuthorizationService.AuthorizeAsync(User, Permissions.Categories.Details_Categories).Result.Succeeded)
                                                 {
                                                     <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Categories" asp-action="SelectedCategory" asp-route-Id="@cat.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
@@ -120,7 +155,7 @@
     <!-- /.row -->
 </section>
 <!-- /.content -->
-
+<partial name="_SaveSubCategory" model="Model" />
 <partial name="_SaveCategory"/>
 
 @section Scripts {

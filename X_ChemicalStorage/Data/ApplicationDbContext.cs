@@ -24,6 +24,34 @@ namespace X_ChemicalStorage.Data
             builder.Entity<IdentityRoleClaim<int>>().ToTable("ERP_RoleClaims");
             builder.Entity<IdentityUserToken<int>>().ToTable("ERP_UserToken");
 
+
+
+            // ================= SubCategory relationships (NEW) =================
+
+            // Category 1 : N SubCategory
+            builder.Entity<SubCategory>()
+                .HasOne(sc => sc.Category)
+                .WithMany(c => c.SubCategories)
+                .HasForeignKey(sc => sc.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict); // never let a Category delete cascade into SubCategories
+
+            // SubCategory 1 : N Item  (nullable FK — existing Items may have none yet)
+            builder.Entity<Item>()
+                .HasOne(i => i.SubCategory)
+                .WithMany(sc => sc.Items)
+                .HasForeignKey(i => i.SubCategoryId)
+                .OnDelete(DeleteBehavior.Restrict); // never let a SubCategory delete cascade into Items
+
+            // Helpful index for the cascading dropdown query (WHERE CategoryId = ...)
+            builder.Entity<SubCategory>()
+                .HasIndex(sc => sc.CategoryId);
+
+            builder.Entity<Item>()
+                .HasIndex(i => i.SubCategoryId);
+
+            // ====================================================================
+
+
             // منع تخزين أكتر من عينة في نفس المكان بالظبط
             builder.Entity<Lot>()
                 .HasIndex(l => new { l.BoxId, l.RowIndex, l.ColumnIndex })
@@ -85,30 +113,25 @@ namespace X_ChemicalStorage.Data
                 new StorageUnitType { Id = 6, Name = "Room Temp", TemperatureValue = null }
             );
         }
-        //public DbSet<PrintSetting> PrintSettings { get; set; }
-
-
         public DbSet<Room> Rooms { get; set; }
         public DbSet<StorageUnitType> StorageUnitTypes { get; set; }
         public DbSet<StorageUnit> StorageUnits { get; set; }
         public DbSet<Shelf> Shelves { get; set; }
         public DbSet<Box> Boxes { get; set; }
-
-       
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
+        public virtual DbSet<SubCategory> SubCategories { get; set; }   // NEW
         public virtual DbSet<Unit> Units { get; set; }
         public virtual DbSet<Location> Locations { get; set; }
         public virtual DbSet<Lot> Lots { get; set; }
-        //public virtual DbSet<Substance> Substances { get; set; }
         public virtual DbSet<Item> Items { get; set; }
-        public virtual DbSet<SupplierLot> SupplierLots { get; set; } // DbSet for the join table
-
+        public virtual DbSet<SupplierLot> SupplierLots { get; set; }
         public virtual DbSet<ItemTransaction> ItemTransactions { get; set; }
         public virtual DbSet<LotTransaction> LotTransactions { get; set; }
         public virtual DbSet<ManufacuterCompany> ManufacuterCompanies { get; set; }
 
-       
+
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

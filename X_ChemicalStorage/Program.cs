@@ -85,6 +85,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 #region Scoped Services
+
+builder.Services.AddScoped<IServicesRepository<SubCategory>, ServicesSubCategory>();
+builder.Services.AddScoped<IServicesSubCategory, ServicesSubCategory>();
+
 builder.Services.AddScoped<IServicesRepository<Supplier>, ServicesSupplier>();
 builder.Services.AddScoped<IServicesRepository<Category>, ServicesCategory>();
 builder.Services.AddScoped<IServicesRepository<Unit>, ServicesUnit>();

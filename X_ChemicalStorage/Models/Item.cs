@@ -16,7 +16,7 @@ namespace X_ChemicalStorage.Models
         public bool? SDS { get; set; } //  Safty Data Sheet 
         [Required]
         public int Limit { get; set; } = 1; // Minimum Limit
-        
+
         public double? TotalQuantity { get; set; } = 0;
         public double? AvilableQuantity { get; set; } = 0;
         //[Required]
@@ -29,13 +29,19 @@ namespace X_ChemicalStorage.Models
         public int? CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
+
+        // NEW — SubCategory (nullable: existing Items created before this feature have none yet)
+        public int? SubCategoryId { get; set; }
+        [ForeignKey("SubCategoryId")]
+        public SubCategory? SubCategory { get; set; }
+
         // Foreign Keys
         [Required]
         public int? UnitId { get; set; }
         [ForeignKey("UnitId")]
         public Unit? Unit { get; set; }
         // Foreign Keys
-       
+
         public ICollection<Lot> Lots { get; set; } = new List<Lot>();
         public ICollection<ItemTransaction> ItemTransactions { get; set; } = new List<ItemTransaction>();
 

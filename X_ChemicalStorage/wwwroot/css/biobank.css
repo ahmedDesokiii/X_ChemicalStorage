@@ -37,7 +37,7 @@ body {
     font-family: 'Ubuntu Condensed', 'Changa', sans-serif;
     background: var(--bb-bg-dark);
     color: var(--bb-text);
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 
 .biobank-widget {
@@ -234,7 +234,7 @@ body {
 
 .bb-main {
     display: flex;
-    height: calc(100vh - 140px);
+    /*height: calc(100vh - 140px);*/
     position: relative;
     z-index: 5;
 }
@@ -298,8 +298,8 @@ body {
 .bb-viewport {
     flex: 1;
     padding: 24px;
-    overflow-y: auto;
-    position: relative;
+    /*overflow-y: auto;*/
+    /*position: relative;*/
 }
 
 .bb-room {

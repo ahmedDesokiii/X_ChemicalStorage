@@ -1,0 +1,88 @@
+﻿@model CategoryViewModel
+
+<!-- SubCategory Modal -->
+<div class="modal fade" id="subCategoryModal" tabindex="-1" aria-labelledby="subCategoryModalLabel" aria-hidden="true" dir="ltr">
+    <div class="modal-dialog card card-success card-outline">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#758A93" dir="ltr">
+                <span class="fs-4 fw-bold modal-title" id="subCategoryTitle"></span>
+                <a href="#" class="btn-close position-absolute end-0 mx-3" data-bs-dismiss="modal" aria-label="Close"></a>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Save" asp-controller="SubCategories" method="post">
+                    <input type="text" hidden class="form-control" asp-for="NewSubCategory.Id" id="subCatId" value="0" />
+
+                    <!-- Parent Category (locked once a category is picked from its row) -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4"
+                              id="inputGroup-sizing-subcat-parent">&nbsp;&nbsp;&nbsp;&nbsp; Category</span>
+                        <input type="text"  class="form-control" asp-for="NewSubCategory.CategoryId" id="subCatCategoryId"  />
+
+                        @* <select id="subCatCategoryId" required class="form-select text-center"
+                                 asp-for="NewSubCategory.CategoryId">
+                            <option value="" selected disabled>Choose Category</option>
+                        </select> *@
+                    </div>
+                    <span asp-validation-for="@Model.NewSubCategory.CategoryId" class="text-danger"></span>
+
+                    <!-- SubCategory Name -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4"
+                              id="inputGroup-sizing-subcat-name">&nbsp;&nbsp;&nbsp;&nbsp; SubCategory Name</span>
+                        <input id="subCatName" required asp-for="@Model.NewSubCategory.Name" class="form-control text-center"
+                               autocomplete="off" aria-required="true" placeholder="Enter SubCategory Name ..." type="text"
+                               style="border-top-right-radius : 20px ;">
+                    </div>
+                    <span asp-validation-for="@Model.NewSubCategory.Name" class="text-danger"></span>
+
+                    <!-- SubCategory Details -->
+                    <div class="input-group mt-2 row mx-auto">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4"
+                              id="inputGroup-sizing-subcat-details">&nbsp;&nbsp;&nbsp;&nbsp; Details</span>
+                        <input id="subCatDetails" asp-for="@Model.NewSubCategory.Details" class="form-control text-center"
+                               autocomplete="off" placeholder="Enter Details ..." type="text"
+                               style="border-top-right-radius : 20px ;">
+                    </div>
+                    <span asp-validation-for="@Model.NewSubCategory.Details" class="text-danger"></span>
+
+                    <div class="modal-footer mx-auto justify-content-center my-2">
+                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function ResetSubCategory(categoryId) {
+        document.getElementById('subCategoryTitle').innerText = 'Add SubCategory';
+        document.getElementById('subCatId').value = 0;
+        document.getElementById('subCatName').value = '';
+        document.getElementById('subCatDetails').value = '';
+        document.getElementById('subCatCategoryId').value = categoryId; // pre-select the row's Category
+    }
+
+    function EditSubCategory(id, name, details, categoryId) {
+        document.getElementById('subCategoryTitle').innerText = 'Edit SubCategory';
+        document.getElementById('subCatId').value = id;
+        document.getElementById('subCatName').value = name;
+        document.getElementById('subCatDetails').value = details;
+        document.getElementById('subCatCategoryId').value = categoryId;
+    }
+
+    function DeleteSubCategory(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Deleting a SubCategory that still has Items assigned to it will be blocked automatically.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/SubCategories/Delete?Id=' + id;
+            }
+        });
+    }
+</script>
