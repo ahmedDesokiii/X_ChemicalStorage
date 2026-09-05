@@ -1,0 +1,624 @@
+﻿@{
+    ViewData["Title"] = "Bio Bank Storage";
+}
+
+<!-- Hero Header -->
+<div class="page-hero" dir="ltr">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="hero-icon">
+                        <div class="bb-logo-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 2h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2zm-4-8h2v2H8V5zm0 4h2v2H8V9zm0 4h2v2H8v-2zM5 17h14v2H5v-2zm2-12h2v2H7V5zm0 4h2v2H7V9zm0 4h2v2H7v-2z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <div class="bb-title">Bio Bank Storage</div>
+                            <div class="bb-subtitle">Cold Storage Visualization System</div>
+                        </div>
+                        <div class="bb-breadcrumb" id="bbBreadcrumb">
+                            <div class="bb-bcrumb-item active" data-nav="room">
+                                <span>&#127970;</span> Bio Bank Room
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="hero-stats d-inline-flex gap-4">
+                    <div class="stat-item text-center">
+                        <div class="bb-search-box">
+                            <span class="bb-search-icon">&#128269;</span>
+                            <input type="text" id="bbSearch" placeholder="Search freezer, rack, box, barcode...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="biobank-widget" dir="ltr" id="biobankApp">
+    <div class="bb-bg-grid"></div>
+    <div class="bb-bg-glow"></div>
+    <div class="bb-bg-glow-2"></div>
+
+    <div class="bb-main">
+        <div class="bb-minimap" id="bbMinimap">
+            <div class="bb-minimap-title">&#128205; Storage Navigator</div>
+            <div id="minimapContent"></div>
+        </div>
+        <div class="bb-viewport" id="bbViewport"></div>
+    </div>
+
+    <div class="bb-info-panel" id="bbInfoPanel">
+        <div class="bb-info-header">
+            <div class="bb-info-icon" id="infoIcon">&#128230;</div>
+            <div>
+                <div class="bb-info-title" id="infoTitle">Select an item</div>
+                <div class="bb-info-subtitle" id="infoSubtitle">Hover to see details</div>
+            </div>
+        </div>
+        <div id="infoContent"></div>
+    </div>
+
+    <div class="bb-tooltip" id="bbTooltip">
+        <div class="bb-tooltip-title" id="ttTitle"></div>
+        <div id="ttContent"></div>
+    </div>
+
+    <div class="bb-modal-overlay" id="bbModal">
+        <div class="bb-modal">
+            <div class="bb-modal-icon">&#129514;</div>
+            <h3>Sample Details</h3>
+            <p>Sample management workflows will be implemented in <strong>Phase 2</strong>.<br>This includes registration, withdrawal, transfer, and audit trails.</p>
+            <button class="bb-modal-btn" id="bbModalCloseBtn">Close</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/biobank.js"></script>
+    <script>
+        var demoData = {
+            freezers: [
+                { id: "FZ80-01", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 72, status: "ONLINE", barcode: "FZ80-01-BC" },
+                { id: "FZ80-02", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 65, status: "ONLINE", barcode: "FZ80-02-BC" },
+                { id: "FZ80-03", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 88, status: "ONLINE", barcode: "FZ80-03-BC" },
+                { id: "FZ80-04", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 45, status: "ONLINE", barcode: "FZ80-04-BC" },
+                { id: "FZ150-01", type: "-150C", temp: -150, shelves: 0, racksPerShelf: 12, drawersPerRack: 0, boxesPerDrawer: 1, tubesPerBox: 100, occupancy: 92, status: "ONLINE", barcode: "FZ150-01-BC" },
+                { id: "FZ150-02", type: "-150C", temp: -150, shelves: 0, racksPerShelf: 12, drawersPerRack: 0, boxesPerDrawer: 1, tubesPerBox: 100, occupancy: 78, status: "ONLINE", barcode: "FZ150-02-BC" }
+            ]
+        };
+
+        var currentView = "room";
+        var currentPath = [];
+
+        function generateId(prefix, parentId, index) {
+            return parentId + "-" + prefix + String(index + 1).padStart(2, "0");
+        }
+        function formatNumber(n) { return n.toLocaleString(); }
+        function getOccupancyColor(pct) {
+            if (pct < 50) return "var(--bb-success)";
+            if (pct < 80) return "var(--bb-warning)";
+            return "var(--bb-danger)";
+        }
+        function findFreezer(id) {
+            return demoData.freezers.find(function (f) { return f.id === id; });
+        }
+
+        function navigateTo(view, data) {
+            currentView = view;
+            var viewport = document.getElementById("bbViewport");
+            viewport.innerHTML = "";
+            viewport.className = "bb-viewport bb-fade-in";
+
+            switch (view) {
+                case "room": renderRoom(); currentPath = []; break;
+                case "freezer": renderFreezer(data); currentPath = [data]; break;
+                case "shelf": renderShelf(data.freezer, data.shelfIndex); currentPath = [data.freezer, data]; break;
+                case "rack": renderRack(data.freezer, data.shelfIndex, data.rackIndex); currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, data]; break;
+                case "drawer": renderDrawer(data.freezer, data.shelfIndex, data.rackIndex, data.drawerIndex); currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, { rackIndex: data.rackIndex }, data]; break;
+                case "box": renderBox(data); currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, { rackIndex: data.rackIndex }, { drawerIndex: data.drawerIndex }, data]; break;
+            }
+
+            updateBreadcrumb();
+            updateMinimap();
+            hideInfoPanel();
+        }
+
+        function updateBreadcrumb() {
+            var bc = document.getElementById("bbBreadcrumb");
+            var html = `<div class="bb-bcrumb-item ${currentView === "room" ? "active" : ""}" data-nav="room"><span>&#127970;</span> Bio Bank Room</div>`;
+
+            if (currentView !== "room" && currentPath[0]) {
+                var fz = currentPath[0];
+                html += `<span class="bb-bcrumb-sep">&#8250;</span>`;
+                html += `<div class="bb-bcrumb-item ${currentView === "freezer" ? "active" : ""}" data-nav="freezer" data-freezer-id="${fz.id}"><span>&#10052;</span> ${fz.id}</div>`;
+            }
+
+            if ((currentView === "shelf" || currentView === "rack" || currentView === "drawer" || currentView === "box") && currentPath[1]) {
+                var sIdx = currentPath[1].shelfIndex || 0;
+                html += `<span class="bb-bcrumb-sep">&#8250;</span>`;
+                html += `<div class="bb-bcrumb-item ${currentView === "shelf" ? "active" : ""}" data-nav="shelf" data-shelf-index="${sIdx}"><span>&#128218;</span> S${String(sIdx + 1).padStart(2, "0")}</div>`;
+            }
+
+            if ((currentView === "rack" || currentView === "drawer" || currentView === "box") && currentPath[2]) {
+                var rIdx = currentPath[2].rackIndex || 0;
+                html += `<span class="bb-bcrumb-sep">&#8250;</span>`;
+                html += `<div class="bb-bcrumb-item ${currentView === "rack" ? "active" : ""}" data-nav="rack" data-shelf-index="${currentPath[1].shelfIndex}" data-rack-index="${rIdx}"><span>&#128295;</span> R${String(rIdx + 1).padStart(2, "0")}</div>`;
+            }
+
+            if ((currentView === "drawer" || currentView === "box") && currentPath[3]) {
+                var dIdx = currentPath[3].drawerIndex || 0;
+                html += `<span class="bb-bcrumb-sep">&#8250;</span>`;
+                html += `<div class="bb-bcrumb-item ${currentView === "drawer" ? "active" : ""}" data-nav="drawer" data-shelf-index="${currentPath[1].shelfIndex}" data-rack-index="${currentPath[2].rackIndex}" data-drawer-index="${dIdx}"><span>&#128448;</span> D${String(dIdx + 1).padStart(2, "0")}</div>`;
+            }
+
+            if (currentView === "box" && currentPath[4]) {
+                var boxId = currentPath[4].boxId || "BX01";
+                html += `<span class="bb-bcrumb-sep">&#8250;</span>`;
+                html += `<div class="bb-bcrumb-item active"><span>&#128230;</span> ${boxId}</div>`;
+            }
+
+            bc.innerHTML = html;
+        }
+
+        function updateMinimap() {
+            var mm = document.getElementById("minimapContent");
+            var html = "";
+
+            demoData.freezers.forEach(function (fz) {
+                var isActive = currentPath[0] && currentPath[0].id === fz.id;
+                html += `<div class="bb-tree-item ${isActive ? "active" : ""}" data-nav="freezer" data-freezer-id="${fz.id}">`;
+                html += `<span class="bb-tree-icon">&#10052;</span> ${fz.id}</div>`;
+
+                if (isActive && fz.type === "-80C") {
+                    html += `<div class="bb-tree-children">`;
+                    for (var s = 0; s < fz.shelves; s++) {
+                        var sId = "S" + String(s + 1).padStart(2, "0");
+                        var sActive = currentPath[1] && currentPath[1].shelfIndex === s;
+                        html += `<div class="bb-tree-item ${sActive ? "active" : ""}" data-nav="shelf" data-shelf-index="${s}">`;
+                        html += `<span class="bb-tree-icon">&#128218;</span> ${sId}</div>`;
+
+                        if (sActive) {
+                            html += `<div class="bb-tree-children">`;
+                            for (var r = 0; r < fz.racksPerShelf; r++) {
+                                var rId = "R" + String(r + 1).padStart(2, "0");
+                                var rActive = currentPath[2] && currentPath[2].rackIndex === r;
+                                html += `<div class="bb-tree-item ${rActive ? "active" : ""}" data-nav="rack" data-shelf-index="${s}" data-rack-index="${r}">`;
+                                html += `<span class="bb-tree-icon">&#128295;</span> ${rId}</div>`;
+                            }
+                            html += `</div>`;
+                        }
+                    }
+                    html += `</div>`;
+                }
+
+                if (isActive && fz.type === "-150C") {
+                    html += `<div class="bb-tree-children">`;
+                    for (var r2 = 0; r2 < fz.racksPerShelf; r2++) {
+                        var rId2 = "R" + String(r2 + 1).padStart(2, "0");
+                        html += `<div class="bb-tree-item" data-nav="rack" data-shelf-index="0" data-rack-index="${r2}">`;
+                        html += `<span class="bb-tree-icon">&#128295;</span> ${rId2}</div>`;
+                    }
+                    html += `</div>`;
+                }
+            });
+
+            mm.innerHTML = html;
+        }
+
+        function renderRoom() {
+            var container = document.getElementById("bbViewport");
+            var html = `<div class="bb-room">`;
+
+            demoData.freezers.forEach(function (fz) {
+                var totalCap = fz.type === "-80C"
+                    ? fz.shelves * fz.racksPerShelf * fz.drawersPerRack * fz.boxesPerDrawer * fz.tubesPerBox
+                    : fz.racksPerShelf * fz.boxesPerDrawer * fz.tubesPerBox;
+
+                var occColor = getOccupancyColor(fz.occupancy);
+                var shelfBars = "";
+                if (fz.type === "-80C") {
+                    for (var i = 0; i < 4; i++) shelfBars += `<div class="bb-fz-shelf"></div>`;
+                } else {
+                    shelfBars = `<div class="bb-fz-shelf" style="flex:0.3"></div>`;
+                }
+
+                html += `<div class="bb-freezer" data-nav="freezer" data-hover="freezer" data-freezer-id="${fz.id}">`;
+                html += `<div class="bb-freezer-header">`;
+                html += `<div class="bb-freezer-id">${fz.id}</div>`;
+                html += `<div class="bb-temp-badge ${fz.type === "-150C" ? "cold" : ""}">&#127777; ${fz.temp}C</div>`;
+                html += `</div>`;
+                html += `<div class="bb-freezer-body">`;
+                html += `<div class="bb-freezer-visual">`;
+                html += `<div class="bb-freezer-door"></div>`;
+                html += `<div class="bb-freezer-handle"></div>`;
+                html += `<div class="bb-freezer-shelves">${shelfBars}</div>`;
+                html += `</div>`;
+                html += `<div class="bb-freezer-stats">`;
+                html += `<div class="bb-stat-row"><span class="bb-stat-label">Type</span><span class="bb-stat-value">${fz.type}</span></div>`;
+                html += `<div class="bb-stat-row"><span class="bb-stat-label">Shelves</span><span class="bb-stat-value">${fz.shelves || "-"}</span></div>`;
+                html += `<div class="bb-stat-row"><span class="bb-stat-label">Racks</span><span class="bb-stat-value">${fz.type === "-80C" ? fz.shelves * fz.racksPerShelf : fz.racksPerShelf}</span></div>`;
+                html += `<div class="bb-stat-row"><span class="bb-stat-label">Capacity</span><span class="bb-stat-value">${formatNumber(totalCap)} tubes</span></div>`;
+                html += `<div class="bb-occupancy-bar">`;
+                html += `<div class="bb-occ-label"><span>Occupancy</span><span style="color:${occColor}">${fz.occupancy}%</span></div>`;
+                html += `<div class="bb-occ-track"><div class="bb-occ-fill" style="width:${fz.occupancy}%; background: linear-gradient(90deg, ${occColor}, var(--bb-accent))"></div></div>`;
+                html += `</div>`;
+                html += `<div class="bb-freezer-status"><span class="bb-status-dot"></span> ${fz.status}</div>`;
+                html += `</div></div></div>`;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderFreezer(fz) {
+            var container = document.getElementById("bbViewport");
+
+            if (fz.type === "-150C") {
+                var html = `<div class="bb-racks-container bb-zoom-in">`;
+                for (var r = 0; r < fz.racksPerShelf; r++) {
+                    var rackId = generateId("R", fz.id, r);
+                    var occ = Math.floor(Math.random() * 40) + 60;
+                    html += `<div class="bb-rack" data-nav="rack" data-hover="rack" data-shelf-index="0" data-rack-index="${r}" data-rack-id="${rackId}" data-occ="${occ}">`;
+                    html += `<div class="bb-rack-visual"><div class="bb-rack-drawer" style="top:8px"></div></div>`;
+                    html += `<div style="font-weight:700;margin-bottom:4px;">${rackId}</div>`;
+                    html += `<div style="font-size:0.8rem;color:var(--bb-text-muted);">1 Box - 100 Tubes</div>`;
+                    html += `<div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${occ}%"></div></div></div>`;
+                    html += `</div>`;
+                }
+                html += `</div>`;
+                container.innerHTML = html;
+                return;
+            }
+
+            var html = `<div class="bb-shelves-container bb-zoom-in">`;
+            for (var s = 0; s < fz.shelves; s++) {
+                var shelfId = generateId("S", fz.id, s);
+                var totalRacks = fz.racksPerShelf;
+                var totalDrawers = totalRacks * fz.drawersPerRack;
+                var totalBoxes = totalDrawers * fz.boxesPerDrawer;
+                var totalTubes = totalBoxes * fz.tubesPerBox;
+                var occ = Math.floor(Math.random() * 50) + 30;
+
+                var rackSlots = "";
+                for (var ri = 0; ri < totalRacks; ri++) rackSlots += `<div class="bb-shelf-rack-slot"></div>`;
+
+                html += `<div class="bb-shelf" data-nav="shelf" data-hover="shelf" data-shelf-index="${s}" data-shelf-id="${shelfId}" data-racks="${totalRacks}" data-drawers="${totalDrawers}" data-boxes="${totalBoxes}" data-tubes="${totalTubes}" data-occ="${occ}">`;
+                html += `<div class="bb-shelf-visual">${rackSlots}</div>`;
+                html += `<div style="font-weight:700;font-size:1.1rem;margin-bottom:6px;">${shelfId}</div>`;
+                html += `<div style="font-size:0.85rem;color:var(--bb-text-muted);margin-bottom:8px;">${totalRacks} Racks - ${totalDrawers} Drawers - ${totalBoxes} Boxes</div>`;
+                html += `<div class="bb-occ-track"><div class="bb-occ-fill" style="width:${occ}%"></div></div>`;
+                html += `<div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-top:4px;">`;
+                html += `<span style="color:var(--bb-text-muted)">Occupancy</span>`;
+                html += `<span style="color:var(--bb-primary-light);font-weight:600">${occ}%</span></div>`;
+                html += `</div>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderShelf(fz, shelfIndex) {
+            var container = document.getElementById("bbViewport");
+            var html = `<div class="bb-racks-container bb-zoom-in">`;
+
+            for (var r = 0; r < fz.racksPerShelf; r++) {
+                var rackId = generateId("R", fz.id + "-S" + String(shelfIndex + 1).padStart(2, "0"), r);
+                var occ = Math.floor(Math.random() * 50) + 30;
+
+                var drawers = "";
+                for (var d = 0; d < 5; d++) {
+                    drawers += `<div class="bb-rack-drawer" style="top:${8 + d * 14}px"></div>`;
+                }
+
+                html += `<div class="bb-rack" data-nav="rack" data-hover="rack" data-shelf-index="${shelfIndex}" data-rack-index="${r}" data-rack-id="${rackId}" data-occ="${occ}">`;
+                html += `<div class="bb-rack-visual">${drawers}</div>`;
+                html += `<div style="font-weight:700;margin-bottom:4px;">${rackId}</div>`;
+                html += `<div style="font-size:0.8rem;color:var(--bb-text-muted);">${fz.drawersPerRack} Drawers - ${fz.drawersPerRack * fz.boxesPerDrawer} Boxes</div>`;
+                html += `<div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${occ}%"></div></div></div>`;
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderRack(fz, shelfIndex, rackIndex) {
+            var container = document.getElementById("bbViewport");
+            var html = `<div class="bb-drawers-container bb-zoom-in">`;
+
+            var drawerCount = fz.type === "-150C" ? 1 : fz.drawersPerRack;
+
+            for (var d = 0; d < drawerCount; d++) {
+                var drawerId = generateId("D", fz.id + "-S" + String(shelfIndex + 1).padStart(2, "0") + "-R" + String(rackIndex + 1).padStart(2, "0"), d);
+                var occ = Math.floor(Math.random() * 60) + 20;
+
+                html += `<div class="bb-drawer" data-nav="drawer" data-hover="drawer" data-shelf-index="${shelfIndex}" data-rack-index="${rackIndex}" data-drawer-index="${d}" data-drawer-id="${drawerId}" data-occ="${occ}">`;
+                html += `<div class="bb-drawer-visual"><div class="bb-drawer-handle"></div></div>`;
+                html += `<div style="font-weight:700;margin-bottom:4px;">${drawerId}</div>`;
+                html += `<div style="font-size:0.8rem;color:var(--bb-text-muted);">${fz.boxesPerDrawer} Boxes - ${fz.boxesPerDrawer * fz.tubesPerBox} Tubes</div>`;
+                html += `<div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${occ}%"></div></div></div>`;
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderDrawer(fz, shelfIndex, rackIndex, drawerIndex) {
+            var container = document.getElementById("bbViewport");
+            var html = `<div class="bb-boxes-container bb-zoom-in">`;
+
+            for (var b = 0; b < fz.boxesPerDrawer; b++) {
+                var boxId = generateId("BX", fz.id + "-S" + String(shelfIndex + 1).padStart(2, "0") + "-R" + String(rackIndex + 1).padStart(2, "0") + "-D" + String(drawerIndex + 1).padStart(2, "0"), b);
+                var occ = Math.floor(Math.random() * 100);
+                var occCells = Math.floor(occ / 4);
+
+                var cells = "";
+                for (var c = 0; c < 25; c++) {
+                    cells += `<div class="bb-box-cell ${c < occCells ? "occupied" : ""}"></div>`;
+                }
+
+                html += `<div class="bb-box" data-nav="box" data-hover="box" data-shelf-index="${shelfIndex}" data-rack-index="${rackIndex}" data-drawer-index="${drawerIndex}" data-box-id="${boxId}" data-box-index="${b}" data-occ="${occ}">`;
+                html += `<div class="bb-box-visual">${cells}</div>`;
+                html += `<div style="font-weight:700;margin-bottom:4px;font-size:0.9rem;">${boxId}</div>`;
+                html += `<div style="font-size:0.8rem;color:var(--bb-text-muted);">100 Tubes</div>`;
+                html += `<div style="margin-top:6px;font-size:0.8rem;"><span style="color:${getOccupancyColor(occ)};font-weight:600">${occ}%</span> occupied</div>`;
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderBox(data) {
+            var container = document.getElementById("bbViewport");
+            var boxId = data.boxId;
+
+            var colHeaders = "";
+            for (var c = 0; c < 10; c++) {
+                colHeaders += `<div style="text-align:center;font-size:0.7rem;color:var(--bb-text-muted);font-weight:600;">${c + 1}</div>`;
+            }
+
+            var rowLabels = "";
+            for (var r = 0; r < 10; r++) {
+                rowLabels += `<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--bb-text-muted);font-weight:600;">${String.fromCharCode(65 + r)}</div>`;
+            }
+
+            var tubes = "";
+            for (var row = 0; row < 10; row++) {
+                for (var col = 0; col < 10; col++) {
+                    var pos = String.fromCharCode(65 + row) + String(col + 1).padStart(2, "0");
+                    var isOccupied = Math.random() > 0.4;
+                    var isReserved = !isOccupied && Math.random() > 0.8;
+                    var tubeId = boxId + "-" + pos;
+                    var stateClass = isOccupied ? "occupied" : (isReserved ? "reserved" : "");
+
+                    tubes += `<div class="bb-tube ${stateClass}" data-hover="tube" data-action="open-modal" data-tube-id="${tubeId}" data-pos="${pos}" data-occupied="${isOccupied}" data-reserved="${isReserved}" title="${pos}"></div>`;
+                }
+            }
+
+            var html = `<div class="bb-cryobox-container bb-zoom-in">`;
+            html += `<div class="bb-cryobox">`;
+            html += `<div class="bb-cryobox-header">`;
+            html += `<div><div style="font-weight:700;font-size:1.2rem;">${boxId}</div>`;
+            html += `<div style="font-size:0.8rem;color:var(--bb-text-muted);">Cryobox - 10x10 Grid - 100 Positions</div></div>`;
+            html += `<div class="bb-temp-badge" style="font-size:0.75rem;">&#127777; ${data.freezer.temp}C</div>`;
+            html += `</div>`;
+            html += `<div style="display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:start;">`;
+            html += `<div style="display:flex;flex-direction:column;gap:6px;padding-top:28px;">${rowLabels}</div>`;
+            html += `<div>`;
+            html += `<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:6px;">${colHeaders}</div>`;
+            html += `<div class="bb-cryobox-grid">${tubes}</div>`;
+            html += `</div></div>`;
+            html += `<div style="margin-top:16px;display:flex;gap:16px;justify-content:center;font-size:0.8rem;">`;
+            html += `<div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--bb-accent),var(--bb-cyan));"></div><span style="color:var(--bb-text-muted)">Occupied</span></div>`;
+            html += `<div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--bb-warning),var(--bb-gold));"></div><span style="color:var(--bb-text-muted)">Reserved</span></div>`;
+            html += `<div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);"></div><span style="color:var(--bb-text-muted)">Available</span></div>`;
+            html += `</div></div></div>`;
+
+            container.innerHTML = html;
+        }
+
+        function showFreezerInfo(fzId) {
+            var fz = findFreezer(fzId);
+            if (!fz) return;
+
+            var totalCap = fz.type === "-80C"
+                ? fz.shelves * fz.racksPerShelf * fz.drawersPerRack * fz.boxesPerDrawer * fz.tubesPerBox
+                : fz.racksPerShelf * fz.boxesPerDrawer * fz.tubesPerBox;
+
+            var occupied = Math.floor(totalCap * fz.occupancy / 100);
+
+            document.getElementById("infoIcon").innerHTML = "&#10052;";
+            document.getElementById("infoTitle").textContent = fz.id;
+            document.getElementById("infoSubtitle").textContent = "Ultra-Low Temperature Freezer";
+            document.getElementById("infoContent").innerHTML =
+                `<div class="bb-info-row"><span class="label">Temperature</span><span class="value" style="color:var(--bb-cyan)">${fz.temp}C</span></div>` +
+                `<div class="bb-info-row"><span class="label">Type</span><span class="value">${fz.type}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ${fz.status}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Total Capacity</span><span class="value">${formatNumber(totalCap)}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupied</span><span class="value">${formatNumber(occupied)}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Available</span><span class="value">${formatNumber(totalCap - occupied)}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(fz.occupancy)}">${fz.occupancy}%</span></div>` +
+                `<div class="bb-info-row"><span class="label">Barcode</span><span class="value" style="font-size:0.75rem">${fz.barcode}</span></div>`;
+            document.getElementById("bbInfoPanel").classList.add("show");
+        }
+
+        function showShelfInfo(shelfId, racks, drawers, boxes, tubes, occ) {
+            var occupied = Math.floor(tubes * occ / 100);
+            document.getElementById("infoIcon").innerHTML = "&#128218;";
+            document.getElementById("infoTitle").textContent = shelfId;
+            document.getElementById("infoSubtitle").textContent = "Storage Shelf";
+            document.getElementById("infoContent").innerHTML =
+                `<div class="bb-info-row"><span class="label">Racks</span><span class="value">${racks}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Drawers</span><span class="value">${drawers}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Boxes</span><span class="value">${boxes}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">${formatNumber(tubes)}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupied</span><span class="value">${formatNumber(occupied)}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Available</span><span class="value">${formatNumber(tubes - occupied)}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(occ)}">${occ}%</span></div>`;
+            document.getElementById("bbInfoPanel").classList.add("show");
+        }
+
+        function showRackInfo(rackId, shelfIdx, occ) {
+            document.getElementById("infoIcon").innerHTML = "&#128295;";
+            document.getElementById("infoTitle").textContent = rackId;
+            document.getElementById("infoSubtitle").textContent = "Storage Rack";
+            document.getElementById("infoContent").innerHTML =
+                `<div class="bb-info-row"><span class="label">Parent Shelf</span><span class="value">S${String(shelfIdx + 1).padStart(2, "0")}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Drawers</span><span class="value">5</span></div>` +
+                `<div class="bb-info-row"><span class="label">Boxes</span><span class="value">25</span></div>` +
+                `<div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">2,500</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(occ)}">${occ}%</span></div>` +
+                `<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ONLINE</span></div>`;
+            document.getElementById("bbInfoPanel").classList.add("show");
+        }
+
+        function showDrawerInfo(drawerId, occ) {
+            document.getElementById("infoIcon").innerHTML = "&#128448;";
+            document.getElementById("infoTitle").textContent = drawerId;
+            document.getElementById("infoSubtitle").textContent = "Storage Drawer";
+            document.getElementById("infoContent").innerHTML =
+                `<div class="bb-info-row"><span class="label">Boxes</span><span class="value">5</span></div>` +
+                `<div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">500</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(occ)}">${occ}%</span></div>` +
+                `<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ONLINE</span></div>`;
+            document.getElementById("bbInfoPanel").classList.add("show");
+        }
+
+        function showBoxInfo(boxId, occ) {
+            var occupied = Math.floor(100 * occ / 100);
+            document.getElementById("infoIcon").innerHTML = "&#128230;";
+            document.getElementById("infoTitle").textContent = boxId;
+            document.getElementById("infoSubtitle").textContent = "Cryobox";
+            document.getElementById("infoContent").innerHTML =
+                `<div class="bb-info-row"><span class="label">Grid</span><span class="value">10 x 10</span></div>` +
+                `<div class="bb-info-row"><span class="label">Total Positions</span><span class="value">100</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupied</span><span class="value">${occupied}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Available</span><span class="value">${100 - occupied}</span></div>` +
+                `<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(occ)}">${occ}%</span></div>` +
+                `<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ACTIVE</span></div>`;
+            document.getElementById("bbInfoPanel").classList.add("show");
+        }
+
+        function showTubeInfo(tubeId, pos, isOccupied, isReserved, event) {
+            var tt = document.getElementById("bbTooltip");
+            document.getElementById("ttTitle").textContent = tubeId;
+            var status = isOccupied ? "Occupied" : (isReserved ? "Reserved" : "Available");
+            var statusColor = isOccupied ? "var(--bb-accent)" : (isReserved ? "var(--bb-warning)" : "var(--bb-success)");
+            document.getElementById("ttContent").innerHTML =
+                `<div class="bb-tooltip-row"><span>Position</span><span>${pos}</span></div>` +
+                `<div class="bb-tooltip-row"><span>Row</span><span>${pos.charAt(0)}</span></div>` +
+                `<div class="bb-tooltip-row"><span>Column</span><span>${pos.substring(1)}</span></div>` +
+                `<div class="bb-tooltip-row"><span>Status</span><span style="color:${statusColor};font-weight:600">${status}</span></div>`;
+
+            tt.style.left = (event.clientX + 15) + "px";
+            tt.style.top = (event.clientY + 15) + "px";
+            tt.classList.add("show");
+        }
+
+        function hideTooltip() {
+            document.getElementById("bbTooltip").classList.remove("show");
+        }
+
+        function hideInfoPanel() {
+            document.getElementById("bbInfoPanel").classList.remove("show");
+        }
+
+        function openModal() {
+            document.getElementById("bbModal").classList.add("show");
+        }
+
+        function closeModal(e) {
+            if (!e || e.target.id === "bbModal") {
+                document.getElementById("bbModal").classList.remove("show");
+            }
+        }
+
+        function handleSearch(query) {
+            if (!query || query.length < 2) return;
+            query = query.toUpperCase();
+
+            for (var i = 0; i < demoData.freezers.length; i++) {
+                var fz = demoData.freezers[i];
+                if (fz.id.toUpperCase().indexOf(query) >= 0) {
+                    navigateTo("freezer", fz);
+                    return;
+                }
+            }
+        }
+
+        function attachEvents() {
+            var app = document.getElementById("biobankApp");
+
+            app.addEventListener("click", function (e) {
+                var actionEl = e.target.closest("[data-action='open-modal']");
+                if (actionEl) { openModal(); return; }
+
+                var navEl = e.target.closest("[data-nav]");
+                if (!navEl) return;
+
+                var view = navEl.dataset.nav;
+                if (view === "room") { navigateTo("room"); return; }
+
+                var freezer = navEl.dataset.freezerId ? findFreezer(navEl.dataset.freezerId) : (currentPath[0] || null);
+                var shelfIndex = navEl.dataset.shelfIndex !== undefined ? parseInt(navEl.dataset.shelfIndex, 10) : undefined;
+                var rackIndex = navEl.dataset.rackIndex !== undefined ? parseInt(navEl.dataset.rackIndex, 10) : undefined;
+                var drawerIndex = navEl.dataset.drawerIndex !== undefined ? parseInt(navEl.dataset.drawerIndex, 10) : undefined;
+                var boxId = navEl.dataset.boxId;
+                var boxIndex = navEl.dataset.boxIndex !== undefined ? parseInt(navEl.dataset.boxIndex, 10) : undefined;
+
+                if (view === "freezer") navigateTo("freezer", freezer);
+                else if (view === "shelf") navigateTo("shelf", { freezer: freezer, shelfIndex: shelfIndex });
+                else if (view === "rack") navigateTo("rack", { freezer: freezer, shelfIndex: shelfIndex, rackIndex: rackIndex });
+                else if (view === "drawer") navigateTo("drawer", { freezer: freezer, shelfIndex: shelfIndex, rackIndex: rackIndex, drawerIndex: drawerIndex });
+                else if (view === "box") navigateTo("box", { freezer: freezer, shelfIndex: shelfIndex, rackIndex: rackIndex, drawerIndex: drawerIndex, boxId: boxId, boxIndex: boxIndex });
+            });
+
+            app.addEventListener("mouseover", function (e) {
+                var hoverEl = e.target.closest("[data-hover]");
+                if (!hoverEl) return;
+                var type = hoverEl.dataset.hover;
+                if (type === "freezer") showFreezerInfo(hoverEl.dataset.freezerId);
+                else if (type === "shelf") showShelfInfo(hoverEl.dataset.shelfId, +hoverEl.dataset.racks, +hoverEl.dataset.drawers, +hoverEl.dataset.boxes, +hoverEl.dataset.tubes, +hoverEl.dataset.occ);
+                else if (type === "rack") showRackInfo(hoverEl.dataset.rackId, +hoverEl.dataset.shelfIndex, +hoverEl.dataset.occ);
+                else if (type === "drawer") showDrawerInfo(hoverEl.dataset.drawerId, +hoverEl.dataset.occ);
+                else if (type === "box") showBoxInfo(hoverEl.dataset.boxId, +hoverEl.dataset.occ);
+                else if (type === "tube") showTubeInfo(hoverEl.dataset.tubeId, hoverEl.dataset.pos, hoverEl.dataset.occupied === "true", hoverEl.dataset.reserved === "true", e);
+            });
+
+            app.addEventListener("mouseout", function (e) {
+                var hoverEl = e.target.closest("[data-hover]");
+                if (!hoverEl) return;
+                if (hoverEl.contains(e.relatedTarget)) return;
+                if (hoverEl.dataset.hover === "tube") hideTooltip(); else hideInfoPanel();
+            });
+
+            var searchBox = document.getElementById("bbSearch");
+            if (searchBox) {
+                searchBox.addEventListener("input", function () { handleSearch(this.value); });
+            }
+
+            var modalOverlay = document.getElementById("bbModal");
+            if (modalOverlay) {
+                modalOverlay.addEventListener("click", function (e) { closeModal(e); });
+            }
+            var modalCloseBtn = document.getElementById("bbModalCloseBtn");
+            if (modalCloseBtn) {
+                modalCloseBtn.addEventListener("click", function () { closeModal(); });
+            }
+        }
+
+        attachEvents();
+        renderRoom();
+        updateMinimap();
+    </script>
+}
+
