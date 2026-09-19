@@ -1,487 +1,903 @@
-﻿
+﻿// wwwroot/js/biobank.js
+(function () {
+    "use strict";
 
-    var demoData = {
-        freezers: [
-    {id: "FZ80-01", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 72, status: "ONLINE", barcode: "FZ80-01-BC" },
-    {id: "FZ80-02", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 65, status: "ONLINE", barcode: "FZ80-02-BC" },
-    {id: "FZ80-03", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 88, status: "ONLINE", barcode: "FZ80-03-BC" },
-    {id: "FZ80-04", type: "-80C", temp: -80, shelves: 4, racksPerShelf: 4, drawersPerRack: 5, boxesPerDrawer: 5, tubesPerBox: 100, occupancy: 45, status: "ONLINE", barcode: "FZ80-04-BC" },
-    {id: "FZ150-01", type: "-150C", temp: -150, shelves: 0, racksPerShelf: 12, drawersPerRack: 0, boxesPerDrawer: 1, tubesPerBox: 100, occupancy: 92, status: "ONLINE", barcode: "FZ150-01-BC" },
-    {id: "FZ150-02", type: "-150C", temp: -150, shelves: 0, racksPerShelf: 12, drawersPerRack: 0, boxesPerDrawer: 1, tubesPerBox: 100, occupancy: 78, status: "ONLINE", barcode: "FZ150-02-BC" }
-    ]
-};
+    // ===================== CONFIG =====================
+    const API = {
+        freezers: "/biobank/api/freezers",
+        freezer: (id) => `/biobank/api/freezers/${id}`,
+        shelves: (id) => `/biobank/api/freezers/${id}/shelves`,
+        racksByShelf: (id, sIdx) => `/biobank/api/freezers/${id}/shelves/${sIdx}/racks`,
+        racksByFreezer: (id) => `/biobank/api/freezers/${id}/racks`,
+        drawers: (rackId) => `/biobank/api/racks/${rackId}/drawers`,
+        boxesByDrawer: (drawerId) => `/biobank/api/drawers/${drawerId}/boxes`,
+        boxesByRack: (rackId) => `/biobank/api/racks/${rackId}/boxes`,
+        boxDetails: (boxId) => `/biobank/api/boxes/${boxId}`,
+        search: (q) => `/biobank/api/search?q=${encodeURIComponent(q)}`
+    };
 
-    var currentView = "room";
-    var currentPath = [];
+    // ===================== STATE =====================
+    let currentView = "room";
+    let currentPath = [];          // [freezer, shelf?, rack?, drawer?, box?]
+    let freezersCache = [];
 
-    function generateId(prefix, parentId, index) {
-  return parentId + "-" + prefix + String(index + 1).padStart(2, "0");
-}
+    // ===================== HELPERS =====================
+    async function apiGet(url) {
+        console.log("[BioBank] GET", url);
+        const res = await fetch(url);
+        console.log("[BioBank] Status", res.status, url);
+
+        if (!res.ok) {
+            let msg = `Request failed: ${res.status}`;
+            try {
+                const err = await res.json();
+                msg = err.message || msg;
+            } catch { }
+            throw new Error(msg);
+        }
+        return res.json();
+    }
 
     function formatNumber(n) {
-  return n.toLocaleString();
-}
+        return Number(n).toLocaleString();
+    }
 
     function getOccupancyColor(pct) {
-  if (pct < 50) return "var(--bb-success)";
-    if (pct < 80) return "var(--bb-warning)";
-    return "var(--bb-danger)";
-}
+        if (pct < 50) return "var(--bb-success)";
+        if (pct < 80) return "var(--bb-warning)";
+        return "var(--bb-danger)";
+    }
 
-    function navigateTo(view, data) {
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function clearViewport() {
+        const vp = $("bbViewport");
+        vp.innerHTML = "";
+        vp.className = "bb-viewport";
+    }
+
+    function showLoading() {
+        $("bbViewport").innerHTML = `
+            <div class="bb-loading-screen">
+                <div class="bb-spinner"></div>
+                <div>Loading...</div>
+            </div>`;
+    }
+
+    // ===================== NAVIGATION =====================
+    async function navigateTo(view, data = null) {
         currentView = view;
-    var viewport = document.getElementById("bbViewport");
-    viewport.innerHTML = "";
-    viewport.className = "bb-viewport bb-fade-in";
+        clearViewport();
+        showLoading();
 
-    switch(view) {
-    case "room": renderRoom(); currentPath = []; break;
-    case "freezer": renderFreezer(data); currentPath = [data]; break;
-    case "shelf": renderShelf(data.freezer, data.shelfIndex); currentPath = [data.freezer, data]; break;
-    case "rack": renderRack(data.freezer, data.shelfIndex, data.rackIndex); currentPath = [data.freezer, {shelfIndex: data.shelfIndex}, data]; break;
-    case "drawer": renderDrawer(data.freezer, data.shelfIndex, data.rackIndex, data.drawerIndex); currentPath = [data.freezer, {shelfIndex: data.shelfIndex}, {rackIndex: data.rackIndex}, data]; break;
-    case "box": renderBox(data); currentPath = [data.freezer, {shelfIndex: data.shelfIndex}, {rackIndex: data.rackIndex}, {drawerIndex: data.drawerIndex}, data]; break;
-  }
+        try {
+            switch (view) {
+                case "room":
+                    currentPath = [];
+                    await renderRoom();
+                    break;
+                case "freezer":
+                    currentPath = [data];
+                    await renderFreezer(data);
+                    break;
+                case "shelf":
+                    currentPath = [data.freezer, data];
+                    await renderShelf(data.freezer, data.shelfIndex);
+                    break;
+                case "rack":
+                    currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, data];
+                    await renderRack(data);
+                    break;
+                case "drawer":
+                    currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, { rackIndex: data.rackIndex, id: data.rackId }, data];
+                    await renderDrawer(data);
+                    break;
+                case "box":
+                    currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, { rackIndex: data.rackIndex }, { drawerIndex: data.drawerIndex }, data];
+                    await renderBox(data.boxId);
+                    break;
+            }
+            updateBreadcrumb();
+            updateMinimap();
+            hideInfoPanel();
+        } catch (err) {
+            console.error(err);
+            $("bbViewport").innerHTML = `
+                <div class="bb-loading-screen">
+                    <div style="font-size:2rem">⚠️</div>
+                    <div>${err.message || "Failed to load data"}</div>
+                    <button class="bb-modal-btn" style="margin-top:16px" onclick="window.BioBank.navigateTo('room')">Back to Room</button>
+                </div>`;
+        }
+    }
 
-    updateBreadcrumb();
-    updateMinimap();
-    hideInfoPanel();
-}
-
+    // ===================== BREADCRUMB =====================
     function updateBreadcrumb() {
-  var bc = document.getElementById("bbBreadcrumb");
-    var html = '<div class="bb-bcrumb-item ' + (currentView === " room" ? "active" : "") + '" onclick="navigateTo('room')"><span>&#127970;</span> Bio Bank Room</div>';
+        const bc = $("bbBreadcrumb");
+        let html = `<div class="bb-bcrumb-item ${currentView === "room" ? "active" : ""}" data-nav="room"><span>🏢</span> Bio Bank Room</div>`;
 
-if (currentView !== "room" && currentPath[0]) {
-    var fz = currentPath[0];
-    html += '<span class="bb-bcrumb-sep">&#8250;</span>';
-    html += '<div class="bb-bcrumb-item ' + (currentView === "freezer" ? "active" : "") + '" onclick="navigateTo('freezer', demoData.freezers.find(function(f){return f.id==='' + fz.id + '';}))"><span>&#10052;</span> ' + fz.id + '</div>';
-}
-
-if ((currentView === "shelf" || currentView === "rack" || currentView === "drawer" || currentView === "box") && currentPath[1]) {
-    var sIdx = currentPath[1].shelfIndex || 0;
-    html += '<span class="bb-bcrumb-sep">&#8250;</span>';
-    html += '<div class="bb-bcrumb-item ' + (currentView === "shelf" ? "active" : "") + '" onclick="navigateTo('shelf', {freezer: currentPath[0], shelfIndex: ' + sIdx + '})"><span>&#128218;</span> S' + String(sIdx + 1).padStart(2, "0") + '</div>';
-}
-
-if ((currentView === "rack" || currentView === "drawer" || currentView === "box") && currentPath[2]) {
-    var rIdx = currentPath[2].rackIndex || 0;
-    html += '<span class="bb-bcrumb-sep">&#8250;</span>';
-    html += '<div class="bb-bcrumb-item ' + (currentView === "rack" ? "active" : "") + '" onclick="navigateTo('rack', {freezer: currentPath[0], shelfIndex: ' + currentPath[1].shelfIndex + ', rackIndex: ' + rIdx + '})"><span>&#128295;</span> R' + String(rIdx + 1).padStart(2, "0") + '</div>';
-}
-
-if ((currentView === "drawer" || currentView === "box") && currentPath[3]) {
-    var dIdx = currentPath[3].drawerIndex || 0;
-    html += '<span class="bb-bcrumb-sep">&#8250;</span>';
-    html += '<div class="bb-bcrumb-item ' + (currentView === "drawer" ? "active" : "") + '" onclick="navigateTo('drawer', {freezer: currentPath[0], shelfIndex: ' + currentPath[1].shelfIndex + ', rackIndex: ' + currentPath[2].rackIndex + ', drawerIndex: ' + dIdx + '})"><span>&#128448;</span> D' + String(dIdx + 1).padStart(2, "0") + '</div>';
-}
-
-if (currentView === "box" && currentPath[4]) {
-    var boxId = currentPath[4].boxId || "BX01";
-    html += '<span class="bb-bcrumb-sep">&#8250;</span>';
-    html += '<div class="bb-bcrumb-item active"><span>&#128230;</span> ' + boxId + '</div>';
-}
-
-bc.innerHTML = html;
-}
-
-function updateMinimap() {
-    var mm = document.getElementById("minimapContent");
-    var html = "";
-
-    demoData.freezers.forEach(function (fz) {
-        var isActive = currentPath[0] && currentPath[0].id === fz.id;
-        html += '<div class="bb-tree-item ' + (isActive ? "active" : "") + '" onclick="navigateTo('freezer', demoData.freezers.find(function(f){return f.id==='' + fz.id + '';}))">';
-        html += '<span class="bb-tree-icon">&#10052;</span> ' + fz.id + '</div>';
-
-        if (isActive && fz.type === "-80C") {
-            html += '<div class="bb-tree-children">';
-            for (var s = 0; s < fz.shelves; s++) {
-                var sId = "S" + String(s + 1).padStart(2, "0");
-                var sActive = currentPath[1] && currentPath[1].shelfIndex === s;
-                html += '<div class="bb-tree-item ' + (sActive ? "active" : "") + '" onclick="navigateTo('shelf', {freezer: currentPath[0], shelfIndex: ' + s + '})">';
-                html += '<span class="bb-tree-icon">&#128218;</span> ' + sId + '</div>';
-
-                if (sActive) {
-                    html += '<div class="bb-tree-children">';
-                    for (var r = 0; r < fz.racksPerShelf; r++) {
-                        var rId = "R" + String(r + 1).padStart(2, "0");
-                        var rActive = currentPath[2] && currentPath[2].rackIndex === r;
-                        html += '<div class="bb-tree-item ' + (rActive ? "active" : "") + '" onclick="navigateTo('rack', {freezer: currentPath[0], shelfIndex: ' + s + ', rackIndex: ' + r + '})">';
-                        html += '<span class="bb-tree-icon">&#128295;</span> ' + rId + '</div>';
-                    }
-                    html += '</div>';
-                }
-            }
-            html += '</div>';
+        if (currentView !== "room" && currentPath[0]) {
+            const fz = currentPath[0];
+            html += `<span class="bb-bcrumb-sep">›</span>`;
+            html += `<div class="bb-bcrumb-item ${currentView === "freezer" ? "active" : ""}" data-nav="freezer" data-freezer-id="${fz.id}"><span>❄️</span> ${fz.id}</div>`;
         }
 
-        if (isActive && fz.type === "-150C") {
-            html += '<div class="bb-tree-children">';
-            for (var r2 = 0; r2 < fz.racksPerShelf; r2++) {
-                var rId2 = "R" + String(r2 + 1).padStart(2, "0");
-                html += '<div class="bb-tree-item" onclick="navigateTo('rack', {freezer: currentPath[0], shelfIndex: 0, rackIndex: ' + r2 + '})">';
-                html += '<span class="bb-tree-icon">&#128295;</span> ' + rId2 + '</div>';
-            }
-            html += '</div>';
-        }
-    });
-
-    mm.innerHTML = html;
-}
-
-function renderRoom() {
-    var container = document.getElementById("bbViewport");
-    var html = '<div class="bb-room">';
-
-    demoData.freezers.forEach(function (fz) {
-        var totalCap = fz.type === "-80C"
-            ? fz.shelves * fz.racksPerShelf * fz.drawersPerRack * fz.boxesPerDrawer * fz.tubesPerBox
-            : fz.racksPerShelf * fz.boxesPerDrawer * fz.tubesPerBox;
-
-        var occColor = getOccupancyColor(fz.occupancy);
-        var shelfBars = "";
-        if (fz.type === "-80C") {
-            for (var i = 0; i < 4; i++) shelfBars += '<div class="bb-fz-shelf"></div>';
-        } else {
-            shelfBars = '<div class="bb-fz-shelf" style="flex:0.3"></div>';
+        if (["shelf", "rack", "drawer", "box"].includes(currentView) && currentPath[1] && currentPath[1].shelfIndex !== undefined) {
+            const sIdx = currentPath[1].shelfIndex;
+            html += `<span class="bb-bcrumb-sep">›</span>`;
+            html += `<div class="bb-bcrumb-item ${currentView === "shelf" ? "active" : ""}" data-nav="shelf" data-shelf-index="${sIdx}"><span>📚</span> S${String(sIdx + 1).padStart(2, "0")}</div>`;
         }
 
-        html += '<div class="bb-freezer" onclick="navigateTo('freezer', demoData.freezers.find(function(f){return f.id==='' + fz.id + '';}))"';
-        html += ' onmouseenter="showFreezerInfo('' + fz.id + '')" onmouseleave="hideInfoPanel()">';
-        html += '<div class="bb-freezer-header">';
-        html += '<div class="bb-freezer-id">' + fz.id + '</div>';
-        html += '<div class="bb-temp-badge ' + (fz.type === "-150C" ? "cold" : "") + '">&#127777; ' + fz.temp + 'C</div>';
-        html += '</div>';
-        html += '<div class="bb-freezer-body">';
-        html += '<div class="bb-freezer-visual">';
-        html += '<div class="bb-freezer-door"></div>';
-        html += '<div class="bb-freezer-handle"></div>';
-        html += '<div class="bb-freezer-shelves">' + shelfBars + '</div>';
-        html += '</div>';
-        html += '<div class="bb-freezer-stats">';
-        html += '<div class="bb-stat-row"><span class="bb-stat-label">Type</span><span class="bb-stat-value">' + fz.type + '</span></div>';
-        html += '<div class="bb-stat-row"><span class="bb-stat-label">Shelves</span><span class="bb-stat-value">' + (fz.shelves || "-") + '</span></div>';
-        html += '<div class="bb-stat-row"><span class="bb-stat-label">Racks</span><span class="bb-stat-value">' + (fz.type === "-80C" ? fz.shelves * fz.racksPerShelf : fz.racksPerShelf) + '</span></div>';
-        html += '<div class="bb-stat-row"><span class="bb-stat-label">Capacity</span><span class="bb-stat-value">' + formatNumber(totalCap) + ' tubes</span></div>';
-        html += '<div class="bb-occupancy-bar">';
-        html += '<div class="bb-occ-label"><span>Occupancy</span><span style="color:' + occColor + '">' + fz.occupancy + '%</span></div>';
-        html += '<div class="bb-occ-track"><div class="bb-occ-fill" style="width:' + fz.occupancy + '%; background: linear-gradient(90deg, ' + occColor + ', var(--bb-accent))"></div></div>';
-        html += '</div>';
-        html += '<div class="bb-freezer-status"><span class="bb-status-dot"></span> ' + fz.status + '</div>';
-        html += '</div></div></div>';
-    });
-
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function renderFreezer(fz) {
-    var container = document.getElementById("bbViewport");
-
-    if (fz.type === "-150C") {
-        var html = '<div class="bb-racks-container bb-zoom-in">';
-        for (var r = 0; r < fz.racksPerShelf; r++) {
-            var rackId = generateId("R", fz.id, r);
-            var occ = Math.floor(Math.random() * 40) + 60;
-            html += '<div class="bb-rack" onclick="navigateTo('rack', {freezer: currentPath[0], shelfIndex: 0, rackIndex: ' + r + '})"';
-            html += ' onmouseenter="showRackInfo('' + rackId + '', ' + r + ', ' + occ + ')" onmouseleave="hideInfoPanel()">';
-            html += '<div class="bb-rack-visual"><div class="bb-rack-drawer" style="top:8px"></div></div>';
-            html += '<div style="font-weight:700;margin-bottom:4px;">' + rackId + '</div>';
-            html += '<div style="font-size:0.8rem;color:var(--bb-text-muted);">1 Box - 100 Tubes</div>';
-            html += '<div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:' + occ + '%"></div></div></div>';
-            html += '</div>';
-        }
-        html += '</div>';
-        container.innerHTML = html;
-        return;
-    }
-
-    var html = '<div class="bb-shelves-container bb-zoom-in">';
-    for (var s = 0; s < fz.shelves; s++) {
-        var shelfId = generateId("S", fz.id, s);
-        var totalRacks = fz.racksPerShelf;
-        var totalDrawers = totalRacks * fz.drawersPerRack;
-        var totalBoxes = totalDrawers * fz.boxesPerDrawer;
-        var totalTubes = totalBoxes * fz.tubesPerBox;
-        var occ = Math.floor(Math.random() * 50) + 30;
-
-        var rackSlots = "";
-        for (var ri = 0; ri < totalRacks; ri++) rackSlots += '<div class="bb-shelf-rack-slot"></div>';
-
-        html += '<div class="bb-shelf" onclick="navigateTo('shelf', {freezer: currentPath[0], shelfIndex: ' + s + '})"';
-        html += ' onmouseenter="showShelfInfo('' + shelfId + '', ' + totalRacks + ', ' + totalDrawers + ', ' + totalBoxes + ', ' + totalTubes + ', ' + occ + ')" onmouseleave="hideInfoPanel()">';
-        html += '<div class="bb-shelf-visual">' + rackSlots + '</div>';
-        html += '<div style="font-weight:700;font-size:1.1rem;margin-bottom:6px;">' + shelfId + '</div>';
-        html += '<div style="font-size:0.85rem;color:var(--bb-text-muted);margin-bottom:8px;">' + totalRacks + ' Racks - ' + totalDrawers + ' Drawers - ' + totalBoxes + ' Boxes</div>';
-        html += '<div class="bb-occ-track"><div class="bb-occ-fill" style="width:' + occ + '%"></div></div>';
-        html += '<div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-top:4px;">';
-        html += '<span style="color:var(--bb-text-muted)">Occupancy</span>';
-        html += '<span style="color:var(--bb-primary-light);font-weight:600">' + occ + '%</span></div>';
-        html += '</div>';
-    }
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function renderShelf(fz, shelfIndex) {
-    var container = document.getElementById("bbViewport");
-    var html = '<div class="bb-racks-container bb-zoom-in">';
-
-    for (var r = 0; r < fz.racksPerShelf; r++) {
-        var rackId = generateId("R", fz.id + "-S" + String(shelfIndex + 1).padStart(2, "0"), r);
-        var occ = Math.floor(Math.random() * 50) + 30;
-
-        var drawers = "";
-        for (var d = 0; d < 5; d++) {
-            drawers += '<div class="bb-rack-drawer" style="top:' + (8 + d * 14) + 'px"></div>';
+        if (["rack", "drawer", "box"].includes(currentView) && currentPath[2]) {
+            const rIdx = currentPath[2].rackIndex ?? 0;
+            const rId = currentPath[2].id || "";
+            html += `<span class="bb-bcrumb-sep">›</span>`;
+            html += `<div class="bb-bcrumb-item ${currentView === "rack" ? "active" : ""}" data-nav="rack" data-rack-id="${rId}" data-shelf-index="${currentPath[1]?.shelfIndex ?? 0}" data-rack-index="${rIdx}"><span>🧰</span> R${String(rIdx + 1).padStart(2, "0")}</div>`;
         }
 
-        html += '<div class="bb-rack" onclick="navigateTo('rack', {freezer: currentPath[0], shelfIndex: ' + shelfIndex + ', rackIndex: ' + r + '})"';
-        html += ' onmouseenter="showRackInfo('' + rackId + '', ' + shelfIndex + ', ' + occ + ')" onmouseleave="hideInfoPanel()">';
-        html += '<div class="bb-rack-visual">' + drawers + '</div>';
-        html += '<div style="font-weight:700;margin-bottom:4px;">' + rackId + '</div>';
-        html += '<div style="font-size:0.8rem;color:var(--bb-text-muted);">' + fz.drawersPerRack + ' Drawers - ' + (fz.drawersPerRack * fz.boxesPerDrawer) + ' Boxes</div>';
-        html += '<div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:' + occ + '%"></div></div></div>';
-        html += '</div>';
-    }
-
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function renderRack(fz, shelfIndex, rackIndex) {
-    var container = document.getElementById("bbViewport");
-    var html = '<div class="bb-drawers-container bb-zoom-in">';
-
-    var drawerCount = fz.type === "-150C" ? 1 : fz.drawersPerRack;
-
-    for (var d = 0; d < drawerCount; d++) {
-        var drawerId = generateId("D", fz.id + "-S" + String(shelfIndex + 1).padStart(2, "0") + "-R" + String(rackIndex + 1).padStart(2, "0"), d);
-        var occ = Math.floor(Math.random() * 60) + 20;
-
-        html += '<div class="bb-drawer" onclick="navigateTo('drawer', {freezer: currentPath[0], shelfIndex: ' + shelfIndex + ', rackIndex: ' + rackIndex + ', drawerIndex: ' + d + '})"';
-        html += ' onmouseenter="showDrawerInfo('' + drawerId + '', ' + occ + ')" onmouseleave="hideInfoPanel()">';
-        html += '<div class="bb-drawer-visual"><div class="bb-drawer-handle"></div></div>';
-        html += '<div style="font-weight:700;margin-bottom:4px;">' + drawerId + '</div>';
-        html += '<div style="font-size:0.8rem;color:var(--bb-text-muted);">' + fz.boxesPerDrawer + ' Boxes - ' + (fz.boxesPerDrawer * fz.tubesPerBox) + ' Tubes</div>';
-        html += '<div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:' + occ + '%"></div></div></div>';
-        html += '</div>';
-    }
-
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function renderDrawer(fz, shelfIndex, rackIndex, drawerIndex) {
-    var container = document.getElementById("bbViewport");
-    var html = '<div class="bb-boxes-container bb-zoom-in">';
-
-    for (var b = 0; b < fz.boxesPerDrawer; b++) {
-        var boxId = generateId("BX", fz.id + "-S" + String(shelfIndex + 1).padStart(2, "0") + "-R" + String(rackIndex + 1).padStart(2, "0") + "-D" + String(drawerIndex + 1).padStart(2, "0"), b);
-        var occ = Math.floor(Math.random() * 100);
-        var occCells = Math.floor(occ / 4);
-
-        var cells = "";
-        for (var c = 0; c < 25; c++) {
-            cells += '<div class="bb-box-cell ' + (c < occCells ? "occupied" : "") + '"></div>';
+        if (["drawer", "box"].includes(currentView) && currentPath[3]) {
+            const dIdx = currentPath[3].drawerIndex ?? 0;
+            html += `<span class="bb-bcrumb-sep">›</span>`;
+            html += `<div class="bb-bcrumb-item ${currentView === "drawer" ? "active" : ""}" data-nav="drawer" data-drawer-id="${currentPath[3].id || ""}" data-drawer-index="${dIdx}"><span>🗄️</span> D${String(dIdx + 1).padStart(2, "0")}</div>`;
         }
 
-        html += '<div class="bb-box" onclick="navigateTo('box', {freezer: currentPath[0], shelfIndex: ' + shelfIndex + ', rackIndex: ' + rackIndex + ', drawerIndex: ' + drawerIndex + ', boxId: '' + boxId + '', boxIndex: ' + b + '})"';
-        html += ' onmouseenter="showBoxInfo('' + boxId + '', ' + occ + ')" onmouseleave="hideInfoPanel()">';
-        html += '<div class="bb-box-visual">' + cells + '</div>';
-        html += '<div style="font-weight:700;margin-bottom:4px;font-size:0.9rem;">' + boxId + '</div>';
-        html += '<div style="font-size:0.8rem;color:var(--bb-text-muted);">100 Tubes</div>';
-        html += '<div style="margin-top:6px;font-size:0.8rem;"><span style="color:' + getOccupancyColor(occ) + ';font-weight:600">' + occ + '%</span> occupied</div>';
-        html += '</div>';
-    }
-
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function renderBox(data) {
-    var container = document.getElementById("bbViewport");
-    var boxId = data.boxId;
-
-    var colHeaders = "";
-    for (var c = 0; c < 10; c++) {
-        colHeaders += '<div style="text-align:center;font-size:0.7rem;color:var(--bb-text-muted);font-weight:600;">' + (c + 1) + '</div>';
-    }
-
-    var rowLabels = "";
-    for (var r = 0; r < 10; r++) {
-        rowLabels += '<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--bb-text-muted);font-weight:600;">' + String.fromCharCode(65 + r) + '</div>';
-    }
-
-    var tubes = "";
-    for (var row = 0; row < 10; row++) {
-        for (var col = 0; col < 10; col++) {
-            var pos = String.fromCharCode(65 + row) + String(col + 1).padStart(2, "0");
-            var isOccupied = Math.random() > 0.4;
-            var isReserved = !isOccupied && Math.random() > 0.8;
-            var tubeId = boxId + "-" + pos;
-            var stateClass = isOccupied ? "occupied" : (isReserved ? "reserved" : "");
-
-            tubes += '<div class="bb-tube ' + stateClass + '"';
-            tubes += ' onmouseenter="showTubeInfo('' + tubeId + '', '' + pos + '', ' + isOccupied + ', ' + isReserved + ', event)"';
-            tubes += ' onmouseleave="hideTooltip()"';
-            tubes += ' onclick="openModal()"';
-            tubes += ' title="' + pos + '"></div>';
+        if (currentView === "box" && currentPath[4]) {
+            html += `<span class="bb-bcrumb-sep">›</span>`;
+            html += `<div class="bb-bcrumb-item active"><span>📦</span> ${currentPath[4].boxId || currentPath[4].id || "Box"}</div>`;
         }
+
+        bc.innerHTML = html;
     }
 
-    var html = '<div class="bb-cryobox-container bb-zoom-in">';
-    html += '<div class="bb-cryobox">';
-    html += '<div class="bb-cryobox-header">';
-    html += '<div><div style="font-weight:700;font-size:1.2rem;">' + boxId + '</div>';
-    html += '<div style="font-size:0.8rem;color:var(--bb-text-muted);">Cryobox - 10x10 Grid - 100 Positions</div></div>';
-    html += '<div class="bb-temp-badge" style="font-size:0.75rem;">&#127777; ' + data.freezer.temp + 'C</div>';
-    html += '</div>';
-    html += '<div style="display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:start;">';
-    html += '<div style="display:flex;flex-direction:column;gap:6px;padding-top:28px;">' + rowLabels + '</div>';
-    html += '<div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:6px;">' + colHeaders + '</div>';
-    html += '<div class="bb-cryobox-grid">' + tubes + '</div>';
-    html += '</div></div>';
-    html += '<div style="margin-top:16px;display:flex;gap:16px;justify-content:center;font-size:0.8rem;">';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--bb-accent),var(--bb-cyan));"></div><span style="color:var(--bb-text-muted)">Occupied</span></div>';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--bb-warning),var(--bb-gold));"></div><span style="color:var(--bb-text-muted)">Reserved</span></div>';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);"></div><span style="color:var(--bb-text-muted)">Available</span></div>';
-    html += '</div></div></div>';
-
-    container.innerHTML = html;
-}
-
-function showFreezerInfo(fzId) {
-    var fz = demoData.freezers.find(function (f) { return f.id === fzId; });
-    if (!fz) return;
-
-    var totalCap = fz.type === "-80C"
-        ? fz.shelves * fz.racksPerShelf * fz.drawersPerRack * fz.boxesPerDrawer * fz.tubesPerBox
-        : fz.racksPerShelf * fz.boxesPerDrawer * fz.tubesPerBox;
-
-    var occupied = Math.floor(totalCap * fz.occupancy / 100);
-
-    document.getElementById("infoIcon").innerHTML = "&#10052;";
-    document.getElementById("infoTitle").textContent = fz.id;
-    document.getElementById("infoSubtitle").textContent = "Ultra-Low Temperature Freezer";
-    document.getElementById("infoContent").innerHTML =
-        '<div class="bb-info-row"><span class="label">Temperature</span><span class="value" style="color:var(--bb-cyan)">' + fz.temp + 'C</span></div>' +
-        '<div class="bb-info-row"><span class="label">Type</span><span class="value">' + fz.type + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ' + fz.status + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Total Capacity</span><span class="value">' + formatNumber(totalCap) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupied</span><span class="value">' + formatNumber(occupied) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Available</span><span class="value">' + formatNumber(totalCap - occupied) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:' + getOccupancyColor(fz.occupancy) + '">' + fz.occupancy + '%</span></div>' +
-        '<div class="bb-info-row"><span class="label">Barcode</span><span class="value" style="font-size:0.75rem">' + fz.barcode + '</span></div>';
-    document.getElementById("bbInfoPanel").classList.add("show");
-}
-
-function showShelfInfo(shelfId, racks, drawers, boxes, tubes, occ) {
-    var occupied = Math.floor(tubes * occ / 100);
-    document.getElementById("infoIcon").innerHTML = "&#128218;";
-    document.getElementById("infoTitle").textContent = shelfId;
-    document.getElementById("infoSubtitle").textContent = "Storage Shelf";
-    document.getElementById("infoContent").innerHTML =
-        '<div class="bb-info-row"><span class="label">Racks</span><span class="value">' + racks + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Drawers</span><span class="value">' + drawers + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Boxes</span><span class="value">' + boxes + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">' + formatNumber(tubes) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupied</span><span class="value">' + formatNumber(occupied) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Available</span><span class="value">' + formatNumber(tubes - occupied) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:' + getOccupancyColor(occ) + '">' + occ + '%</span></div>';
-    document.getElementById("bbInfoPanel").classList.add("show");
-}
-
-function showRackInfo(rackId, shelfIdx, occ) {
-    document.getElementById("infoIcon").innerHTML = "&#128295;";
-    document.getElementById("infoTitle").textContent = rackId;
-    document.getElementById("infoSubtitle").textContent = "Storage Rack";
-    document.getElementById("infoContent").innerHTML =
-        '<div class="bb-info-row"><span class="label">Parent Shelf</span><span class="value">S' + String(shelfIdx + 1).padStart(2, "0") + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Drawers</span><span class="value">5</span></div>' +
-        '<div class="bb-info-row"><span class="label">Boxes</span><span class="value">25</span></div>' +
-        '<div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">2,500</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:' + getOccupancyColor(occ) + '">' + occ + '%</span></div>' +
-        '<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ONLINE</span></div>';
-    document.getElementById("bbInfoPanel").classList.add("show");
-}
-
-function showDrawerInfo(drawerId, occ) {
-    document.getElementById("infoIcon").innerHTML = "&#128448;";
-    document.getElementById("infoTitle").textContent = drawerId;
-    document.getElementById("infoSubtitle").textContent = "Storage Drawer";
-    document.getElementById("infoContent").innerHTML =
-        '<div class="bb-info-row"><span class="label">Boxes</span><span class="value">5</span></div>' +
-        '<div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">500</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:' + getOccupancyColor(occ) + '">' + occ + '%</span></div>' +
-        '<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ONLINE</span></div>';
-    document.getElementById("bbInfoPanel").classList.add("show");
-}
-
-function showBoxInfo(boxId, occ) {
-    var occupied = Math.floor(100 * occ / 100);
-    document.getElementById("infoIcon").innerHTML = "&#128230;";
-    document.getElementById("infoTitle").textContent = boxId;
-    document.getElementById("infoSubtitle").textContent = "Cryobox";
-    document.getElementById("infoContent").innerHTML =
-        '<div class="bb-info-row"><span class="label">Grid</span><span class="value">10 x 10</span></div>' +
-        '<div class="bb-info-row"><span class="label">Total Positions</span><span class="value">100</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupied</span><span class="value">' + occupied + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Available</span><span class="value">' + (100 - occupied) + '</span></div>' +
-        '<div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:' + getOccupancyColor(occ) + '">' + occ + '%</span></div>' +
-        '<div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">&#9679; ACTIVE</span></div>';
-    document.getElementById("bbInfoPanel").classList.add("show");
-}
-
-function showTubeInfo(tubeId, pos, isOccupied, isReserved, event) {
-    var tt = document.getElementById("bbTooltip");
-    document.getElementById("ttTitle").textContent = tubeId;
-    var status = isOccupied ? "Occupied" : (isReserved ? "Reserved" : "Available");
-    var statusColor = isOccupied ? "var(--bb-accent)" : (isReserved ? "var(--bb-warning)" : "var(--bb-success)");
-    document.getElementById("ttContent").innerHTML =
-        '<div class="bb-tooltip-row"><span>Position</span><span>' + pos + '</span></div>' +
-        '<div class="bb-tooltip-row"><span>Row</span><span>' + pos.charAt(0) + '</span></div>' +
-        '<div class="bb-tooltip-row"><span>Column</span><span>' + pos.substring(1) + '</span></div>' +
-        '<div class="bb-tooltip-row"><span>Status</span><span style="color:' + statusColor + ';font-weight:600">' + status + '</span></div>';
-
-    tt.style.left = (event.clientX + 15) + "px";
-    tt.style.top = (event.clientY + 15) + "px";
-    tt.classList.add("show");
-}
-
-function hideTooltip() {
-    document.getElementById("bbTooltip").classList.remove("show");
-}
-
-function hideInfoPanel() {
-    document.getElementById("bbInfoPanel").classList.remove("show");
-}
-
-function openModal() {
-    document.getElementById("bbModal").classList.add("show");
-}
-
-function closeModal(e) {
-    if (!e || e.target.id === "bbModal") {
-        document.getElementById("bbModal").classList.remove("show");
-    }
-}
-
-function handleSearch(query) {
-    if (!query || query.length < 2) return;
-    query = query.toUpperCase();
-
-    for (var i = 0; i < demoData.freezers.length; i++) {
-        var fz = demoData.freezers[i];
-        if (fz.id.toUpperCase().indexOf(query) >= 0) {
-            navigateTo("freezer", fz);
+    // ===================== MINIMAP =====================
+    async function updateMinimap() {
+        const mm = $("minimapContent");
+        if (!freezersCache.length) {
+            mm.innerHTML = `<div class="bb-loading">No freezers</div>`;
             return;
         }
-    }
-}
 
-// Initialize
-renderRoom();
-updateMinimap();
+        let html = "";
+        for (const fz of freezersCache) {
+            const isActive = currentPath[0] && currentPath[0].id === fz.id;
+            html += `<div class="bb-tree-item ${isActive ? "active" : ""}" data-nav="freezer" data-freezer-id="${fz.id}">
+                        <span class="bb-tree-icon">❄️</span> ${fz.id}
+                     </div>`;
+
+            if (isActive) {
+                if (fz.type === 1 || fz.type === "Minus80") { // -80
+                    try {
+                        const shelves = await apiGet(API.shelves(fz.id));
+                        html += `<div class="bb-tree-children">`;
+                        for (const s of shelves) {
+                            const sActive = currentPath[1] && currentPath[1].shelfIndex === s.shelfIndex;
+                            html += `<div class="bb-tree-item ${sActive ? "active" : ""}" data-nav="shelf" data-shelf-index="${s.shelfIndex}">
+                                        <span>📚</span> ${s.displayName || ("S" + String(s.shelfIndex + 1).padStart(2, "0"))}
+                                     </div>`;
+                        }
+                        html += `</div>`;
+                    } catch { /* ignore */ }
+                } else {
+                    try {
+                        const racks = await apiGet(API.racksByFreezer(fz.id));
+                        html += `<div class="bb-tree-children">`;
+                        for (const r of racks) {
+                            html += `<div class="bb-tree-item" data-nav="rack" data-rack-id="${r.id}" data-shelf-index="0" data-rack-index="${r.rackIndex}">
+                                        <span>🧰</span> ${r.displayName || ("R" + String(r.rackIndex + 1).padStart(2, "0"))}
+                                     </div>`;
+                        }
+                        html += `</div>`;
+                    } catch { /* ignore */ }
+                }
+            }
+        }
+        mm.innerHTML = html;
+    }
+
+    // ===================== RENDER: ROOM =====================
+    async function renderRoom() {
+        freezersCache = await apiGet(API.freezers);
+        const container = $("bbViewport");
+        container.className = "bb-viewport bb-fade-in";
+
+        if (!freezersCache.length) {
+            container.innerHTML = `
+                <div class="bb-loading-screen">
+                    <div style="font-size:2.5rem">❄️</div>
+                    <div>No freezers found</div>
+                    <div style="font-size:0.85rem;color:var(--bb-text-muted)">Create freezers from the API or admin panel</div>
+                </div>`;
+            return;
+        }
+
+        let html = `<div class="bb-room bb-stagger">`;
+        for (const fz of freezersCache) {
+            const occColor = getOccupancyColor(fz.occupancyPercent);
+            const is150 = fz.type === 2 || fz.type === "Minus150";
+            let shelfBars = "";
+            if (!is150) {
+                for (let i = 0; i < Math.min(fz.shelvesCount || 4, 6); i++) {
+                    shelfBars += `<div class="bb-fz-shelf"></div>`;
+                }
+            } else {
+                shelfBars = `<div class="bb-fz-shelf" style="flex:0.35"></div>`;
+            }
+
+            html += `
+            <div class="bb-freezer" data-nav="freezer" data-hover="freezer" data-freezer-id="${fz.id}">
+                <div class="bb-freezer-header">
+                    <div class="bb-freezer-id">${fz.id}</div>
+                    <div class="bb-temp-badge ${is150 ? "cold" : ""}">🌡️ ${fz.temperature}°C</div>
+                </div>
+                <div class="bb-freezer-body">
+                    <div class="bb-freezer-visual">
+                        <div class="bb-freezer-door"></div>
+                        <div class="bb-freezer-handle"></div>
+                        <div class="bb-freezer-shelves">${shelfBars}</div>
+                    </div>
+                    <div class="bb-freezer-stats">
+                        <div class="bb-stat-row"><span class="bb-stat-label">Type</span><span class="bb-stat-value">${fz.typeDisplay || (is150 ? "-150°C" : "-80°C")}</span></div>
+                        <div class="bb-stat-row"><span class="bb-stat-label">Shelves</span><span class="bb-stat-value">${fz.shelvesCount || "-"}</span></div>
+                        <div class="bb-stat-row"><span class="bb-stat-label">Racks</span><span class="bb-stat-value">${is150 ? fz.racksPerShelf : (fz.shelvesCount * fz.racksPerShelf)}</span></div>
+                        <div class="bb-stat-row"><span class="bb-stat-label">Capacity</span><span class="bb-stat-value">${formatNumber(fz.totalCapacity)} tubes</span></div>
+                        <div class="bb-occupancy-bar">
+                            <div class="bb-occ-label"><span>Occupancy</span><span style="color:${occColor}">${fz.occupancyPercent}%</span></div>
+                            <div class="bb-occ-track"><div class="bb-occ-fill" style="width:${fz.occupancyPercent}%;background:linear-gradient(90deg,${occColor},var(--bb-accent))"></div></div>
+                        </div>
+                        <div class="bb-freezer-status"><span class="bb-status-dot"></span> ${fz.status || "ONLINE"}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    // ===================== RENDER: FREEZER =====================
+    async function renderFreezer(fz) {
+        const is150 = fz.type === 2 || fz.type === "Minus150";
+        const container = $("bbViewport");
+        container.className = "bb-viewport bb-zoom-in";
+
+        if (is150) {
+            const racks = await apiGet(API.racksByFreezer(fz.id));
+            let html = `<div class="bb-racks-container bb-stagger">`;
+            for (const r of racks) {
+                html += `
+                <div class="bb-rack" data-nav="rack" data-hover="rack"
+                     data-rack-id="${r.id}" data-shelf-index="0" data-rack-index="${r.rackIndex}" data-occ="${r.occupancyPercent}">
+                    <div class="bb-rack-visual"><div class="bb-rack-drawer" style="top:8px"></div></div>
+                    <div style="font-weight:700;margin-bottom:4px;">${r.displayName || r.id}</div>
+                    <div style="font-size:0.8rem;color:var(--bb-text-muted);">${r.boxesCount} Box · ${formatNumber(r.totalTubes)} Tubes</div>
+                    <div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${r.occupancyPercent}%"></div></div></div>
+                </div>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        } else {
+            const shelves = await apiGet(API.shelves(fz.id));
+            let html = `<div class="bb-shelves-container bb-stagger">`;
+            for (const s of shelves) {
+                let rackSlots = "";
+                for (let i = 0; i < (s.racksCount || 4); i++) rackSlots += `<div class="bb-shelf-rack-slot"></div>`;
+                html += `
+                <div class="bb-shelf" data-nav="shelf" data-hover="shelf"
+                     data-shelf-index="${s.shelfIndex}" data-shelf-id="${s.id}"
+                     data-racks="${s.racksCount}" data-drawers="${s.drawersCount}"
+                     data-boxes="${s.boxesCount}" data-tubes="${s.totalTubes}" data-occ="${s.occupancyPercent}">
+                    <div class="bb-shelf-visual">${rackSlots}</div>
+                    <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px;">${s.displayName || s.id}</div>
+                    <div style="font-size:0.85rem;color:var(--bb-text-muted);margin-bottom:8px;">
+                        ${s.racksCount} Racks · ${s.drawersCount} Drawers · ${s.boxesCount} Boxes
+                    </div>
+                    <div class="bb-occ-track"><div class="bb-occ-fill" style="width:${s.occupancyPercent}%"></div></div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-top:4px;">
+                        <span style="color:var(--bb-text-muted)">Occupancy</span>
+                        <span style="color:var(--bb-primary-light);font-weight:600">${s.occupancyPercent}%</span>
+                    </div>
+                </div>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+    }
+
+    // ===================== RENDER: SHELF =====================
+    async function renderShelf(fz, shelfIndex) {
+        const racks = await apiGet(API.racksByShelf(fz.id, shelfIndex));
+        const container = $("bbViewport");
+        container.className = "bb-viewport bb-zoom-in";
+
+        let html = `<div class="bb-racks-container bb-stagger">`;
+        for (const r of racks) {
+            let drawers = "";
+            for (let d = 0; d < (r.drawersCount || 5); d++) {
+                drawers += `<div class="bb-rack-drawer" style="top:${8 + d * 14}px"></div>`;
+            }
+            html += `
+            <div class="bb-rack" data-nav="rack" data-hover="rack"
+                 data-rack-id="${r.id}" data-shelf-index="${shelfIndex}" data-rack-index="${r.rackIndex}" data-occ="${r.occupancyPercent}">
+                <div class="bb-rack-visual">${drawers}</div>
+                <div style="font-weight:700;margin-bottom:4px;">${r.displayName || r.id}</div>
+                <div style="font-size:0.8rem;color:var(--bb-text-muted);">${r.drawersCount} Drawers · ${r.boxesCount} Boxes</div>
+                <div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${r.occupancyPercent}%"></div></div></div>
+            </div>`;
+        }
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    // ===================== RENDER: RACK =====================
+    async function renderRack(data) {
+        const fz = data.freezer || currentPath[0];
+        const is150 = fz.type === 2 || fz.type === "Minus150";
+        const container = $("bbViewport");
+        container.className = "bb-viewport bb-zoom-in";
+
+        if (is150) {
+            // -150: boxes directly under rack
+            const boxes = await apiGet(API.boxesByRack(data.id || data.rackId));
+            let html = `<div class="bb-boxes-container bb-stagger">`;
+            for (const b of boxes) {
+                html += renderBoxCard(b, data);
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        } else {
+            const drawers = await apiGet(API.drawers(data.id || data.rackId));
+            let html = `<div class="bb-drawers-container bb-stagger">`;
+            for (const d of drawers) {
+                html += `
+                <div class="bb-drawer" data-nav="drawer" data-hover="drawer"
+                     data-drawer-id="${d.id}" data-drawer-index="${d.drawerIndex}"
+                     data-shelf-index="${data.shelfIndex}" data-rack-index="${data.rackIndex}" data-occ="${d.occupancyPercent}">
+                    <div class="bb-drawer-visual"><div class="bb-drawer-handle"></div></div>
+                    <div style="font-weight:700;margin-bottom:4px;">${d.displayName || d.id}</div>
+                    <div style="font-size:0.8rem;color:var(--bb-text-muted);">${d.boxesCount} Boxes · ${formatNumber(d.totalTubes)} Tubes</div>
+                    <div style="margin-top:8px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${d.occupancyPercent}%"></div></div></div>
+                </div>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+    }
+
+    // ===================== RENDER: DRAWER =====================
+    async function renderDrawer(data) {
+        const boxes = await apiGet(API.boxesByDrawer(data.id || data.drawerId));
+        const container = $("bbViewport");
+        container.className = "bb-viewport bb-zoom-in";
+
+        let html = `<div class="bb-boxes-container bb-stagger">`;
+        for (const b of boxes) {
+            html += renderBoxCard(b, data);
+        }
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function renderBoxCard(b, parentData) {
+        const occCells = Math.floor((b.occupancyPercent || 0) / 4);
+        let cells = "";
+        for (let c = 0; c < 25; c++) {
+            cells += `<div class="bb-box-cell ${c < occCells ? "occupied" : ""}"></div>`;
+        }
+        return `
+        <div class="bb-box" data-nav="box" data-hover="box"
+             data-box-id="${b.id}" data-box-index="${b.boxIndex}"
+             data-shelf-index="${parentData.shelfIndex ?? 0}"
+             data-rack-index="${parentData.rackIndex ?? 0}"
+             data-drawer-index="${parentData.drawerIndex ?? 0}"
+             data-occ="${b.occupancyPercent}">
+            <div class="bb-box-visual">${cells}</div>
+            <div style="font-weight:700;margin-bottom:4px;font-size:0.9rem;">${b.displayName || b.id}</div>
+            <div style="font-size:0.8rem;color:var(--bb-text-muted);">100 Tubes</div>
+            <div style="margin-top:6px;font-size:0.8rem;">
+                <span style="color:${getOccupancyColor(b.occupancyPercent)};font-weight:600">${b.occupancyPercent}%</span> occupied
+            </div>
+        </div>`;
+    }
+
+    // ===================== RENDER: BOX (10x10) =====================
+    async function renderBox(boxId) {
+        const box = await apiGet(API.boxDetails(boxId));
+        const container = $("bbViewport");
+        container.className = "bb-viewport bb-zoom-in";
+
+        // Build position map from tubes
+        const tubeMap = {};
+        (box.bio_Tubes || box.tubes || []).forEach(t => {
+            tubeMap[t.position] = t;
+        });
+
+        let colHeaders = "";
+        for (let c = 0; c < 10; c++) {
+            colHeaders += `<div style="text-align:center;font-size:0.7rem;color:var(--bb-text-muted);font-weight:600;">${c + 1}</div>`;
+        }
+
+        let rowLabels = "";
+        for (let r = 0; r < 10; r++) {
+            rowLabels += `<div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--bb-text-muted);font-weight:600;">${String.fromCharCode(65 + r)}</div>`;
+        }
+
+        let tubes = "";
+        for (let row = 0; row < 10; row++) {
+            for (let col = 0; col < 10; col++) {
+                const pos = String.fromCharCode(65 + row) + String(col + 1).padStart(2, "0");
+                const tube = tubeMap[pos];
+                let stateClass = "";
+                let isOccupied = false;
+                let isReserved = false;
+
+                if (tube) {
+                    if (tube.status === 1 || tube.status === "Occupied") {
+                        stateClass = "occupied";
+                        isOccupied = true;
+                    } else if (tube.status === 2 || tube.status === "Reserved") {
+                        stateClass = "reserved";
+                        isReserved = true;
+                    }
+                }
+
+                const tubeId = tube ? tube.id : `${boxId}-${pos}`;
+                tubes += `<div class="bb-tube ${stateClass}"
+                    data-hover="tube" data-action="open-modal"
+                    data-tube-id="${tubeId}" data-pos="${pos}"
+                    data-occupied="${isOccupied}" data-reserved="${isReserved}"
+                    data-sample-id="${tube?.sampleId || ""}"
+                    data-sample-name="${tube?.sampleName || ""}"
+                    title="${pos}"></div>`;
+            }
+        }
+
+        const html = `
+        <div class="bb-cryobox-container">
+            <div class="bb-cryobox">
+                <div class="bb-cryobox-header">
+                    <div>
+                        <div style="font-weight:700;font-size:1.2rem;">${box.id}</div>
+                        <div style="font-size:0.8rem;color:var(--bb-text-muted);">Cryobox · 10×10 Grid · 100 Positions</div>
+                    </div>
+                    <div class="bb-temp-badge" style="font-size:0.75rem;">🌡️ ${box.temperature}°C</div>
+                </div>
+                <div style="display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:start;">
+                    <div style="display:flex;flex-direction:column;gap:6px;padding-top:28px;">${rowLabels}</div>
+                    <div>
+                        <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:6px;">${colHeaders}</div>
+                        <div class="bb-cryobox-grid">${tubes}</div>
+                    </div>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:16px;justify-content:center;font-size:0.8rem;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--bb-accent),var(--bb-cyan));"></div>
+                        <span style="color:var(--bb-text-muted)">Occupied (${box.occupiedCount})</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--bb-warning),var(--bb-gold));"></div>
+                        <span style="color:var(--bb-text-muted)">Reserved (${box.reservedCount})</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);"></div>
+                        <span style="color:var(--bb-text-muted)">Available (${box.availableCount})</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        container.innerHTML = html;
+    }
+
+    // ===================== INFO PANEL =====================
+    function showFreezerInfo(fz) {
+        $("infoIcon").textContent = "❄️";
+        $("infoTitle").textContent = fz.id;
+        $("infoSubtitle").textContent = "Ultra-Low Temperature Freezer";
+        $("infoContent").innerHTML = `
+            <div class="bb-info-row"><span class="label">Temperature</span><span class="value" style="color:var(--bb-cyan)">${fz.temperature}°C</span></div>
+            <div class="bb-info-row"><span class="label">Type</span><span class="value">${fz.typeDisplay || fz.type}</span></div>
+            <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">● ${fz.status}</span></div>
+            <div class="bb-info-row"><span class="label">Total Capacity</span><span class="value">${formatNumber(fz.totalCapacity)}</span></div>
+            <div class="bb-info-row"><span class="label">Occupied</span><span class="value">${formatNumber(fz.occupiedCount)}</span></div>
+            <div class="bb-info-row"><span class="label">Available</span><span class="value">${formatNumber(fz.availableCount)}</span></div>
+            <div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(fz.occupancyPercent)}">${fz.occupancyPercent}%</span></div>
+            <div class="bb-info-row"><span class="label">Barcode</span><span class="value" style="font-size:0.75rem">${fz.barcode || "-"}</span></div>`;
+        $("bbInfoPanel").classList.add("show");
+    }
+
+    function showShelfInfo(el) {
+        $("infoIcon").textContent = "📚";
+        $("infoTitle").textContent = el.dataset.shelfId || "Shelf";
+        $("infoSubtitle").textContent = "Storage Shelf";
+        $("infoContent").innerHTML = `
+            <div class="bb-info-row"><span class="label">Racks</span><span class="value">${el.dataset.racks}</span></div>
+            <div class="bb-info-row"><span class="label">Drawers</span><span class="value">${el.dataset.drawers}</span></div>
+            <div class="bb-info-row"><span class="label">Boxes</span><span class="value">${el.dataset.boxes}</span></div>
+            <div class="bb-info-row"><span class="label">Tube Capacity</span><span class="value">${formatNumber(el.dataset.tubes)}</span></div>
+            <div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(+el.dataset.occ)}">${el.dataset.occ}%</span></div>`;
+        $("bbInfoPanel").classList.add("show");
+    }
+
+    function showRackInfo(el) {
+        $("infoIcon").textContent = "🧰";
+        $("infoTitle").textContent = el.dataset.rackId || "Rack";
+        $("infoSubtitle").textContent = "Storage Rack";
+        $("infoContent").innerHTML = `
+            <div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(+el.dataset.occ)}">${el.dataset.occ}%</span></div>
+            <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">● ONLINE</span></div>`;
+        $("bbInfoPanel").classList.add("show");
+    }
+
+    function showDrawerInfo(el) {
+        $("infoIcon").textContent = "🗄️";
+        $("infoTitle").textContent = el.dataset.drawerId || "Drawer";
+        $("infoSubtitle").textContent = "Storage Drawer";
+        $("infoContent").innerHTML = `
+            <div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(+el.dataset.occ)}">${el.dataset.occ}%</span></div>
+            <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">● ONLINE</span></div>`;
+        $("bbInfoPanel").classList.add("show");
+    }
+
+    function showBoxInfo(el) {
+        $("infoIcon").textContent = "📦";
+        $("infoTitle").textContent = el.dataset.boxId || "Box";
+        $("infoSubtitle").textContent = "Cryobox";
+        $("infoContent").innerHTML = `
+            <div class="bb-info-row"><span class="label">Grid</span><span class="value">10 × 10</span></div>
+            <div class="bb-info-row"><span class="label">Occupancy</span><span class="value" style="color:${getOccupancyColor(+el.dataset.occ)}">${el.dataset.occ}%</span></div>
+            <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-success)">● ACTIVE</span></div>`;
+        $("bbInfoPanel").classList.add("show");
+    }
+
+    function showTubeInfo(el, event) {
+        const tt = $("bbTooltip");
+        $("ttTitle").textContent = el.dataset.tubeId;
+        const isOccupied = el.dataset.occupied === "true";
+        const isReserved = el.dataset.reserved === "true";
+        const status = isOccupied ? "Occupied" : (isReserved ? "Reserved" : "Available");
+        const statusColor = isOccupied ? "var(--bb-accent)" : (isReserved ? "var(--bb-warning)" : "var(--bb-success)");
+
+        $("ttContent").innerHTML = `
+            <div class="bb-tooltip-row"><span>Position</span><span>${el.dataset.pos}</span></div>
+            <div class="bb-tooltip-row"><span>Status</span><span style="color:${statusColor};font-weight:600">${status}</span></div>
+            ${el.dataset.sampleId ? `<div class="bb-tooltip-row"><span>Sample</span><span>${el.dataset.sampleId}</span></div>` : ""}
+            ${el.dataset.sampleName ? `<div class="bb-tooltip-row"><span>Name</span><span>${el.dataset.sampleName}</span></div>` : ""}`;
+
+        tt.style.left = (event.clientX + 15) + "px";
+        tt.style.top = (event.clientY + 15) + "px";
+        tt.classList.add("show");
+    }
+
+    function hideTooltip() {
+        $("bbTooltip").classList.remove("show");
+    }
+
+    function hideInfoPanel() {
+        $("bbInfoPanel").classList.remove("show");
+    }
+
+    // ===================== MODAL =====================
+    function openModal(tubeEl) {
+        const modal = $("bbModal");
+        const title = $("modalTitle");
+        const body = $("modalBody");
+
+        if (tubeEl) {
+            const pos = tubeEl.dataset.pos;
+            const occupied = tubeEl.dataset.occupied === "true";
+            const reserved = tubeEl.dataset.reserved === "true";
+            title.textContent = `Position ${pos}`;
+            body.innerHTML = `
+                <p style="margin-bottom:8px"><strong>Status:</strong> ${occupied ? "Occupied" : reserved ? "Reserved" : "Available"}</p>
+                ${tubeEl.dataset.sampleId ? `<p><strong>Sample ID:</strong> ${tubeEl.dataset.sampleId}</p>` : ""}
+                ${tubeEl.dataset.sampleName ? `<p><strong>Name:</strong> ${tubeEl.dataset.sampleName}</p>` : ""}
+                <p style="margin-top:12px;font-size:0.85rem;color:var(--bb-text-muted)">
+                    Full sample management (register / withdraw / transfer) will be available in <strong>Phase 2</strong>.
+                </p>`;
+        }
+        modal.classList.add("show");
+    }
+
+    function closeModal(e) {
+        if (!e || e.target.id === "bbModal" || e.target.id === "bbModalCloseBtn") {
+            $("bbModal").classList.remove("show");
+        }
+    }
+
+    // ===================== SEARCH =====================
+    let searchTimeout = null;
+    function handleSearch(query) {
+        clearTimeout(searchTimeout);
+        if (!query || query.length < 2) return;
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const results = await apiGet(API.search(query));
+                if (results.length === 1) {
+                    navigateTo("freezer", results[0]);
+                } else if (results.length > 1) {
+                    // For now just go to the first match
+                    navigateTo("freezer", results[0]);
+                }
+            } catch (err) {
+                console.warn("Search failed", err);
+            }
+        }, 350);
+    }
+
+    // ===================== EVENTS =====================
+    function attachEvents() {
+        const app = $("biobankApp");
+
+        app.addEventListener("click", async (e) => {
+            const actionEl = e.target.closest("[data-action='open-modal']");
+            if (actionEl) {
+                openModal(actionEl);
+                return;
+            }
+
+            const navEl = e.target.closest("[data-nav]");
+            if (!navEl) return;
+
+            const view = navEl.dataset.nav;
+
+            if (view === "room") {
+                navigateTo("room");
+                return;
+            }
+
+            if (view === "freezer") {
+                const id = navEl.dataset.freezerId;
+                let fz = freezersCache.find(f => f.id === id);
+                if (!fz) fz = await apiGet(API.freezer(id));
+                navigateTo("freezer", fz);
+                return;
+            }
+
+            if (view === "shelf") {
+                const freezer = currentPath[0];
+                const shelfIndex = parseInt(navEl.dataset.shelfIndex, 10);
+                navigateTo("shelf", { freezer, shelfIndex });
+                return;
+            }
+
+            if (view === "rack") {
+                const freezer = currentPath[0];
+                navigateTo("rack", {
+                    freezer,
+                    id: navEl.dataset.rackId,
+                    rackId: navEl.dataset.rackId,
+                    shelfIndex: parseInt(navEl.dataset.shelfIndex || "0", 10),
+                    rackIndex: parseInt(navEl.dataset.rackIndex || "0", 10)
+                });
+                return;
+            }
+
+            if (view === "drawer") {
+                const freezer = currentPath[0];
+                navigateTo("drawer", {
+                    freezer,
+                    id: navEl.dataset.drawerId,
+                    drawerId: navEl.dataset.drawerId,
+                    drawerIndex: parseInt(navEl.dataset.drawerIndex || "0", 10),
+                    shelfIndex: parseInt(navEl.dataset.shelfIndex || currentPath[1]?.shelfIndex || "0", 10),
+                    rackIndex: parseInt(navEl.dataset.rackIndex || currentPath[2]?.rackIndex || "0", 10)
+                });
+                return;
+            }
+
+            if (view === "box") {
+                const freezer = currentPath[0];
+                navigateTo("box", {
+                    freezer,
+                    boxId: navEl.dataset.boxId,
+                    shelfIndex: parseInt(navEl.dataset.shelfIndex || "0", 10),
+                    rackIndex: parseInt(navEl.dataset.rackIndex || "0", 10),
+                    drawerIndex: parseInt(navEl.dataset.drawerIndex || "0", 10)
+                });
+            }
+        });
+
+        app.addEventListener("mouseover", (e) => {
+            const hoverEl = e.target.closest("[data-hover]");
+            if (!hoverEl) return;
+
+            const type = hoverEl.dataset.hover;
+            if (type === "freezer") {
+                const fz = freezersCache.find(f => f.id === hoverEl.dataset.freezerId);
+                if (fz) showFreezerInfo(fz);
+            } else if (type === "shelf") showShelfInfo(hoverEl);
+            else if (type === "rack") showRackInfo(hoverEl);
+            else if (type === "drawer") showDrawerInfo(hoverEl);
+            else if (type === "box") showBoxInfo(hoverEl);
+            else if (type === "tube") showTubeInfo(hoverEl, e);
+        });
+
+        app.addEventListener("mouseout", (e) => {
+            const hoverEl = e.target.closest("[data-hover]");
+            if (!hoverEl) return;
+            if (hoverEl.contains(e.relatedTarget)) return;
+            if (hoverEl.dataset.hover === "tube") hideTooltip();
+            else hideInfoPanel();
+        });
+
+        const searchBox = $("bbSearch");
+        if (searchBox) {
+            searchBox.addEventListener("input", function () {
+                handleSearch(this.value);
+            });
+        }
+
+        $("bbModal")?.addEventListener("click", closeModal);
+        $("bbModalCloseBtn")?.addEventListener("click", closeModal);
+    }
+
+
+
+
+    // ===================== ADD FREEZER =====================
+    function openAddFreezerModal() {
+        $("bbAddFreezerError").style.display = "none";
+        $("bbAddFreezerForm").reset();
+        $("fzShelves").value = 4;
+        $("fzRacksPerShelf").value = 4;
+        $("fzDrawersPerRack").value = 5;
+        $("fzBoxesPerDrawer").value = 5;
+        $("fzTubesPerBox").value = 100;
+        $("bbAddFreezerModal").classList.add("show");
+    }
+
+    function closeAddFreezerModal() {
+        $("bbAddFreezerModal").classList.remove("show");
+    }
+
+    // Type change → adjust defaults
+    document.getElementById("fzType")?.addEventListener("change", function () {
+        if (this.value === "2") { // -150
+            $("fzShelves").value = 0;
+            $("fzDrawersPerRack").value = 0;
+            $("fzBoxesPerDrawer").value = 12;   // ← 12 Box لكل Rack
+            $("fzRacksPerShelf").value = 12;
+        } else {
+            $("fzShelves").value = 4;
+            $("fzDrawersPerRack").value = 5;
+            $("fzBoxesPerDrawer").value = 5;
+            $("fzRacksPerShelf").value = 4;
+        }
+    });
+
+    document.getElementById("bbBtnAddFreezer")?.addEventListener("click", openAddFreezerModal);
+    document.getElementById("bbAddFreezerCancel")?.addEventListener("click", closeAddFreezerModal);
+
+    $("bbAddFreezerModal")?.addEventListener("click", function (e) {
+        if (e.target.id === "bbAddFreezerModal") closeAddFreezerModal();
+    });
+
+    $("bbAddFreezerForm")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const errorEl = $("bbAddFreezerError");
+        const submitBtn = $("bbAddFreezerSubmit");
+        errorEl.style.display = "none";
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creating...";
+
+        const type = parseInt($("fzType").value, 10);
+        const payload = {
+            id: $("fzId").value.trim().toUpperCase(),
+            type: type,
+            temperature: type === 2 ? -150 : -80,
+            barcode: $("fzBarcode").value.trim() || null,
+            shelvesCount: parseInt($("fzShelves").value, 10) || 0,
+            racksPerShelf: parseInt($("fzRacksPerShelf").value, 10) || 1,
+            drawersPerRack: parseInt($("fzDrawersPerRack").value, 10) || 0,
+            boxesPerDrawer: parseInt($("fzBoxesPerDrawer").value, 10) || 1,
+            tubesPerBox: parseInt($("fzTubesPerBox").value, 10) || 100
+        };
+
+        try {
+            const res = await fetch("/biobank/api/freezers", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || `Failed (${res.status})`);
+            }
+
+            const created = await res.json();
+            closeAddFreezerModal();
+
+            // Refresh room view
+            await navigateTo("room");
+
+            // Optional: highlight the new freezer
+            console.log("[BioBank] Freezer created:", created.id);
+        } catch (err) {
+            errorEl.textContent = err.message || "Failed to create freezer";
+            errorEl.style.display = "block";
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Create Freezer";
+        }
+    });
+
+
+
+    // ===================== INIT =====================
+    async function navigateTo(view, data = null) {
+        currentView = view;
+        clearViewport();
+        showLoading();
+
+        try {
+            console.log("[BioBank] Navigating to:", view, data);
+
+            switch (view) {
+                case "room":
+                    currentPath = [];
+                    await renderRoom();
+                    break;
+                case "freezer":
+                    currentPath = [data];
+                    await renderFreezer(data);
+                    break;
+                case "shelf":
+                    currentPath = [data.freezer, data];
+                    await renderShelf(data.freezer, data.shelfIndex);
+                    break;
+                case "rack":
+                    currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, data];
+                    await renderRack(data);
+                    break;
+                case "drawer":
+                    currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, { rackIndex: data.rackIndex, id: data.rackId }, data];
+                    await renderDrawer(data);
+                    break;
+                case "box":
+                    currentPath = [data.freezer, { shelfIndex: data.shelfIndex }, { rackIndex: data.rackIndex }, { drawerIndex: data.drawerIndex }, data];
+                    await renderBox(data.boxId);
+                    break;
+            }
+
+            updateBreadcrumb();
+            await updateMinimap();
+            hideInfoPanel();
+            console.log("[BioBank] Render done");
+        } catch (err) {
+            console.error("[BioBank] Error:", err);
+            $("bbViewport").innerHTML = `
+            <div class="bb-loading-screen">
+                <div style="font-size:2rem">⚠️</div>
+                <div style="max-width:420px;text-align:center;">
+                    <strong>Failed to load Bio Bank</strong><br>
+                    <span style="font-size:0.85rem;color:var(--bb-text-muted)">${err.message || err}</span>
+                </div>
+                <button class="bb-modal-btn" style="margin-top:16px" onclick="window.BioBank.navigateTo('room')">
+                    Retry
+                </button>
+            </div>`;
+        }
+    }
+
+    function init() {
+        console.log("[BioBank] Init started");
+        attachEvents();
+        navigateTo("room");
+    }
+
+    // Expose for debugging / external calls
+    window.BioBank = {
+        navigateTo,
+        refresh: () => navigateTo(currentView, currentPath[0] || null)
+    };
+
+    // Start
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
+})();

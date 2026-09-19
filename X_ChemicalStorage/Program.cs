@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using X_ChemicalStorage.BioBank.Services;
+
+var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.AddHangfire(config =>
 //{
@@ -88,7 +90,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 builder.Services.AddScoped<IServicesRepository<SubCategory>, ServicesSubCategory>();
 builder.Services.AddScoped<IServicesSubCategory, ServicesSubCategory>();
-
+builder.Services.AddScoped<IBioBankService, BioBankService>();
 builder.Services.AddScoped<IServicesRepository<Supplier>, ServicesSupplier>();
 builder.Services.AddScoped<IServicesRepository<Category>, ServicesCategory>();
 builder.Services.AddScoped<IServicesRepository<Unit>, ServicesUnit>();

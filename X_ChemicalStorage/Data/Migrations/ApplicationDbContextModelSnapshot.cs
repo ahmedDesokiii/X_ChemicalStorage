@@ -244,6 +244,206 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("ERP_WebUsers", (string)null);
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("BoxIndex")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Columns")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DrawerId")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("RackId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Rows")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DrawerId");
+
+                    b.HasIndex("RackId");
+
+                    b.ToTable("Bio_Boxes");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Drawer", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("DrawerIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RackId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RackId");
+
+                    b.ToTable("Bio_Drawers");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Freezer", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("BoxesPerDrawer")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DrawersPerRack")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RacksPerShelf")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShelvesCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Temperature")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TubesPerBox")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Barcode");
+
+                    b.ToTable("Bio_Freezers");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Rack", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FreezerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("RackIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ShelfId")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("ShelfIndex")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreezerId");
+
+                    b.HasIndex("ShelfId");
+
+                    b.ToTable("Bio_Racks");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Shelf", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("FreezerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ShelfIndex")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreezerId");
+
+                    b.ToTable("Bio_Shelves");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Tube", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("BoxId")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Column")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<int>("Row")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SampleId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SampleName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StoredAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SampleId");
+
+                    b.HasIndex("BoxId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("Bio_Tubes");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Box", b =>
                 {
                     b.Property<int>("Id")
@@ -878,6 +1078,74 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Drawer", "Bio_Drawer")
+                        .WithMany("Bio_Boxes")
+                        .HasForeignKey("DrawerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Rack", "Bio_Rack")
+                        .WithMany("Bio_Boxes")
+                        .HasForeignKey("RackId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Bio_Drawer");
+
+                    b.Navigation("Bio_Rack");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Drawer", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Rack", "Bio_Rack")
+                        .WithMany("Bio_Drawers")
+                        .HasForeignKey("RackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bio_Rack");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Rack", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Bio_Freezer")
+                        .WithMany("Bio_Racks")
+                        .HasForeignKey("FreezerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Shelf", "Bio_Shelf")
+                        .WithMany("Bio_Racks")
+                        .HasForeignKey("ShelfId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Bio_Freezer");
+
+                    b.Navigation("Bio_Shelf");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Shelf", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Bio_Freezer")
+                        .WithMany("Bio_Shelves")
+                        .HasForeignKey("FreezerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bio_Freezer");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Tube", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Box", "Bio_Box")
+                        .WithMany("Bio_Tubes")
+                        .HasForeignKey("BoxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bio_Box");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Box", b =>
                 {
                     b.HasOne("X_ChemicalStorage.Models.Shelf", "Shelf")
@@ -1021,6 +1289,35 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Lot");
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
+                {
+                    b.Navigation("Bio_Tubes");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Drawer", b =>
+                {
+                    b.Navigation("Bio_Boxes");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Freezer", b =>
+                {
+                    b.Navigation("Bio_Racks");
+
+                    b.Navigation("Bio_Shelves");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Rack", b =>
+                {
+                    b.Navigation("Bio_Boxes");
+
+                    b.Navigation("Bio_Drawers");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Shelf", b =>
+                {
+                    b.Navigation("Bio_Racks");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Box", b =>

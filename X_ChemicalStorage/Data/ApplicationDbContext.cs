@@ -112,6 +112,92 @@ namespace X_ChemicalStorage.Data
                 new StorageUnitType { Id = 5, Name = "Liquid Nitrogen Tank", TemperatureValue = null },
                 new StorageUnitType { Id = 6, Name = "Room Temp", TemperatureValue = null }
             );
+
+            // Bio Bank Entities Configuration
+            // ===== Bio_Freezer =====
+            builder.Entity<Bio_Freezer>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Type).HasConversion<string>();
+                e.Property(x => x.Status).HasConversion<string>();
+                e.HasIndex(x => x.Barcode);
+            });
+
+            // ===== Bio_Shelf =====
+            builder.Entity<Bio_Shelf>(e =>
+            {
+                e.HasKey(x => x.Id);
+
+                e.HasOne(x => x.Bio_Freezer)
+                    .WithMany(f => f.Bio_Shelves)
+                    .HasForeignKey(x => x.FreezerId)
+                    .OnDelete(DeleteBehavior.Cascade);   // Freezer → Shelf : Cascade
+            });
+
+            // ===== Bio_Rack =====
+            builder.Entity<Bio_Rack>(e =>
+            {
+                e.HasKey(x => x.Id);
+
+                // Freezer → Rack : Cascade
+                e.HasOne(x => x.Bio_Freezer)
+                    .WithMany(f => f.Bio_Racks)
+                    .HasForeignKey(x => x.FreezerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Shelf → Rack : NO ACTION (هذا هو الإصلاح المهم)
+                e.HasOne(x => x.Bio_Shelf)
+                    .WithMany(s => s.Bio_Racks)
+                    .HasForeignKey(x => x.ShelfId)
+                    .OnDelete(DeleteBehavior.Restrict)   // ← غيّر من Cascade إلى Restrict
+                    .IsRequired(false);
+            });
+
+            // ===== Bio_Drawer =====
+            builder.Entity<Bio_Drawer>(e =>
+            {
+                e.HasKey(x => x.Id);
+
+                e.HasOne(x => x.Bio_Rack)
+                    .WithMany(r => r.Bio_Drawers)
+                    .HasForeignKey(x => x.RackId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ===== Bio_Box =====
+            builder.Entity<Bio_Box>(e =>
+            {
+                e.HasKey(x => x.Id);
+
+                // Drawer → Box : Cascade
+                e.HasOne(x => x.Bio_Drawer)
+                    .WithMany(d => d.Bio_Boxes)
+                    .HasForeignKey(x => x.DrawerId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired(false);
+
+                // Rack → Box : Restrict (عشان نتجنب multiple cascade paths)
+                e.HasOne(x => x.Bio_Rack)
+                    .WithMany(r => r.Bio_Boxes)
+                    .HasForeignKey(x => x.RackId)
+                    .OnDelete(DeleteBehavior.Restrict)   // ← مهم
+                    .IsRequired(false);
+            });
+
+            // ===== Bio_Tube =====
+            builder.Entity<Bio_Tube>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Status).HasConversion<string>();
+                e.HasIndex(x => new { x.BoxId, x.Position }).IsUnique();
+                e.HasIndex(x => x.SampleId);
+
+                e.HasOne(x => x.Bio_Box)
+                    .WithMany(b => b.Bio_Tubes)
+                    .HasForeignKey(x => x.BoxId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
         }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<StorageUnitType> StorageUnitTypes { get; set; }
@@ -129,6 +215,13 @@ namespace X_ChemicalStorage.Data
         public virtual DbSet<ItemTransaction> ItemTransactions { get; set; }
         public virtual DbSet<LotTransaction> LotTransactions { get; set; }
         public virtual DbSet<ManufacuterCompany> ManufacuterCompanies { get; set; }
+        // Bio Bank Entities
+        public DbSet<Bio_Freezer> Bio_Freezers => Set<Bio_Freezer>();
+        public DbSet<Bio_Shelf> Bio_Shelves => Set<Bio_Shelf>();
+        public DbSet<Bio_Rack> Bio_Racks => Set<Bio_Rack>();
+        public DbSet<Bio_Drawer> Bio_Drawers => Set<Bio_Drawer>();
+        public DbSet<Bio_Box> Bio_Boxes => Set<Bio_Box>();
+        public DbSet<Bio_Tube> Bio_Tubes => Set<Bio_Tube>();
 
 
 
