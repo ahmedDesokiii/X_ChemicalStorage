@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="~/css/biobank.css" />
 
 <!-- Hero Header -->
-<div class="page-hero pb-0 mb-0" dir="ltr">
+<div class="page-hero pb-2 pt-1 mb-2" dir="ltr">
     <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-lg-8">
@@ -19,7 +19,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="bb-title">Bio Bank Storage</div>
+                        <div class="bb-title text-light">Bio Bank Storage</div>
                         <div class="bb-subtitle">Cold Storage Visualization System</div>
                         <div class="bb-breadcrumb" id="bbBreadcrumb">
                             <div class="bb-bcrumb-item active" data-nav="room">
@@ -88,13 +88,11 @@
 
     <!-- Modal -->
     <div class="bb-modal-overlay" id="bbModal">
-        <div class="bb-modal">
-            <div class="bb-modal-icon">🧪</div>
+        <div class="bb-modal bb-modal-form" style="max-width:520px;">
+            <div class="bb-modal-icon" id="modalIcon">🧪</div>
             <h3 id="modalTitle">Sample Details</h3>
-            <div id="modalBody">
-                <p>Sample management workflows will be implemented in <strong>Phase 2</strong>.</p>
-            </div>
-            <button class="bb-modal-btn" id="bbModalCloseBtn">Close</button>
+            <div id="modalBody"></div>
+            <div class="bb-form-actions" id="modalActions" style="margin-top:16px;"></div>
         </div>
     </div>
 

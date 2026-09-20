@@ -577,27 +577,205 @@
     }
 
     // ===================== MODAL =====================
-    function openModal(tubeEl) {
-        const modal = $("bbModal");
-        const title = $("modalTitle");
-        const body = $("modalBody");
+    let currentTubeContext = null; // { boxId, position, tubeId }
 
-        if (tubeEl) {
-            const pos = tubeEl.dataset.pos;
-            const occupied = tubeEl.dataset.occupied === "true";
-            const reserved = tubeEl.dataset.reserved === "true";
-            title.textContent = `Position ${pos}`;
-            body.innerHTML = `
-                <p style="margin-bottom:8px"><strong>Status:</strong> ${occupied ? "Occupied" : reserved ? "Reserved" : "Available"}</p>
-                ${tubeEl.dataset.sampleId ? `<p><strong>Sample ID:</strong> ${tubeEl.dataset.sampleId}</p>` : ""}
-                ${tubeEl.dataset.sampleName ? `<p><strong>Name:</strong> ${tubeEl.dataset.sampleName}</p>` : ""}
-                <p style="margin-top:12px;font-size:0.85rem;color:var(--bb-text-muted)">
-                    Full sample management (register / withdraw / transfer) will be available in <strong>Phase 2</strong>.
-                </p>`;
-        }
+    async function openModal(tubeEl) {
+        const pos = tubeEl.dataset.pos;
+        const boxId = currentPath[4]?.boxId || currentPath[4]?.id;
+        if (!boxId || !pos) return;
+
+        currentTubeContext = { boxId, position: pos, tubeId: tubeEl.dataset.tubeId };
+
+        const modal = $("bbModal");
+        const body = $("modalBody");
+        const actions = $("modalActions");
+        const title = $("modalTitle");
+
+        body.innerHTML = `<div class="bb-loading"><div class="bb-spinner"></div></div>`;
+        actions.innerHTML = "";
         modal.classList.add("show");
+
+        try {
+            const details = await apiGet(`/biobank/api/boxes/${encodeURIComponent(boxId)}/tubes/${encodeURIComponent(pos)}`);
+            renderTubeModal(details);
+        } catch (err) {
+            title.textContent = `Position ${pos}`;
+            body.innerHTML = `<p style="color:#fca5a5">${err.message}</p>`;
+            actions.innerHTML = `<button class="bb-btn-cancel" onclick="document.getElementById('bbModal').classList.remove('show')">Close</button>`;
+        }
     }
 
+    function renderTubeModal(details) {
+        const title = $("modalTitle");
+        const body = $("modalBody");
+        const actions = $("modalActions");
+        const status = details.tubeStatus; // 0 Available, 1 Occupied, 2 Reserved (or string)
+
+        const isOccupied = status === 1 || status === "Occupied";
+        const isReserved = status === 2 || status === "Reserved";
+        const sample = details.sample;
+
+        title.textContent = `Position ${details.position}`;
+
+        if (isOccupied && sample) {
+            body.innerHTML = `
+            <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-accent)">Occupied</span></div>
+            <div class="bb-info-row"><span class="label">Sample ID</span><span class="value">${sample.id}</span></div>
+            <div class="bb-info-row"><span class="label">Name</span><span class="value">${sample.name}</span></div>
+            <div class="bb-info-row"><span class="label">Type</span><span class="value">${sample.sampleType || "-"}</span></div>
+            <div class="bb-info-row"><span class="label">Project</span><span class="value">${sample.projectCode || "-"}</span></div>
+            <div class="bb-info-row"><span class="label">Freezer</span><span class="value">${sample.currentFreezerId || "-"}</span></div>
+            <div class="bb-info-row"><span class="label">Stored</span><span class="value">${sample.createdAt ? new Date(sample.createdAt).toLocaleString() : "-"}</span></div>
+            ${sample.notes ? `<p style="margin-top:10px;font-size:0.85rem;color:var(--bb-text-muted)">${sample.notes}</p>` : ""}
+        `;
+            actions.innerHTML = `
+            <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
+            <button class="bb-modal-btn" style="background:linear-gradient(135deg,#f59e0b,#ef4444)" id="btnWithdraw">Withdraw</button>
+            <button class="bb-modal-btn" id="btnHistory">History</button>
+        `;
+            $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
+            $("btnWithdraw").onclick = () => doWithdraw(sample.id);
+            $("btnHistory").onclick = () => showHistory(sample.id);
+        }
+        else if (isReserved) {
+            body.innerHTML = `
+            <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-warning)">Reserved</span></div>
+            <div class="bb-info-row"><span class="label">Sample</span><span class="value">${sample?.id || "-"}</span></div>
+            <div class="bb-info-row"><span class="label">Name</span><span class="value">${sample?.name || "-"}</span></div>
+            <p style="margin-top:12px;font-size:0.85rem;color:var(--bb-text-muted)">Confirm store or cancel reservation.</p>
+        `;
+            actions.innerHTML = `
+            <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
+            <button class="bb-btn-cancel" id="btnCancelReserve">Cancel Reserve</button>
+            <button class="bb-modal-btn" id="btnConfirmStore">Confirm Store</button>
+        `;
+            $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
+            $("btnCancelReserve").onclick = () => doCancelReserve();
+            $("btnConfirmStore").onclick = () => showStoreForm(sample);
+        }
+        else {
+            // Available
+            body.innerHTML = `
+            <p style="margin-bottom:12px;color:var(--bb-text-muted)">Position is <strong style="color:var(--bb-success)">Available</strong>. Store a new sample:</p>
+            <div class="bb-form-row"><label>Sample ID *</label><input id="smId" required placeholder="SMP-2026-00001"></div>
+            <div class="bb-form-row"><label>Name *</label><input id="smName" required placeholder="Plasma Sample"></div>
+            <div class="bb-form-grid">
+                <div class="bb-form-row"><label>Type</label><input id="smType" placeholder="Plasma"></div>
+                <div class="bb-form-row"><label>Project</label><input id="smProject" placeholder="PRJ-01"></div>
+            </div>
+            <div class="bb-form-row"><label>Notes</label><input id="smNotes" placeholder="Optional"></div>
+            <div id="smError" class="bb-form-error" style="display:none;"></div>
+        `;
+            actions.innerHTML = `
+            <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
+            <button class="bb-btn-cancel" id="btnReserve">Reserve</button>
+            <button class="bb-modal-btn" id="btnStore">Store Sample</button>
+        `;
+            $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
+            $("btnStore").onclick = () => doStore();
+            $("btnReserve").onclick = () => doReserve();
+        }
+    }
+
+    async function doStore() {
+        const err = $("smError");
+        err.style.display = "none";
+        const payload = {
+            sampleId: $("smId").value.trim(),
+            name: $("smName").value.trim(),
+            sampleType: $("smType").value.trim() || null,
+            projectCode: $("smProject").value.trim() || null,
+            notes: $("smNotes").value.trim() || null,
+            boxId: currentTubeContext.boxId,
+            position: currentTubeContext.position,
+            performedBy: "web-user"
+        };
+        if (!payload.sampleId || !payload.name) {
+            err.textContent = "Sample ID and Name are required.";
+            err.style.display = "block";
+            return;
+        }
+        try {
+            await apiPost("/biobank/api/samples/store", payload);
+            $("bbModal").classList.remove("show");
+            // refresh box view
+            if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
+        } catch (e) {
+            err.textContent = e.message;
+            err.style.display = "block";
+        }
+    }
+
+    async function doReserve() {
+        try {
+            await apiPost("/biobank/api/samples/reserve", {
+                boxId: currentTubeContext.boxId,
+                position: currentTubeContext.position,
+                sampleName: $("smName")?.value || "Reserved",
+                performedBy: "web-user"
+            });
+            $("bbModal").classList.remove("show");
+            if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function doCancelReserve() {
+        try {
+            const res = await fetch(`/biobank/api/boxes/${encodeURIComponent(currentTubeContext.boxId)}/tubes/${encodeURIComponent(currentTubeContext.position)}/reserve`, {
+                method: "DELETE"
+            });
+            if (!res.ok) throw new Error("Cancel failed");
+            $("bbModal").classList.remove("show");
+            if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function doWithdraw(sampleId) {
+        const reason = prompt("Withdrawal reason:", "Sent to lab");
+        if (reason === null) return;
+        try {
+            await apiPost("/biobank/api/samples/withdraw", {
+                sampleId,
+                reason,
+                performedBy: "web-user"
+            });
+            $("bbModal").classList.remove("show");
+            if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function showHistory(sampleId) {
+        const history = await apiGet(`/biobank/api/samples/${encodeURIComponent(sampleId)}/history`);
+        const body = $("modalBody");
+        body.innerHTML = history.length === 0
+            ? `<p style="color:var(--bb-text-muted)">No history yet.</p>`
+            : history.map(h => `
+            <div class="bb-info-row">
+                <span class="label">${h.type} · ${new Date(h.performedAt).toLocaleString()}</span>
+                <span class="value">${h.fromPosition || ""} ${h.toPosition ? "→ " + h.toPosition : ""}</span>
+            </div>
+            ${h.reason ? `<div style="font-size:0.8rem;color:var(--bb-text-muted);margin-bottom:8px">${h.reason}</div>` : ""}
+        `).join("");
+    }
+
+    async function apiPost(url, data) {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || `Request failed (${res.status})`);
+        }
+        return res.json();
+    }
     function closeModal(e) {
         if (!e || e.target.id === "bbModal" || e.target.id === "bbModalCloseBtn") {
             $("bbModal").classList.remove("show");

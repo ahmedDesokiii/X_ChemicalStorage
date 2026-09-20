@@ -376,6 +376,153 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("Bio_Racks");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Sample", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CollectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CurrentBoxId")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("CurrentFreezerId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CurrentPosition")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("CurrentTubeId")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PatientRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ProjectCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SampleType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrentTubeId");
+
+                    b.HasIndex("ExternalId");
+
+                    b.HasIndex("PatientRef");
+
+                    b.HasIndex("ProjectCode");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Bio_Samples");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SampleMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("FromBoxId")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("FromPosition")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("FromTubeId")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("PerformedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PerformedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("SampleId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ToBoxId")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ToPosition")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("ToTubeId")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PerformedAt");
+
+                    b.HasIndex("SampleId");
+
+                    b.ToTable("Bio_SampleMovements");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Shelf", b =>
                 {
                     b.Property<string>("Id")
@@ -1124,6 +1271,17 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Bio_Shelf");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SampleMovement", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Sample", "Bio_Sample")
+                        .WithMany("Movements")
+                        .HasForeignKey("SampleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bio_Sample");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Shelf", b =>
                 {
                     b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Bio_Freezer")
@@ -1313,6 +1471,11 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Bio_Boxes");
 
                     b.Navigation("Bio_Drawers");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Sample", b =>
+                {
+                    b.Navigation("Movements");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Shelf", b =>

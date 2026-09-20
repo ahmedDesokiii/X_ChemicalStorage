@@ -198,6 +198,32 @@ namespace X_ChemicalStorage.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // Bio_Sample
+            builder.Entity<Bio_Sample>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Status).HasConversion<string>();
+                e.HasIndex(x => x.ExternalId);
+                e.HasIndex(x => x.PatientRef);
+                e.HasIndex(x => x.ProjectCode);
+                e.HasIndex(x => x.CurrentTubeId);
+                e.HasIndex(x => x.Status);
+            });
+
+            // Bio_SampleMovement
+            builder.Entity<Bio_SampleMovement>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Type).HasConversion<string>();
+                e.HasIndex(x => x.SampleId);
+                e.HasIndex(x => x.PerformedAt);
+
+                e.HasOne(x => x.Bio_Sample)
+                    .WithMany(s => s.Movements)
+                    .HasForeignKey(x => x.SampleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
         }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<StorageUnitType> StorageUnitTypes { get; set; }
@@ -223,7 +249,10 @@ namespace X_ChemicalStorage.Data
         public DbSet<Bio_Box> Bio_Boxes => Set<Bio_Box>();
         public DbSet<Bio_Tube> Bio_Tubes => Set<Bio_Tube>();
 
+        // Bio Samples 
 
+        public DbSet<Bio_Sample> Bio_Samples => Set<Bio_Sample>();
+        public DbSet<Bio_SampleMovement> Bio_SampleMovements => Set<Bio_SampleMovement>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -9,10 +9,12 @@ namespace X_ChemicalStorage.Controllers
     public class BioBankController : Controller
     {
         private readonly IBioBankService _bioBankService;
+        private readonly ISampleService _sampleService;
 
-        public BioBankController(IBioBankService bioBankService)
+        public BioBankController(IBioBankService bioBankService, ISampleService sampleService)
         {
             _bioBankService = bioBankService;
+            _sampleService = sampleService;
         }
 
         // ==================== VIEW ====================
@@ -295,6 +297,100 @@ namespace X_ChemicalStorage.Controllers
 
             return NoContent();
         }
+
+        
+        // ========== SAMPLES ==========
+
+        [HttpPost("api/samples/store")]
+        public async Task<IActionResult> StoreSample([FromBody] StoreSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.StoreAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        [HttpPost("api/samples/reserve")]
+        public async Task<IActionResult> ReserveSample([FromBody] ReserveSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.ReserveAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        [HttpPost("api/samples/withdraw")]
+        public async Task<IActionResult> WithdrawSample([FromBody] WithdrawSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.WithdrawAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
+        [HttpPost("api/samples/transfer")]
+        public async Task<IActionResult> TransferSample([FromBody] TransferSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.TransferAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        [HttpDelete("api/boxes/{boxId}/tubes/{position}/reserve")]
+        public async Task<IActionResult> CancelReserve(string boxId, string position, [FromQuery] string? performedBy = null)
+        {
+            var ok = await _sampleService.CancelReserveAsync(boxId, position, performedBy);
+            if (!ok) return NotFound(new { message = "No active reservation found." });
+            return NoContent();
+        }
+
+        [HttpGet("api/samples/{id}")]
+        public async Task<IActionResult> GetSample(string id)
+        {
+            var s = await _sampleService.GetByIdAsync(id);
+            if (s == null) return NotFound(new { message = "Sample not found." });
+            return Ok(s);
+        }
+
+        [HttpGet("api/samples/{id}/history")]
+        public async Task<IActionResult> GetSampleHistory(string id)
+        {
+            var history = await _sampleService.GetHistoryAsync(id);
+            return Ok(history);
+        }
+
+        [HttpGet("api/samples/search")]
+        public async Task<IActionResult> SearchSamples([FromQuery] string q)
+        {
+            var results = await _sampleService.SearchAsync(q ?? "");
+            return Ok(results);
+        }
+
+        [HttpGet("api/boxes/{boxId}/tubes/{position}")]
+        public async Task<IActionResult> GetTubeDetails(string boxId, string position)
+        {
+            var details = await _sampleService.GetTubeDetailsAsync(boxId, position);
+            if (details == null) return NotFound();
+            return Ok(details);
+        }
+
+
 
         [HttpGet("api/seed")]
         public async Task<IActionResult> SeedDemoData()
