@@ -197,6 +197,10 @@ namespace X_ChemicalStorage.Data
                     .HasForeignKey(x => x.BoxId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+            builder.Entity<Bio_Tube>()
+            .HasIndex(t => t.Barcode)
+            .IsUnique()
+            .HasFilter("[Barcode] IS NOT NULL"); // adjust filter syntax for your DB provider
 
             // Bio_Sample
             builder.Entity<Bio_Sample>(e =>

@@ -14,5 +14,26 @@ namespace X_ChemicalStorage.BioBank.Services
         Task<List<Bio_SampleMovementDto>> GetHistoryAsync(string sampleId);
         Task<List<Bio_SampleDto>> SearchAsync(string query);
         Task<TubeSampleDetailsDto?> GetTubeDetailsAsync(string boxId, string position);
+
+        // ===== NEW: check-out / check-in workflow =====
+
+        /// <summary>Take a stored sample out for testing. Locks its tube slot (TubeStatus.CheckedOut).</summary>
+        Task<Bio_SampleDto> CheckOutAsync(CheckOutSampleDto dto);
+
+        /// <summary>Return a checked-out sample: back to Stored (same tube), or Disposed if consumed.</summary>
+        Task<Bio_SampleDto> CheckInAsync(CheckInSampleDto dto);
+
+        /// <summary>All samples currently checked out, ordered by soonest expected return first (nulls last).</summary>
+        Task<List<Bio_SampleDto>> GetActiveCheckOutsAsync();
+
+        /// <summary>Checked-out samples whose ExpectedReturnAt has passed — for the "overdue" alert view.</summary>
+        Task<List<Bio_SampleDto>> GetOverdueCheckOutsAsync();
+        // Add inside the interface, e.g. right after GetOverdueCheckOutsAsync():
+        Task<string> GenerateNextSampleIdAsync();
+
+        // Add inside the interface:
+        Task<Bio_SampleDto> UpdateAsync(UpdateSampleDto dto);
+        Task<BoxLocationDto?> GetBoxLocationAsync(string boxId);
+        Task<NextAvailableSlotDto?> FindNextAvailableSlotAsync(string? freezerId = null);
     }
 }

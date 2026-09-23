@@ -9,6 +9,14 @@ namespace X_ChemicalStorage.Models
         [MaxLength(180)]
         public string Id { get; set; } = null!;
 
+        // NEW: physical barcode printed on the tube — scanned in the field.
+        // Separate from Id on purpose (per your call): Id is the system slot key,
+        // Barcode is whatever's physically printed/stuck on the tube.
+        // Recommend a unique index on this column in your DbContext (OnModelCreating):
+        //   modelBuilder.Entity<Bio_Tube>().HasIndex(t => t.Barcode).IsUnique();
+        [MaxLength(100)]
+        public string? Barcode { get; set; }
+
         [Required]
         [MaxLength(150)]
         public string BoxId { get; set; } = null!;

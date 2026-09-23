@@ -9,7 +9,7 @@
 <div class="page-hero pb-2 pt-1 mb-2" dir="ltr">
     <div class="container-fluid">
         <div class="row align-items-center">
-            <div class="col-lg-8">
+            <div class="col-lg-7">
                 <div class="d-flex align-items-center gap-4">
                     <div class="hero-icon">
                         <div class="bb-logo-icon">
@@ -23,25 +23,36 @@
                         <div class="bb-subtitle">Cold Storage Visualization System</div>
                         <div class="bb-breadcrumb" id="bbBreadcrumb">
                             <div class="bb-bcrumb-item active" data-nav="room">
-                                    <span>🏢</span> Bio Bank Room
-                            </div> 
+                                <span>🏢</span> Bio Bank Room
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <div class="d-inline-flex gap-2 align-items-center">
+            <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+               <!-- NEW -->
+                <div class="bb-actions">
                     <div class="bb-search-box">
                         <span class="bb-search-icon">🔍</span>
                         <input type="text" id="bbSearch" placeholder="Search freezer, barcode..." autocomplete="off">
                     </div>
-                    <button type="button" class="bb-btn-add" id="bbBtnAddFreezer" title="Add Freezer">
+                    <button type="button" class="bb-btn-add" id="bbBtnSearchSample" title="Search Samples"
+                            onclick="window.__bbOpenSampleSearch && window.__bbOpenSampleSearch(); return false;">
+                        🔍 Search Sample
+                    </button>
+                    <button type="button" class="bb-btn-add" id="bbBtnAddSample" title="Add Sample"
+                            onclick="window.__bbOpenAddSample && window.__bbOpenAddSample(); return false;">
+                        🧪 Add Sample
+                    </button>
+                    <button type="button" class="bb-btn-add" id="bbBtnAddFreezer" title="Add Freezer"
+                            onclick="window.__bbOpenAddFreezer && window.__bbOpenAddFreezer(); return false;">
                         ＋ Add Freezer
                     </button>
-                </div>
+                </div> 
             </div>
         </div>
     </div>
+    <div class="bb-header-shine"></div>
 </div>
 
 <!-- Main App -->
@@ -51,15 +62,7 @@
     <div class="bb-bg-glow-2"></div>
 
     <div class="bb-main">
-        <!-- Minimap / Navigator -->
-        <div class="bb-minimap" id="bbMinimap">
-            <div class="bb-minimap-title">📍 Storage Navigator</div>
-            <div id="minimapContent">
-                <div class="bb-loading">Loading...</div>
-            </div>
-        </div>
-
-        <!-- Viewport -->
+        <!-- Viewport (full width – breadcrumb is the navigator) -->
         <div class="bb-viewport" id="bbViewport">
             <div class="bb-loading-screen">
                 <div class="bb-spinner"></div>
@@ -86,76 +89,147 @@
         <div id="ttContent"></div>
     </div>
 
-    <!-- Modal -->
-    <div class="bb-modal-overlay" id="bbModal">
-        <div class="bb-modal bb-modal-form" style="max-width:520px;">
-            <div class="bb-modal-icon" id="modalIcon">🧪</div>
-            <h3 id="modalTitle">Sample Details</h3>
-            <div id="modalBody"></div>
-            <div class="bb-form-actions" id="modalActions" style="margin-top:16px;"></div>
-        </div>
+    <!-- Cold flash overlay for stage transitions -->
+    <div class="bb-cold-flash" id="bbColdFlash"></div>
+</div>
+
+<!-- Modals outside widget (avoid overflow:hidden clipping) -->
+<!-- Modal -->
+<div class="bb-modal-overlay" id="bbModal" dir="ltr">
+    <div class=".bb-modal.bb-modal-xl" >
+        <div class="bb-modal-icon" id="modalIcon">🧪</div>
+        <h3 id="modalTitle">Sample Details</h3>
+        <div id="modalBody" dir="ltr"></div>
+        <div class="bb-form-actions" id="modalActions" style="margin-top:16px;"></div>
     </div>
+</div>
 
-    <!-- Add Freezer Modal -->
-    <div class="bb-modal-overlay" id="bbAddFreezerModal">
-        <div class="bb-modal bb-modal-form">
-            <div class="bb-modal-icon">❄️</div>
-            <h3>Add New Freezer</h3>
+<!-- Add Freezer Modal -->
+<div class="bb-modal-overlay" id="bbAddFreezerModal" dir="ltr">
+    <div class="bb-modal bb-modal-form">
+        <div class="bb-modal-icon">❄️</div>
+        <h3>Add New Freezer</h3>
 
-            <form id="bbAddFreezerForm" class="bb-form">
+        <form id="bbAddFreezerForm" class="bb-form">
+            <div class="bb-form-row">
+                <label>Freezer ID *</label>
+                <input type="text" id="fzId" placeholder="e.g. FZ80-05" required maxlength="50">
+            </div>
+
+            <div class="bb-form-row">
+                <label>Type *</label>
+                <select id="fzType" required>
+                    <option value="1">-80°C (with Shelves)</option>
+                    <option value="2">-150°C (Racks only)</option>
+                </select>
+            </div>
+
+            <div class="bb-form-row">
+                <label>Barcode</label>
+                <input type="text" id="fzBarcode" placeholder="Optional – auto if empty">
+            </div>
+
+            <div class="bb-form-grid">
                 <div class="bb-form-row">
-                    <label>Freezer ID *</label>
-                    <input type="text" id="fzId" placeholder="e.g. FZ80-05" required maxlength="50">
+                    <label>Shelves</label>
+                    <input type="number" id="fzShelves" value="4" min="0" max="20">
                 </div>
-
                 <div class="bb-form-row">
-                    <label>Type *</label>
-                    <select id="fzType" required>
-                        <option value="1">-80°C (with Shelves)</option>
-                        <option value="2">-150°C (Racks only)</option>
-                    </select>
+                    <label>Racks / Shelf</label>
+                    <input type="number" id="fzRacksPerShelf" value="4" min="1" max="30">
                 </div>
-
                 <div class="bb-form-row">
-                    <label>Barcode</label>
-                    <input type="text" id="fzBarcode" placeholder="Optional – auto if empty">
+                    <label>Drawers / Rack</label>
+                    <input type="number" id="fzDrawersPerRack" value="5" min="0" max="20">
                 </div>
-
-                <div class="bb-form-grid">
-                    <div class="bb-form-row">
-                        <label>Shelves</label>
-                        <input type="number" id="fzShelves" value="4" min="0" max="20">
-                    </div>
-                    <div class="bb-form-row">
-                        <label>Racks / Shelf</label>
-                        <input type="number" id="fzRacksPerShelf" value="4" min="1" max="30">
-                    </div>
-                    <div class="bb-form-row">
-                        <label>Drawers / Rack</label>
-                        <input type="number" id="fzDrawersPerRack" value="5" min="0" max="20">
-                    </div>
-                    <div class="bb-form-row">
-                        <label>
-                            es / Drawer</label>
-                        <input type="number" id="fzBoxesPerDrawer" value="5" min="1" max="20">
-                    </div>
-                    <div class="bb-form-row">
-                        <label>Tubes / Box</label>
-                        <input type="number" id="fzTubesPerBox" value="100" min="1" max="100">
-                    </div>
+                <div class="bb-form-row">
+                    <label>Boxes / Drawer</label>
+                    <input type="number" id="fzBoxesPerDrawer" value="5" min="1" max="20">
                 </div>
-
-                <div id="bbAddFreezerError" class="bb-form-error" style="display:none;"></div>
-
-                <div class="bb-form-actions">
-                    <button type="button" class="bb-btn-cancel" id="bbAddFreezerCancel">Cancel</button>
-                    <button type="submit" class="bb-modal-btn" id="bbAddFreezerSubmit">Create Freezer</button>
+                <div class="bb-form-row">
+                    <label>Tubes / Box</label>
+                    <input type="number" id="fzTubesPerBox" value="100" min="1" max="100">
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <div id="bbAddFreezerError" class="bb-form-error" style="display:none;"></div>
+
+            <div class="bb-form-actions">
+                <button type="button" class="bb-btn-cancel" id="bbAddFreezerCancel">Cancel</button>
+                <button type="submit" class="bb-modal-btn" id="bbAddFreezerSubmit">Create Freezer</button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
+    @* Inline bootstrap: opens Add Freezer modal even if biobank.js fails to load *@
+    <script>
+        (function () {
+            function openAddFreezerModalInline() {
+                var modal = document.getElementById('bbAddFreezerModal');
+                if (!modal) {
+                    alert('Modal #bbAddFreezerModal not found in page');
+                    return;
+                }
+                var err = document.getElementById('bbAddFreezerError');
+                if (err) err.style.display = 'none';
+                var form = document.getElementById('bbAddFreezerForm');
+                if (form) form.reset();
+                var shelves = document.getElementById('fzShelves');
+                if (shelves) shelves.value = '4';
+                var rps = document.getElementById('fzRacksPerShelf');
+                if (rps) rps.value = '4';
+                var dpr = document.getElementById('fzDrawersPerRack');
+                if (dpr) dpr.value = '5';
+                var bpd = document.getElementById('fzBoxesPerDrawer');
+                if (bpd) bpd.value = '5';
+                var tpb = document.getElementById('fzTubesPerBox');
+                if (tpb) tpb.value = '100';
+                var typ = document.getElementById('fzType');
+                if (typ) typ.value = '1';
+                modal.classList.add('show');
+                modal.style.opacity = '1';
+                modal.style.pointerEvents = 'auto';
+                modal.style.visibility = 'visible';
+                modal.style.display = 'flex';
+                modal.style.zIndex = '9999';
+                document.body.style.overflow = 'hidden';
+            }
+            function closeAddFreezerModalInline() {
+                var modal = document.getElementById('bbAddFreezerModal');
+                if (!modal) return;
+                modal.classList.remove('show');
+                modal.style.opacity = '';
+                modal.style.pointerEvents = '';
+                modal.style.visibility = '';
+                modal.style.display = '';
+                modal.style.zIndex = '';
+                document.body.style.overflow = '';
+            }
+            // Global fallbacks used by the button onclick
+            window.__bbOpenAddFreezer = openAddFreezerModalInline;
+            window.__bbCloseAddFreezer = closeAddFreezerModalInline;
+
+            // Cancel button + click outside
+            document.addEventListener('DOMContentLoaded', function () {
+                var cancel = document.getElementById('bbAddFreezerCancel');
+                if (cancel) {
+                    cancel.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        closeAddFreezerModalInline();
+                    });
+                }
+                var overlay = document.getElementById('bbAddFreezerModal');
+                if (overlay) {
+                    overlay.addEventListener('click', function (e) {
+                        if (e.target === overlay) closeAddFreezerModalInline();
+                    });
+                }
+            });
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/biobank.js" asp-append-version="true"></script>
     <script src="~/js/biobank.js" asp-append-version="true"></script>
 }

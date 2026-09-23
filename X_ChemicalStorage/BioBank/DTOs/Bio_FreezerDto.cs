@@ -95,6 +95,7 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public int TotalPositions => Rows * Columns;
         public int OccupiedCount { get; set; }
         public int ReservedCount { get; set; }
+        public int CheckedOutCount { get; set; }   // NEW: slots locked because sample is out for testing
         public int AvailableCount { get; set; }
         public int OccupancyPercent { get; set; }
     }
@@ -102,6 +103,7 @@ namespace X_ChemicalStorage.BioBank.DTOs
     public class Bio_TubeDto
     {
         public string Id { get; set; } = null!;
+        public string? Barcode { get; set; }   // NEW
         public string BoxId { get; set; } = null!;
         public string Position { get; set; } = null!;   // "A01"
         public int Row { get; set; }
@@ -131,6 +133,9 @@ namespace X_ChemicalStorage.BioBank.DTOs
 
         [MaxLength(200)]
         public string? SampleName { get; set; }
+
+        [MaxLength(100)]
+        public string? Barcode { get; set; }   // NEW
     }
 
     public class Bio_OccupyTubeDto
@@ -145,6 +150,9 @@ namespace X_ChemicalStorage.BioBank.DTOs
 
         [MaxLength(200)]
         public string? SampleName { get; set; }
+
+        [MaxLength(100)]
+        public string? Barcode { get; set; }   // NEW
     }
 
     public class Bio_BulkOccupyTubesDto

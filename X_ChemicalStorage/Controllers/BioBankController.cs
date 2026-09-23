@@ -27,6 +27,10 @@ namespace X_ChemicalStorage.Controllers
             ViewData["Title"] = "Bio Bank Storage";
             return View();
         }
+        public IActionResult demo()
+        {
+            return View();
+        }
 
         // ==================== FREEZERS ====================
 
@@ -448,32 +452,32 @@ namespace X_ChemicalStorage.Controllers
             DrawersPerRack = 5,
             BoxesPerDrawer = 5,
             TubesPerBox = 100
-        },
-        new Bio_CreateFreezerDto
-        {
-            Id = "FZ150-01",
-            Type = FreezerType.Minus150,
-            Temperature = -150,
-            Barcode = "FZ150-01-BC",
-            ShelvesCount = 0,
-            RacksPerShelf = 12,
-            DrawersPerRack = 0,
-            BoxesPerDrawer = 1,
-            TubesPerBox = 100
-        },
-        new Bio_CreateFreezerDto
-        {
-            Id = "FZ150-02",
-            Type = FreezerType.Minus150,
-            Temperature = -150,
-            Barcode = "FZ150-02-BC",
-            ShelvesCount = 0,
-            RacksPerShelf = 12,
-            DrawersPerRack = 0,
-            BoxesPerDrawer = 1,
-            TubesPerBox = 100
-        }
-    };
+            },
+            new Bio_CreateFreezerDto
+            {
+                Id = "FZ150-01",
+                Type = FreezerType.Minus150,
+                Temperature = -150,
+                Barcode = "FZ150-01-BC",
+                ShelvesCount = 0,
+                RacksPerShelf = 12,
+                DrawersPerRack = 0,
+                BoxesPerDrawer = 1,
+                TubesPerBox = 100
+            },
+            new Bio_CreateFreezerDto
+            {
+                Id = "FZ150-02",
+                Type = FreezerType.Minus150,
+                Temperature = -150,
+                Barcode = "FZ150-02-BC",
+                ShelvesCount = 0,
+                RacksPerShelf = 12,
+                DrawersPerRack = 0,
+                BoxesPerDrawer = 1,
+                TubesPerBox = 100
+            }
+         };
 
             foreach (var dto in freezers)
                 await _bioBankService.CreateFreezerAsync(dto);
@@ -506,5 +510,102 @@ namespace X_ChemicalStorage.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+
+
+
+
+        // ============================================================================
+        // INSERT into BioBankController.cs, right after the "TransferSample" endpoint
+        // (i.e. right before the "[HttpDelete("api/boxes/{boxId}/tubes/{position}/reserve")]"
+        // CancelReserve endpoint, around the current line 342-354).
+        // ============================================================================
+
+        [HttpPost("api/samples/checkout")]
+        public async Task<IActionResult> CheckOutSample([FromBody] CheckOutSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.CheckOutAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
+        [HttpPost("api/samples/checkin")]
+        public async Task<IActionResult> CheckInSample([FromBody] CheckInSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.CheckInAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
+        /// <summary>
+        /// Samples currently out for testing (drives the "checked-out" panel / badge).
+        /// </summary>
+        [HttpGet("api/samples/checked-out")]
+        public async Task<IActionResult> GetActiveCheckOuts()
+        {
+            var results = await _sampleService.GetActiveCheckOutsAsync();
+            return Ok(results);
+        }
+
+        /// <summary>
+        /// Checked-out samples past their ExpectedReturnAt — for the overdue alert view.
+        /// </summary>
+        [HttpGet("api/samples/checked-out/overdue")]
+        public async Task<IActionResult> GetOverdueCheckOuts()
+        {
+            var results = await _sampleService.GetOverdueCheckOutsAsync();
+            return Ok(results);
+        }
+
+
+        // Add next to the other "SAMPLES" endpoints, e.g. right after GetSample():
+
+        [HttpGet("api/samples/next-id")]
+        public async Task<IActionResult> GetNextSampleId()
+        {
+            var id = await _sampleService.GenerateNextSampleIdAsync();
+            return Ok(new { sampleId = id });
+        }
+
+
+
+        // Add next to the other "SAMPLES" endpoints:
+
+        [HttpPost("api/samples/update")]
+        public async Task<IActionResult> UpdateSample([FromBody] UpdateSampleDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.UpdateAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
+        [HttpGet("api/boxes/{boxId}/location")]
+        public async Task<IActionResult> GetBoxLocation(string boxId)
+        {
+            var loc = await _sampleService.GetBoxLocationAsync(boxId);
+            if (loc == null) return NotFound(new { message = $"Box '{boxId}' not found or has no parent rack." });
+            return Ok(loc);
+        }
+
+        [HttpGet("api/tubes/next-available")]
+        public async Task<IActionResult> GetNextAvailableSlot([FromQuery] string? freezerId = null)
+        {
+            var slot = await _sampleService.FindNextAvailableSlotAsync(freezerId);
+            if (slot == null) return NotFound(new { message = "No available slot found — every online freezer appears full." });
+            return Ok(slot);
+        }
+
     }
 }

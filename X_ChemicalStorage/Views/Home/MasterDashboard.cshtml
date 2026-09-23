@@ -3,820 +3,950 @@
 @{
     ViewData["Title"] = "Dashboard";
 }
-<!-- ================= HEADER (UNCHANGED) ================= -->
-<div class="text-center">
-    <div class="card border-0 py-3"
-         style="background-color:#032b42 !important; border-radius:0 0 75px 0 ">
-        <span class="text-center fs-1 fw-bold" style="color:#415E72 !important ">
-            <i class="bi bi-speedometer2 ps-2 fs-1"></i>
-            Dashboard
-        </span>
-    </div>
-</div>
 
-<section class="container-fluid warehouse-dashboard  mt-4" dir="ltr">
+<!-- ================= ENHANCED DASHBOARD ================= -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
-    <!-- ================= KPI CARDS ================= -->
- 
-    <div class="row g-4 mb-5 justify-content-center text-center">
-        <div class="col-md-1"></div>
-        <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-primary d-flex">
-                <i class="bi bi-box-seam p-2 rounded-3"></i>
-                <div class="px-3 pt-2">
-                    <span class="fs-5 fw-bold">Total Items</span>
-                    <h3 class="kpi-number" data-count="@Model.TotalItems">0</h3>
-                </div>
-                
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-success d-flex">
-                <i class="bi bi-stack "></i>
-                <div class="px-3 pt-2">
-                <span class="fs-5 fw-bold">Available Qty</span>
-                <h3 class="kpi-number" data-count="@Model.TotalAvailableQty">0</h3>
-            </div>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-warning d-flex">
-                <i class="bi bi-exclamation-circle"></i>
-                <div class="px-3 pt-2">
-                <span class="fs-5 fw-bold">Low Stock</span>
-                <h3>@Model.UnderLimitItems</h3>
-            </div>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-danger d-flex">
-                <i class="bi bi-x-octagon"></i>
-                <div class="px-3 pt-2">
-                <span class="fs-5 fw-bold ">Expiring Lots</span>
-                    <h3 class="kpi-number" data-count="@Model.ExpiringLots">0</h3>
-        </div>
-        </div>
-        </div>
-        <div class="col-xl-2 col-md-2 py-0">
-            <div class="kpi kpi-info d-flex">
-                <i class="bi bi-archive-fill"></i>
-                    <div class="px-3 pt-2">
-                <span class="fs-5 fw-bold">Total Lots</span>
-                    <h3 class="kpi-number" data-count="@Model.TotalLots">0</h3>
-
-            </div>
-            </div>
-        </div>
-        <div class="col-md-1"></div>
-    </div>
-    <div class="card-body p-3">
-        <!-- ================= ALERTS ================= -->
-        
-        <div class="row mb-4">
-            <div class="col-lg-4 mx-auto">
-                <div class="dashboard-card">
-                    <h6 class="dashboard-title">
-                        Items by Category
-                    </h6>
-
-                    <div id="categoryPieChart"></div>
-                </div>
-            </div>
-            @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert || Model.HasNearExpiryAlert)
-            {
-                <div class="col-lg-4 mx-auto">
-                    @if (Model.HasNearExpiryAlert)
-                    {
-                        <div class="alert alert-dark alert-modern">
-                            <i class="bi bi-exclamation-diamond-fill me-2"></i>
-                            <b>Near Expiy Alert : </b>
-                            batches expiring soon → <span class="fs-5 fw-bold mx-2">@Model.NearExpiringLots</span>
-                        </div>
-                    }
-                    
-                    @if (Model.HasUnderLimitAlert)
-                    {
-                        <div class="alert alert-info alert-modern">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <b>Low Stock Alert : </b>
-                            items below minimum limit → <span class="fs-5 fw-bold mx-2">@Model.UnderLimitItems</span>
-                        </div>
-                    }
-
-                    @if (Model.HasExpiryAlert)
-                    {
-                        <div class="alert alert-danger alert-modern">
-                            <i class="bi bi-hourglass-split me-2"></i>
-                            <b>Expiry Warning : </b>
-                            batches expired → <span class="fs-5 fw-bold mx-2">@Model.ExpiringLots</span>
-                        </div>
-                    }
-
-                    @if (Model.HasHazardAlert)
-                    {
-                        <div class="alert alert-warning alert-modern">
-                            <i class="bi bi-shield-fill-check me-2"></i>
-                            <b>Hazard Materials : </b>
-                            items require special handling invalid SDS → <span class="fs-5 fw-bold mx-2">@Model.HazardItems</span>
-                        </div>
-                    }
-
-                </div>
-            }
-            <div class="col-lg-4 mx-auto">
-                <div class="dashboard-card text-center">
-                    <h6 class="dashboard-title">
-                        SDS Status Wave
-                    </h6>
-                    <div id="sdsWaveChart"></div>
-                </div>
-            </div>
-            </div>
-  
-            <div class="row mb-4">
-            <div class="col-lg-4">
-                <div class="dashboard-card">
-                    <h6 class="dashboard-title">
-                        Lots Over Time
-                    </h6>
-                    <div id="lotsLineChart"></div>
-                </div>
-            </div>
-                <!-- ================= Storage Condition Card ================= -->
-                <div class="col-lg-4 mx-auto">
-                    <div class="dashboard-card text-center">
-                        <h6 class="dashboard-title">
-                            Storage Condition Overview
-                        </h6>
-                        <!-- REQUIRED -->
-                        <div id="storageConditionBar" ></div>
-                    </div>
-                </div>
-            
-
-            <div class="col-lg-4">
-                <div class="dashboard-card">
-                    <h6 class="dashboard-title">
-                        Expiry Trend
-                    </h6>
-                    <div id="expiryLineChart"></div>
-                </div>
-            </div>
-            </div>
-    </div>
-
-@* 
-    <div class="module-card" data-module="Items Dashboard">
-        <div class="card mb-4 shadow permission-card">
-            <div class="card-header fs-5 fw-bold d-flex justify-content-between align-items-center
-            collapse-header-amber"
-                 data-bs-toggle="collapse"
-                 data-bs-target="#collapseItem"
-                 aria-expanded="true"
-                 dir="ltr">
-
-                <span class="text-dark fw-bold fs-4">
-                    <i class="bi bi-pin-angle-fill fs-4 pe-3"></i>
-                    Items Dashboard
-                </span>
-
-                <i class="bi bi-chevron-down fs-4"></i>
-            </div>
-
-        </div>
-        </div> 
-
-        
-        <div id="collapseItem" class="collapse show">
-            
-        </div>
-    *@
-   
-
-</section>
-
-<!-- ================= Scripts ================= -->
-<script>
-    window.storageCondition = {
-        room: @Model.StorageCondition.RoomTempCount,
-        freezer: @Model.StorageCondition.FreezerCount,
-        cold: @Model.StorageCondition.ColdCount
-    };
-</script>
-@section Scripts {
-
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="~/js/warehouse-dashboard.js"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const counters = document.querySelectorAll(".kpi-number");
-
-            counters.forEach(counter => {
-                const target = +counter.getAttribute("data-count");
-                let current = 0;
-                const increment = Math.max(1, Math.floor(target / 1000));
-
-                const update = () => {
-                    current += increment;
-                    if (current >= target) {
-                        counter.innerText = target;
-                    } else {
-                        counter.innerText = current;
-                        requestAnimationFrame(update);
-                    }
-                };
-
-                update();
-            });
-
-        });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            if (typeof ApexCharts === "undefined") {
-                console.error("ApexCharts not loaded");
-                return;
-            }
-
-            const waveData = [
-                @foreach (var item in Model.SdsWaveItems)
-                {
-                        var value = item.IsValid ? item.Quantity : -item.Quantity;
-                        <text>{
-                            x: "@item.ItemName",
-                            y: @value,
-                            status: "@(item.IsValid ? "Valid" : "Invalid")"
-                        },</text>
-                }
-            ];
-
-            const options = {
-                chart: {
-                    type: 'bar',
-                    height: 260,
-                    toolbar: { show: false },
-                    animations: {
-                        enabled: true,
-                        easing: 'easeinout',
-                        speed: 1200,
-                        animateGradually: { enabled: true, delay: 40 },
-                        dynamicAnimation: { enabled: true, speed: 900 }
-                    }
-                },
-
-                plotOptions: {
-                    bar: {
-                        columnWidth: '38%',
-                        borderRadius: 6
-                    }
-                },
-
-                series: [{
-                    name: 'SDS Status',
-                    data: waveData
-                }],
-
-                grid: {
-                    strokeDashArray: 4,
-                    borderColor: '#e9ecef'
-                },
-
-                xaxis: {
-                    labels: { show: false },
-                    axisBorder: { show: false },
-                    axisTicks: { show: false }
-                },
-
-                yaxis: {
-                    labels: {
-                        formatter: val => Math.abs(val)
-                    }
-                },
-
-                colors: [
-                    function ({ value }) {
-                        return value >= 0
-                            ? 'rgba(32,201,151,0.95)'   // Valid
-                            : 'rgba(255,107,107,0.95)'; // Invalid
-                    }
-                ],
-
-                tooltip: {
-                    custom: function ({ seriesIndex, dataPointIndex, w }) {
-
-                        const point = w.config.series[seriesIndex].data[dataPointIndex];
-                        const qty = Math.abs(point.y);
-                        const isValid = point.status === "Valid";
-
-                        return `
-                            <div class="sds-tooltip ${isValid ? 'valid' : 'invalid'}">
-                                <div class="sds-title">${point.x}</div>
-                                <div class="sds-qty">Quantity: <b>${qty}</b></div>
-                                <div class="sds-badge">
-                                    <span class="badge ${isValid ? 'bg-success' : 'bg-danger'}">
-                                        ${point.status}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                    }
-                },
-
-                dataLabels: { enabled: false }
-            };
-
-            new ApexCharts(
-                document.querySelector("#sdsWaveChart"),
-                options
-            ).render();
-        });
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const el = document.querySelector("#storageConditionBar");
-            if (!el || !window.storageCondition) return;
-
-            const data = [
-                storageCondition.room || 0,
-                storageCondition.freezer || 0,
-                storageCondition.cold || 0
-            ];
-
-            // لو مفيش داتا
-            if (data.every(x => x === 0)) {
-                el.innerHTML = "<p class='text-muted mt-5'>No storage data available</p>";
-                return;
-            }
-
-            const options = {
-                chart: {
-                    type: 'bar',
-                    height: 260,
-                    toolbar: { show: false }
-                },
-                plotOptions: {
-                    bar: {
-                        horizontal: true,
-                        borderRadius: 10,
-                        distributed: true, // 🔥 مهم
-                        barHeight: '55%'
-                    }
-                },
-                series: [{
-                    name: 'Items',
-                    data: data
-                }],
-                colors: [
-                    '#F96E5B', // 🔴 Room Temp
-                    '#AEDEFC', // 🔵 Freezer
-                    '#3BC1A8'  // 🟢 Cold
-                ],
-                xaxis: {
-                    categories: [
-                        'Room Temp',
-                        'Freezer °C',
-                        '2–8 °C'
-                    ]
-                },
-                dataLabels: {
-                    enabled: true,
-                    style: {
-                        fontSize: '14px',
-                        fontWeight: 'bold'
-                    }
-                },
-                tooltip: {
-                    y: {
-                        formatter: val => val + " Items"
-                    }
-                }
-            };
-
-            new ApexCharts(el, options).render();
-        });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            var seriesData = @Html.Raw(Json.Serialize(
-                            Model.CategorySummary.Select(x => x.ItemsCount)
-                    ));
-
-        var labelsData = @Html.Raw(Json.Serialize(
-                        Model.CategorySummary.Select(x => x.CategoryName)
-                ));
-
-        var options = {
-            chart: {
-                type: 'pie',
-                height: 330,
-                animations: {
-                    enabled: true,
-                    easing: 'easeinout',
-                    speed: 900,
-                    animateGradually: {
-                        enabled: true,
-                        delay: 120
-                    },
-                    dynamicAnimation: {
-                        enabled: true,
-                        speed: 700
-                    }
-                }
-            },
-
-                series: seriesData,
-                labels: labelsData,
-
-                legend: {
-                    position: 'bottom',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    markers: {
-                        radius: 12
-                    }
-                },
-
-                dataLabels: {
-                    enabled: true,
-                    style: {
-                        fontSize: '13px',
-                        fontWeight: 'bold'
-                    },
-                    formatter: function (val, opts) {
-                        return opts.w.config.series[opts.seriesIndex];
-                    }
-                },
-
-                tooltip: {
-                    y: {
-                        formatter: function (val) {
-                            return val + " Items";
-                        }
-                    }
-                },
-
-                colors: [
-                    '#FFCB61',
-                    '#00809D',
-                    '#FF894F',
-                    '#7A7A73',
-                    '#20c997',
-                    
-                ],
-
-                stroke: {
-                    width: 1,
-                    colors: ['#ffffff']
-                }
-            };
-
-            new ApexCharts(
-                document.querySelector("#categoryPieChart"),
-                options
-            ).render();
-
-        });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const lotsLabels = @Html.Raw(Json.Serialize(Model.LotsOverTime.Select(x => x.Label)));
-            const lotsData = @Html.Raw(Json.Serialize(Model.LotsOverTime.Select(x => x.Value)));
-
-            const expiryLabels = @Html.Raw(Json.Serialize(Model.ExpiryTrend.Select(x => x.Label)));
-            const expiryData = @Html.Raw(Json.Serialize(Model.ExpiryTrend.Select(x => x.Value)));
-
-            function buildLineChart(el, data, labels, color) {
-                return new ApexCharts(document.querySelector(el), {
-                    chart: {
-                        type: 'line',
-                        height: 320,
-                        toolbar: { show: false },
-                        animations: {
-                            enabled: true,
-                            easing: 'easeinout',
-                            speed: 900
-                        }
-                    },
-                    series: [{
-                        name: 'Count',
-                        data: data
-                    }],
-                    xaxis: {
-                        categories: labels
-                    },
-                    stroke: {
-                        curve: 'smooth',
-                        width: 3
-                    },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shadeIntensity: 1,
-                            opacityFrom: 0.4,
-                            opacityTo: 0.05,
-                            stops: [0, 90, 100]
-                        }
-                    },
-                    colors: [color],
-                            markers: {
-            size: 7,          // حجم النقطة الأساسي
-            strokeWidth: 2,
-            strokeColors: '#fff',
-            hover: {
-                size: 10      // حجمها وقت الـ hover
-            }
-        },
-                    grid: {
-                        borderColor: '#eee',
-                        strokeDashArray: 4
-                    },
-                    tooltip: {
-                        theme: 'dark',
-                        y: {
-                            formatter: val => val + " Lots"
-                        }
-                    }
-                });
-            }
-
-            buildLineChart(
-                "#lotsLineChart",
-                lotsData,
-                lotsLabels,
-                "#198754" // Green
-            ).render();
-
-            buildLineChart(
-                "#expiryLineChart",
-                expiryData,
-                expiryLabels,
-                "#dc3545" // Red
-            ).render();
-
-        });
-    </script>
-    <script>
-        function showPageLoader() {
-            document.getElementById("pageLoader").classList.remove("d-none");
-        }
-
-        // أمان زيادة – لو رجع المستخدم Back
-        window.addEventListener("pageshow", function () {
-            document.getElementById("pageLoader")?.classList.add("d-none");
-        });
-    </script>
-
-
-
-
-}
-
-
-<!-- ================= Styles ================= -->
 <style>
-
-    #lineChart,
-    #expiryLineChart {
-        margin-top: 10px;
+    /* ========== GLOBAL DASHBOARD THEME ========== */
+    .warehouse-dashboard {
+        position: relative;
+        overflow: hidden;
+        min-height: 80vh;
+        background: linear-gradient(160deg, #f0f4f8 0%, #e8eef5 40%, #f5f7fa 100%);
     }
 
-    .dashboard-card {
-        transition: .3s;
-    }
-
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 40px rgba(0,0,0,.18);
-        }
-
-
-
-    .storage-chart-card {
-        border-radius: 18px;
+    /* Animated background orbs */
+    .dash-bg-orbs {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
         overflow: hidden;
     }
 
-    .storage-dash-header {
-        background: linear-gradient(135deg,#032b42,#064663);
+    .dash-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.35;
+        animation: orbFloat 18s ease-in-out infinite;
+    }
+
+    .dash-orb-1 {
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, #3F9AAE 0%, transparent 70%);
+        top: -120px;
+        left: -80px;
+        animation-delay: 0s;
+    }
+
+    .dash-orb-2 {
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle, #C5A547 0%, transparent 70%);
+        bottom: -100px;
+        right: -60px;
+        animation-delay: -6s;
+    }
+
+    .dash-orb-3 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, #198754 0%, transparent 70%);
+        top: 40%;
+        left: 55%;
+        animation-delay: -12s;
+    }
+    @@keyframes orbFloat {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        33% {
+            transform: translate(40px, -30px) scale(1.08);
+        }
+
+        66% {
+            transform: translate(-30px, 25px) scale(0.95);
+        }
+    }
+
+    /* Subtle grid overlay */
+    .dash-grid {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(3, 43, 66, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(3, 43, 66, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Content above background */
+    .warehouse-dashboard > .container-fluid,
+    .warehouse-dashboard > .text-center,
+    .warehouse-dashboard section {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ========== HEADER ========== */
+    .dash-hero {
+        background: linear-gradient(135deg, #032b42 0%, #064663 55%, #0a5a7a 100%);
+        border-radius: 0 0 80px 0;
+        padding: 28px 20px 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(3, 43, 66, 0.35);
+    }
+
+        .dash-hero::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(197, 165, 71, 0.18) 0%, transparent 65%);
+            animation: heroShine 8s ease-in-out infinite;
+        }
+    @@keyframes heroShine {
+        0%, 100% {
+            transform: rotate(0deg) scale(1);
+            opacity: 0.7;
+        }
+
+        50% {
+            transform: rotate(15deg) scale(1.15);
+            opacity: 1;
+        }
+    }
+
+    .dash-hero-title {
+        font-size: 2.4rem;
+        font-weight: 800;
         color: #fff;
-        font-weight: 700;
-        padding: 14px 16px;
-        font-size: 1.05rem;
-    }
-
-    /* Chart */
-    .storage-chart {
-        min-height: 240px;
-    }
-
-    /* Mobile List */
-    .storage-list {
-        border-top: 1px solid #eee;
-    }
-
-    .storage-row {
+        letter-spacing: 0.5px;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.25);
         display: flex;
         align-items: center;
-        padding: 14px 16px;
+        justify-content: center;
+        gap: 14px;
+    }
+
+        .dash-hero-title i {
+            color: #C5A547;
+            filter: drop-shadow(0 0 8px rgba(197, 165, 71, 0.6));
+            animation: iconPulse 2.5s ease-in-out infinite;
+        }
+    @@keyframes iconPulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.12);
+        }
+    }
+
+    .dash-hero-sub {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.95rem;
+        margin-top: 6px;
+        letter-spacing: 1px;
+    }
+
+    .dash-live-clock {
+        position: absolute;
+        top: 18px;
+        right: 28px;
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 12px;
+        padding: 6px 14px;
+        color: #fff;
+        font-size: 0.85rem;
         font-weight: 600;
-        border-bottom: 1px solid #f1f1f1;
-    }
-
-        .storage-row:last-child {
-            border-bottom: none;
-        }
-
-        .storage-row .icon {
-            font-size: 1.4rem;
-            margin-right: 12px;
-        }
-
-        .storage-row .label {
-            flex-grow: 1;
-        }
-
-        .storage-row .count {
-            font-weight: 800;
-            font-size: 1.15rem;
-        }
-
-        /* Colors */
-        .storage-row.room {
-            color: #dc3545;
-        }
-
-        .storage-row.freezer {
-            color: #0d6efd;
-        }
-
-        .storage-row.cold {
-            color: #198754;
-        }
-
-    /* Glow Alert */
-    .room-alert-glow {
-        animation: softPulse 2s infinite;
-        border-radius: 14px;
-    }
-
-
-    .lot-slider {
         display: flex;
-        gap: 16px;
-        overflow-x: auto;
-        padding-bottom: 10px;
+        align-items: center;
+        gap: 8px;
     }
 
-    .lot-card {
-        min-width: 200px;
-        padding: 16px;
-        border-radius: 14px;
-        color: #fff;
-        cursor: pointer;
-        box-shadow: 0 8px 22px rgba(0,0,0,.2);
+        .dash-live-clock .dot {
+            width: 8px;
+            height: 8px;
+            background: #20c997;
+            border-radius: 50%;
+            animation: liveBlink 1.4s ease-in-out infinite;
+        }
+    @@keyframes liveBlink {
+        0%, 100% {
+            opacity: 1;
+            box-shadow: 0 0 0 0 rgba(32,201,151,0.5);
+        }
+
+        50% {
+            opacity: 0.6;
+            box-shadow: 0 0 0 6px rgba(32,201,151,0);
+        }
     }
 
-        .lot-card.high {
-            background: linear-gradient(135deg,#dc3545,#842029);
-        }
-
-        .lot-card.medium {
-            background: linear-gradient(135deg,#ffc107,#997404);
-        }
-
-        .lot-card.low {
-            background: linear-gradient(135deg,#198754,#0f5132);
-        }
-
+    /* ========== KPI CARDS ========== */
     .kpi {
-        border-radius: 18px;
-        padding: 24px;
+        border-radius: 20px;
+        padding: 22px 18px;
         color: #fff;
-        box-shadow: 0 10px 30px rgba(0,0,0,.18);
-        transition: .3s;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+        transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(40px);
+        animation: kpiEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
-        .kpi:hover {
-            transform: translateY(-6px);
+        .kpi:nth-child(1) {
+            animation-delay: 0.1s;
         }
 
-        .kpi i {
-            font-size: 32px;
-            opacity: .9;
+        .kpi:nth-child(2) {
+            animation-delay: 0.2s;
         }
 
-        .kpi span {
-            display: block;
-            font-size: 14px;
-            opacity: .85;
+        .kpi:nth-child(3) {
+            animation-delay: 0.3s;
         }
 
-        .kpi h3 {
-            margin-top: 8px;
-            font-weight: bold;
+        .kpi:nth-child(4) {
+            animation-delay: 0.4s;
         }
 
-    .kpi-info {
-        background: linear-gradient(135deg,#3F9AAE,#ABDADC);
+        .kpi:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+    @@keyframes kpiEnter {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .kpi::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%);
+        transform: translateX(-100%);
+        transition: transform 0.7s ease;
+    }
+
+    .kpi:hover::before {
+        transform: translateX(100%);
+    }
+
+    .kpi:hover {
+        transform: translateY(-10px) scale(1.03);
+        box-shadow: 0 20px 45px rgba(0,0,0,0.28);
+    }
+
+    .kpi i {
+        font-size: 2rem;
+        opacity: 0.95;
+        background: rgba(255,255,255,0.18);
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        flex-shrink: 0;
+    }
+
+    .kpi span {
+        display: block;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 600;
+    }
+
+    .kpi h3 {
+        margin-top: 4px;
+        font-weight: 800;
+        font-size: 1.85rem;
+        letter-spacing: -0.5px;
     }
 
     .kpi-primary {
-        background: linear-gradient(135deg,#213C51,#084298);
+        background: linear-gradient(135deg, #213C51, #084298);
     }
 
     .kpi-success {
-        background: linear-gradient(135deg,#198754,#0f5132);
+        background: linear-gradient(135deg, #198754, #0f5132);
     }
 
     .kpi-warning {
-        background: linear-gradient(135deg,#ffc107,#997404);
+        background: linear-gradient(135deg, #ffc107, #b8860b);
+        color: #1a1a1a;
     }
+
+        .kpi-warning i {
+            background: rgba(0,0,0,0.12);
+        }
 
     .kpi-danger {
-        background: linear-gradient(135deg,#dc3545,#842029);
+        background: linear-gradient(135deg, #dc3545, #842029);
     }
 
+    .kpi-info {
+        background: linear-gradient(135deg, #3F9AAE, #1a6b7a);
+    }
+
+    /* ========== QUICK ACTIONS ========== */
+    .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin: 28px 0 8px;
+        opacity: 0;
+        animation: fadeUp 0.6s 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @@keyframes fadeUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    }
+
+    .qa-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+
+        .qa-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+            color: #fff;
+        }
+
+    .qa-primary {
+        background: linear-gradient(135deg, #032b42, #0a5a7a);
+        color: #fff;
+    }
+
+    .qa-gold {
+        background: linear-gradient(135deg, #C5A547, #a88b2e);
+        color: #1a1a1a;
+    }
+
+    .qa-teal {
+        background: linear-gradient(135deg, #3F9AAE, #2a7a8a);
+        color: #fff;
+    }
+
+    .qa-green {
+        background: linear-gradient(135deg, #198754, #0f5132);
+        color: #fff;
+    }
+
+    /* ========== CARDS ========== */
     .dashboard-card {
-        background: #fff;
-        border-radius: 18px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
         padding: 24px;
-        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.6);
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        opacity: 0;
+        transform: translateY(30px);
+        animation: cardEnter 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+        .dashboard-card:nth-of-type(1) {
+            animation-delay: 0.35s;
+        }
+
+        .dashboard-card:nth-of-type(2) {
+            animation-delay: 0.45s;
+        }
+
+        .dashboard-card:nth-of-type(3) {
+            animation-delay: 0.55s;
+        }
+
+    @@keyframes cardEnter {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 48px rgba(0,0,0,0.16);
     }
 
     .dashboard-title {
-        font-weight: bold;
+        font-weight: 700;
         margin-bottom: 16px;
+        font-size: 1.05rem;
+        color: #032b42;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
+        .dashboard-title::before {
+            content: "";
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, #C5A547, #3F9AAE);
+            border-radius: 4px;
+        }
+
+    /* ========== ALERTS ========== */
     .alert-modern {
         border-radius: 14px;
         padding: 14px 18px;
-        box-shadow: 0 6px 18px rgba(0,0,0,.15);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        border: none;
+        animation: alertSlide 0.5s ease forwards;
+        opacity: 0;
+        transform: translateX(-20px);
     }
 
-    .collapse-header-amber {
-        position: relative;
-        background: linear-gradient( 120deg, rgba(255,193,7,.9), rgba(255,214,102,.7), rgba(255,193,7,.9) );
-        border-radius: 14px 14px 0 0;
-        padding: 14px 20px;
-        box-shadow: 0 0 16px rgba(255,193,7,.55);
-        transition: all .3s ease;
+        .alert-modern:nth-child(1) {
+            animation-delay: 0.6s;
+        }
+
+        .alert-modern:nth-child(2) {
+            animation-delay: 0.7s;
+        }
+
+        .alert-modern:nth-child(3) {
+            animation-delay: 0.8s;
+        }
+
+        .alert-modern:nth-child(4) {
+            animation-delay: 0.9s;
+        }
+
+    @@keyframes alertSlide {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
-        /* Glow Frame */
-        .collapse-header-amber::before {
-            content: "";
-            position: absolute;
-            inset: -2px;
-            border-radius: 16px;
-            background: linear-gradient( 120deg, rgba(255,193,7,.9), rgba(255,214,102,.7), rgba(255,193,7,.9) );
-            filter: blur(10px);
-            opacity: .6;
-            z-index: -1;
-        }
+    .alert-modern:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+    }
 
-        /* Hover */
-        .collapse-header-amber:hover {
-            box-shadow: 0 0 24px rgba(255,193,7,.8);
-        }
-
-        /* Arrow Animation */
-        .collapse-header-amber .bi-chevron-down {
-            transition: transform .3s ease;
-        }
-
-        .collapse-header-amber[aria-expanded="true"] .bi-chevron-down {
-            transform: rotate(180deg);
-        }
-
-    /* Apex Bar Hover Glow */
+    /* Apex chart hover glow */
     .apexcharts-bar-area {
         transition: all 0.3s ease;
     }
 
         .apexcharts-bar-area:hover {
-            filter: drop-shadow(0 0 10px rgba(0,255,180,0.6));
-            transform: scale(1.04);
+            filter: drop-shadow(0 0 10px rgba(0,255,180,0.5));
+            transform: scale(1.03);
         }
 
-    #categoryRadialChart {
-        margin-top: 12px;
-    }
+    /* ========== RESPONSIVE ========== */
+    @@media (max-width: 768px) {
+        .dash-hero-title {
+            font-size: 1.7rem;
+        }
 
-    .apexcharts-radialbar .apexcharts-datalabel-value {
-        color: #0f5132;
-    }
+        .dash-live-clock {
+            position: static;
+            margin: 10px auto 0;
+            width: fit-content;
+        }
 
+        .kpi {
+            margin-bottom: 12px;
+        }
+
+        .quick-actions {
+            gap: 8px;
+        }
+
+        .qa-btn {
+            padding: 8px 14px;
+            font-size: 0.85rem;
+        }
+    }
 </style>
 
+<!-- ================= HERO HEADER ================= -->
+<div class="dash-hero text-center">
+    <div class="dash-live-clock" id="dashClock">
+        <span class="dot"></span>
+        <span id="clockTime">--:--</span>
+    </div>
+    <div class="dash-hero-title animate__animated animate__fadeInDown">
+        <i class="bi bi-speedometer2"></i>
+        Dashboard
+    </div>
+    <div class="dash-hero-sub animate__animated animate__fadeIn animate__delay-1s">
+        Chemical Storage &amp; Inventory Overview
+    </div>
+</div>
 
+<section class="container-fluid warehouse-dashboard mt-4" dir="ltr">
+    <!-- Background effects -->
+    <div class="dash-bg-orbs">
+        <div class="dash-orb dash-orb-1"></div>
+        <div class="dash-orb dash-orb-2"></div>
+        <div class="dash-orb dash-orb-3"></div>
+    </div>
+    <div class="dash-grid"></div>
+
+    <!-- ================= KPI CARDS ================= -->
+    <div class="row g-4 mb-2 justify-content-center text-center">
+        <div class="col-xl-2 col-md-4 col-6 py-0">
+            <div class="kpi kpi-primary d-flex align-items-center">
+                <i class="bi bi-box-seam"></i>
+                <div class="px-3 pt-1 text-start">
+                    <span>Total Items</span>
+                    <h3 class="kpi-number" data-count="@(Model.TotalItems)">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-6 py-0">
+            <div class="kpi kpi-success d-flex align-items-center">
+                <i class="bi bi-stack"></i>
+                <div class="px-3 pt-1 text-start">
+                    <span>Available Qty</span>
+                    <h3 class="kpi-number" data-count="@Model.TotalAvailableQty">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-6 py-0">
+            <div class="kpi kpi-warning d-flex align-items-center">
+                <i class="bi bi-exclamation-circle"></i>
+                <div class="px-3 pt-1 text-start">
+                    <span>Low Stock</span>
+                    <h3 class="kpi-number" data-count="@Model.UnderLimitItems">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-6 py-0">
+            <div class="kpi kpi-danger d-flex align-items-center">
+                <i class="bi bi-x-octagon"></i>
+                <div class="px-3 pt-1 text-start">
+                    <span>Expiring Lots</span>
+                    <h3 class="kpi-number" data-count="@Model.ExpiringLots">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-6 py-0">
+            <div class="kpi kpi-info d-flex align-items-center">
+                <i class="bi bi-archive-fill"></i>
+                <div class="px-3 pt-1 text-start">
+                    <span>Total Lots</span>
+                    <h3 class="kpi-number" data-count="@Model.TotalLots">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= QUICK ACTIONS ================= -->
+    <div class="quick-actions">
+        <a href="/Items" class="qa-btn qa-primary">
+            <i class="bi bi-boxes"></i> Inventory Catalog
+        </a>
+        <a href="/Lots" class="qa-btn qa-teal">
+            <i class="bi bi-archive"></i> Inventory Lots
+        </a>
+        <a href="/BioBank" class="qa-btn qa-gold">
+            <i class="bi bi-droplet"></i> Bio Bank
+        </a>
+        <a href="/Rooms" class="qa-btn qa-green">
+            <i class="bi bi-building"></i> Rooms
+        </a>
+    </div>
+
+    <div class="card-body p-3">
+        <!-- ================= ALERTS + CHARTS ROW 1 ================= -->
+        <div class="row mb-4 g-4">
+            <div class="col-lg-4">
+                <div class="dashboard-card h-100">
+                    <h6 class="dashboard-title">Items by Category</h6>
+                    <div id="categoryPieChart"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                @if (Model.HasUnderLimitAlert || Model.HasExpiryAlert || Model.HasHazardAlert || Model.HasNearExpiryAlert)
+                {
+                    <div class="d-flex flex-column gap-3 h-100 justify-content-center">
+                        @if (Model.HasNearExpiryAlert)
+                        {
+                            <div class="alert alert-dark alert-modern mb-0">
+                                <i class="bi bi-exclamation-diamond-fill me-2"></i>
+                                <b>Near Expiry :</b>
+                                batches expiring soon → <span class="fs-5 fw-bold mx-1">@Model.NearExpiringLots</span>
+                            </div>
+                        }
+                        @if (Model.HasUnderLimitAlert)
+                        {
+                            <div class="alert alert-info alert-modern mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <b>Low Stock :</b>
+                                items below minimum → <span class="fs-5 fw-bold mx-1">@Model.UnderLimitItems</span>
+                            </div>
+                        }
+                        @if (Model.HasExpiryAlert)
+                        {
+                            <div class="alert alert-danger alert-modern mb-0">
+                                <i class="bi bi-hourglass-split me-2"></i>
+                                <b>Expiry Warning :</b>
+                                batches expired → <span class="fs-5 fw-bold mx-1">@Model.ExpiringLots</span>
+                            </div>
+                        }
+                        @if (Model.HasHazardAlert)
+                        {
+                            <div class="alert alert-warning alert-modern mb-0">
+                                <i class="bi bi-shield-fill-check me-2"></i>
+                                <b>Hazard Materials :</b>
+                                special handling needed → <span class="fs-5 fw-bold mx-1">@Model.HazardItems</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="dashboard-card h-100 d-flex flex-column align-items-center justify-content-center text-center py-5">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
+                        <h5 class="mt-3 mb-1 fw-bold text-success">All Clear</h5>
+                        <p class="text-muted mb-0">No active alerts right now</p>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <div class="dashboard-card h-100 text-center">
+                    <h6 class="dashboard-title">SDS Status Wave</h6>
+                    <div id="sdsWaveChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CHARTS ROW 2 ================= -->
+        <div class="row mb-4 g-4">
+            <div class="col-lg-4">
+                <div class="dashboard-card">
+                    <h6 class="dashboard-title">Lots Over Time</h6>
+                    <div id="lotsLineChart"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="dashboard-card text-center">
+                    <h6 class="dashboard-title">Storage Condition Overview</h6>
+                    <div id="storageConditionBar"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="dashboard-card">
+                    <h6 class="dashboard-title">Expiry Trend</h6>
+                    <div id="expiryLineChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= Scripts ================= -->
+<script>
+    window.storageCondition = {
+        room: @(Model.StorageCondition?.RoomTempCount ?? 0),
+        freezer: @(Model.StorageCondition?.FreezerCount ?? 0),
+        cold: @(Model.StorageCondition?.ColdCount ?? 0)
+        };
+</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="~/js/warehouse-dashboard.js"></script>
+
+    <script>
+        // ========== Live Clock ==========
+        function updateClock() {
+            const now = new Date();
+            const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            document.getElementById('clockTime').textContent = now.toLocaleTimeString('en-GB', opts);
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // ========== Animated Counters ==========
+        document.addEventListener("DOMContentLoaded", function () {
+            const counters = document.querySelectorAll(".kpi-number");
+            counters.forEach(counter => {
+                const target = +counter.getAttribute("data-count") || 0;
+                if (target === 0) {
+                    counter.innerText = "0";
+                    return;
+                }
+                let current = 0;
+                const duration = 1400;
+                const start = performance.now();
+
+                function tick(now) {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // easeOutExpo
+                    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                    current = Math.floor(eased * target);
+                    counter.innerText = current.toLocaleString();
+                    if (progress < 1) requestAnimationFrame(tick);
+                    else counter.innerText = target.toLocaleString();
+                }
+                requestAnimationFrame(tick);
+            });
+        });
+    </script>
+
+    <!-- SDS Wave Chart -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (typeof ApexCharts === "undefined") return;
+
+            const waveData = [
+                @if (Model.SdsWaveItems != null)
+                {
+                                foreach (var item in Model.SdsWaveItems)
+                    {
+                        var value = item.IsValid ? item.Quantity : -item.Quantity;
+                        <text>{
+                                x: "@item.ItemName",
+                                y: @value,
+                                status: "@(item.IsValid ? "Valid" : "Invalid")"
+                                            },</text>
+                                    }
+                    }
+                        ];
+
+                new ApexCharts(document.querySelector("#sdsWaveChart"), {
+                    chart: {
+                        type: 'bar',
+                        height: 260,
+                        toolbar: { show: false },
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 1200,
+                            animateGradually: { enabled: true, delay: 40 },
+                            dynamicAnimation: { enabled: true, speed: 900 }
+                        }
+                    },
+                    plotOptions: {
+                        bar: { columnWidth: '38%', borderRadius: 6 }
+                    },
+                    series: [{ name: 'SDS Status', data: waveData }],
+                    grid: { strokeDashArray: 4, borderColor: '#e9ecef' },
+                    xaxis: {
+                        labels: { show: false },
+                        axisBorder: { show: false },
+                        axisTicks: { show: false }
+                    },
+                    yaxis: {
+                        labels: { formatter: val => Math.abs(val) }
+                    },
+                    colors: [
+                        function ({ value }) {
+                            return value >= 0
+                                ? 'rgba(32,201,151,0.95)'
+                                : 'rgba(255,107,107,0.95)';
+                        }
+                    ],
+                    tooltip: {
+                        custom: function ({ seriesIndex, dataPointIndex, w }) {
+                            const point = w.config.series[seriesIndex].data[dataPointIndex];
+                            const qty = Math.abs(point.y);
+                            const isValid = point.status === "Valid";
+                            return `
+                                        <div class="sds-tooltip ${isValid ? 'valid' : 'invalid'}">
+                                            <div class="sds-title">${point.x}</div>
+                                            <div class="sds-qty">Quantity: <b>${qty}</b></div>
+                                            <div class="sds-badge">
+                                                <span class="badge ${isValid ? 'bg-success' : 'bg-danger'}">
+                                                    ${point.status}
+                                                </span>
+                                            </div>
+                                        </div>`;
+                        }
+                    },
+                    dataLabels: { enabled: false }
+                }).render();
+            });
+        </script>
+
+        <!-- Storage Condition Bar -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const el = document.querySelector("#storageConditionBar");
+                if (!el || !window.storageCondition) return;
+
+                const data = [
+                    storageCondition.room || 0,
+                    storageCondition.freezer || 0,
+                    storageCondition.cold || 0
+                ];
+
+                if (data.every(x => x === 0)) {
+                    el.innerHTML = "<p class='text-muted mt-5'>No storage data available</p>";
+                    return;
+                }
+
+                new ApexCharts(el, {
+                    chart: { type: 'bar', height: 260, toolbar: { show: false } },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            borderRadius: 10,
+                            distributed: true,
+                            barHeight: '55%'
+                        }
+                    },
+                    series: [{ name: 'Items', data: data }],
+                    colors: ['#F96E5B', '#AEDEFC', '#3BC1A8'],
+                    xaxis: {
+                        categories: ['Room Temp', 'Freezer °C', '2–8 °C']
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        style: { fontSize: '14px', fontWeight: 'bold' }
+                    },
+                    tooltip: {
+                        y: { formatter: val => val + " Items" }
+                    }
+                }).render();
+            });
+        </script>
+
+        <!-- Category Pie -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var seriesData = @Html.Raw(Json.Serialize(Model.CategorySummary?.Select(x => x.ItemsCount) ?? Enumerable.Empty<int>()));
+                var labelsData = @Html.Raw(Json.Serialize(Model.CategorySummary?.Select(x => x.CategoryName) ?? Enumerable.Empty<string>()));
+
+                new ApexCharts(document.querySelector("#categoryPieChart"), {
+                    chart: {
+                        type: 'pie',
+                        height: 330,
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 900,
+                            animateGradually: { enabled: true, delay: 120 },
+                            dynamicAnimation: { enabled: true, speed: 700 }
+                        }
+                    },
+                    series: seriesData,
+                    labels: labelsData,
+                    legend: {
+                        position: 'bottom',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        markers: { radius: 12 }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        style: { fontSize: '13px', fontWeight: 'bold' },
+                        formatter: function (val, opts) {
+                            return opts.w.config.series[opts.seriesIndex];
+                        }
+                    },
+                    tooltip: {
+                        y: { formatter: function (val) { return val + " Items"; } }
+                    },
+                    colors: ['#FFCB61', '#00809D', '#FF894F', '#7A7A73', '#20c997'],
+                    stroke: { width: 1, colors: ['#ffffff'] }
+                }).render();
+            });
+        </script>
+
+        <!-- Line Charts -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const lotsLabels = @Html.Raw(Json.Serialize(Model.LotsOverTime?.Select(x => x.Label) ?? Enumerable.Empty<string>()));
+                const lotsData = @Html.Raw(Json.Serialize(Model.LotsOverTime?.Select(x => x.Value) ?? Enumerable.Empty<int>()));
+                const expiryLabels = @Html.Raw(Json.Serialize(Model.ExpiryTrend?.Select(x => x.Label) ?? Enumerable.Empty<string>()));
+                const expiryData = @Html.Raw(Json.Serialize(Model.ExpiryTrend?.Select(x => x.Value) ?? Enumerable.Empty<int>()));
+
+                function buildLineChart(el, data, labels, color) {
+                    return new ApexCharts(document.querySelector(el), {
+                        chart: {
+                            type: 'line',
+                            height: 320,
+                            toolbar: { show: false },
+                            animations: {
+                                enabled: true,
+                                easing: 'easeinout',
+                                speed: 900
+                            }
+                        },
+                        series: [{ name: 'Count', data: data }],
+                        xaxis: { categories: labels },
+                        stroke: { curve: 'smooth', width: 3 },
+                        fill: {
+                            type: 'gradient',
+                            gradient: {
+                                shadeIntensity: 1,
+                                opacityFrom: 0.4,
+                                opacityTo: 0.05,
+                                stops: [0, 90, 100]
+                            }
+                        },
+                        colors: [color],
+                        markers: {
+                            size: 6,
+                            strokeWidth: 2,
+                            strokeColors: '#fff',
+                            hover: { size: 9 }
+                        },
+                        grid: { borderColor: '#eee', strokeDashArray: 4 },
+                        tooltip: {
+                            theme: 'dark',
+                            y: { formatter: val => val + " Lots" }
+                        }
+                    });
+                }
+
+                buildLineChart("#lotsLineChart", lotsData, lotsLabels, "#198754").render();
+                buildLineChart("#expiryLineChart", expiryData, expiryLabels, "#dc3545").render();
+            });
+        </script>
+    }

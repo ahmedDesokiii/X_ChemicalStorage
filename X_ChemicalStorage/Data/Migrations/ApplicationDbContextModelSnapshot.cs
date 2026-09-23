@@ -382,8 +382,26 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("BloodType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CheckOutReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("CheckedOutAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CheckedOutBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime?>("CollectedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CollectedByEmployeeId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -408,12 +426,19 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
 
+                    b.Property<DateTime?>("ExpectedReturnAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExternalId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FastaAccessCode")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -432,6 +457,12 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<decimal?>("RemainingVolumeMl")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("ReturnedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("SampleType")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -442,6 +473,9 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("VolumeMl")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -550,6 +584,10 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
 
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("BoxId")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -582,6 +620,10 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Barcode")
+                        .IsUnique()
+                        .HasFilter("[Barcode] IS NOT NULL");
 
                     b.HasIndex("SampleId");
 

@@ -23,12 +23,11 @@
     <link rel="stylesheet" href="~/css/biobank.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/X_ChemicalStorage.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <!-- custom theame -->
+    <!-- custom theme -->
     <link rel="icon" type="image/x-icon" href="~/images/logooo.ico">
     <link href="~/css/bootstrap.min_lumen.css" rel="stylesheet" />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-
 
     <!-- custom arabic font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&display=swap">
@@ -36,58 +35,347 @@
     <!-- custom datatable css : ah-desoki-->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/columncontrol/1.1.1/css/columnControl.dataTables.css" />
-
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.5/css/buttons.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.6.1/css/dataTables.dateTime.min.css" />
 
-    <!-- PWA : ah-desoki-->
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#032b42">
 
-    <!-- custom active link color -->
+    <!-- ========== ENHANCED LAYOUT STYLES ========== -->
     <style>
-        .navbar .nav-link.active,
-        .navbar .dropdown-item.active {
-        color: #ffc107 !important;
-        font-weight: bold;
-        }
+            :root {
+                --bb-navy: #032b42;
+                --bb-navy-mid: #064663;
+                --bb-navy-light: #0a5a7a;
+                --bb-gold: #C5A547;
+                --bb-gold-dark: #a88b2e;
+                --bb-teal: #3F9AAE;
+                --bb-green: #198754;
+                --bb-glass: rgba(255,255,255,0.08);
+            }
 
-        .navbar .nav-link.dropdown-toggle.active {
-        border-bottom: 2px solid #ffc107;
-        }
+            /* Top gold accent bar – animated shine */
+            .layout-topbar {
+                height: 5px;
+                background: linear-gradient(90deg, var(--bb-navy), var(--bb-gold), var(--bb-teal), var(--bb-gold), var(--bb-navy));
+                background-size: 300% 100%;
+                animation: topbarShine 8s linear infinite;
+                position: relative;
+                z-index: 1050;
+            }
+            @@keyframes topbarShine {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                100% {
+                    background-position: 300% 50%;
+                }
+            }
+
+            /* Main header */
+            .main-header {
+                background: linear-gradient(135deg, var(--bb-navy) 0%, var(--bb-navy-mid) 60%, #0a4a60 100%);
+                box-shadow: 0 4px 24px rgba(3, 43, 66, 0.45);
+                border-bottom: 1px solid rgba(197, 165, 71, 0.25);
+                position: sticky;
+                top: 0;
+                z-index: 1040;
+                transition: box-shadow 0.3s ease;
+            }
+
+                .main-header.scrolled {
+                    box-shadow: 0 8px 32px rgba(3, 43, 66, 0.6);
+                }
+
+            .navbar {
+                padding: 0.45rem 0.75rem;
+            }
+
+            /* Logo */
+            .navbar-brand {
+                position: relative;
+                padding: 4px 8px;
+                transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+
+                .navbar-brand img {
+                    height: 48px;
+                    width: auto;
+                    filter: drop-shadow(0 0 8px rgba(197, 165, 71, 0.35));
+                    transition: filter 0.35s ease, transform 0.35s ease;
+                }
+
+                .navbar-brand:hover img {
+                    filter: drop-shadow(0 0 16px rgba(197, 165, 71, 0.65));
+                    transform: scale(1.06);
+                }
+
+                .navbar-brand::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    width: 0;
+                    height: 2px;
+                    background: var(--bb-gold);
+                    transition: width 0.3s ease, left 0.3s ease;
+                }
+
+                .navbar-brand:hover::after {
+                    width: 80%;
+                    left: 10%;
+                }
+
+            /* Nav links */
+            .navbar .nav-link {
+                color: rgba(255, 255, 255, 0.82) !important;
+                font-weight: 500;
+                font-size: 0.92rem;
+                padding: 0.55rem 0.65rem !important;
+                border-radius: 12px;
+                transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+                position: relative;
+                overflow: hidden;
+            }
+
+                .navbar .nav-link i {
+                    display: block;
+                    font-size: 1.35rem;
+                    margin-bottom: 2px;
+                    transition: transform 0.3s ease, color 0.3s ease;
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+                .navbar .nav-link:hover {
+                    color: #fff !important;
+                    background: rgba(197, 165, 71, 0.12);
+                    transform: translateY(-2px);
+                }
+
+                    .navbar .nav-link:hover i {
+                        color: var(--bb-gold);
+                        transform: scale(1.12);
+                    }
+
+                /* Active state – gold glow */
+                .navbar .nav-link.active,
+                .navbar .dropdown-item.active {
+                    color: var(--bb-gold) !important;
+                    font-weight: 700;
+                    background: rgba(197, 165, 71, 0.15);
+                }
+
+                    .navbar .nav-link.active i {
+                        color: var(--bb-gold) !important;
+                        filter: drop-shadow(0 0 6px rgba(197, 165, 71, 0.6));
+                    }
+
+                    .navbar .nav-link.active::after {
+                        content: "";
+                        position: absolute;
+                        bottom: 4px;
+                        left: 20%;
+                        right: 20%;
+                        height: 2px;
+                        background: linear-gradient(90deg, transparent, var(--bb-gold), transparent);
+                        border-radius: 2px;
+                        animation: activeLine 1.5s ease-in-out infinite;
+                    }
+            @@keyframes activeLine {
+                0%, 100% {
+                    opacity: 0.6;
+                    transform: scaleX(0.85);
+                }
+
+                50% {
+                    opacity: 1;
+                    transform: scaleX(1);
+                }
+            }
+
+            .navbar .nav-link.dropdown-toggle.active {
+                border-bottom: none;
+            }
+
+            /* Dropdown menu */
+            .navbar .dropdown-menu {
+                background: linear-gradient(160deg, #032b42 0%, #053550 100%);
+                border: 1px solid rgba(197, 165, 71, 0.3);
+                border-radius: 14px;
+                box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+                padding: 8px;
+                margin-top: 8px !important;
+                animation: dropdownIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            @@keyframes dropdownIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px) scale(0.96);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            .navbar .dropdown-item {
+                color: rgba(255, 255, 255, 0.85);
+                border-radius: 8px;
+                padding: 8px 14px;
+                font-weight: 500;
+                transition: all 0.25s ease;
+            }
+
+                .navbar .dropdown-item:hover {
+                    background: rgba(197, 165, 71, 0.18);
+                    color: var(--bb-gold);
+                    transform: translateX(4px);
+                }
+
+                .navbar .dropdown-item.active {
+                    background: rgba(197, 165, 71, 0.25);
+                    color: var(--bb-gold) !important;
+                }
+
+            /* Toggler */
+            .navbar-toggler {
+                border: 1px solid rgba(197, 165, 71, 0.4);
+                border-radius: 10px;
+                padding: 6px 10px;
+            }
+
+                .navbar-toggler:focus {
+                    box-shadow: 0 0 0 3px rgba(197, 165, 71, 0.25);
+                }
+
+            .navbar-toggler-icon {
+                filter: invert(0.85) sepia(0.3) saturate(2) hue-rotate(5deg);
+            }
+
+            /* Install button */
+            #installBtn {
+                background: linear-gradient(135deg, var(--bb-gold), var(--bb-gold-dark));
+                border: none;
+                color: #1a1a1a;
+                font-weight: 700;
+                border-radius: 50px;
+                padding: 6px 16px;
+                margin-left: 10px;
+                box-shadow: 0 4px 14px rgba(197, 165, 71, 0.35);
+                transition: all 0.3s ease;
+            }
+
+                #installBtn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 22px rgba(197, 165, 71, 0.5);
+                }
+
+            /* Body & main */
+            body {
+                background: #f0f4f8;
+            }
+
+            main {
+                min-height: calc(100vh - 90px);
+            }
+
+            /* Smooth page fade-in */
+            .page-enter {
+                animation: pageFadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            @@keyframes pageFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Install modal polish */
+            #installModal .modal-content {
+                border-radius: 18px;
+                border: 1px solid rgba(197, 165, 71, 0.3);
+                overflow: hidden;
+            }
+
+            #installModal .modal-header {
+                background: linear-gradient(135deg, var(--bb-navy), var(--bb-navy-mid));
+                color: #fff;
+                border-bottom: 1px solid rgba(197, 165, 71, 0.25);
+            }
+
+            #installModal .modal-title {
+                font-weight: 700;
+            }
+
+            #installModal .btn-primary {
+                background: linear-gradient(135deg, var(--bb-gold), var(--bb-gold-dark));
+                border: none;
+                color: #1a1a1a;
+                font-weight: 700;
+            }
+
+                #installModal .btn-primary:hover {
+                    filter: brightness(1.08);
+                }
+
+            /* Scrollbar (webkit) */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #e8eef5;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, var(--bb-navy-mid), var(--bb-gold));
+                border-radius: 8px;
+            }
+
+                ::-webkit-scrollbar-thumb:hover {
+                    background: var(--bb-gold);
+                }
     </style>
 
     <script>
-        if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js');
-        }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js');
+            }
     </script>
 
-    <!-- custom datatable js : ah-desoki -->
+    <!-- custom datatable js -->
     <script src="https://code.jquery.com/jquery-3.7.1.js" asp-append-version="true"></script>
-    <script src=" https://cdn.datatables.net/2.3.4/js/dataTables.js" asp-append-version="true"></script>
+    <script src="https://cdn.datatables.net/2.3.4/js/dataTables.js" asp-append-version="true"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://cdn.datatables.net/plug-ins/2.3.4/api/sum().js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js   "></script>
-    <script src="https://cdn.datatables.net/datetime/1.5.6/js/dataTables.dateTime.min.js "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
+    <script src="https://cdn.datatables.net/datetime/1.5.6/js/dataTables.dateTime.min.js"></script>
     <script src="https://cdn.datatables.net/columncontrol/1.1.1/js/dataTables.columnControl.js"></script>
     <script src="https://cdn.datatables.net/columncontrol/1.1.1/js/columnControl.dataTables.js"></script>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://cdn.datatables.net/plug-ins/2.3.4/api/sum().js"></script>
-
 </head>
 <body>
-    <div class="py-1 " style="background-color:#BBE0EF">
-        <a href="#" src=""></a>
-    </div>
-    <header class="main-header sticky-top">
-        <nav class="navbar navbar-expand-sm navbar-dark">
-            <div class="container-fluid">
+
+    <!-- Animated top accent bar -->
+    <div class="layout-topbar"></div>
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <header class="main-header sticky-top" id="mainHeader">
+            <nav class="navbar navbar-expand-sm navbar-dark">
+                <div class="container-fluid">
 
                 <!-- Logo -->
                 <a asp-controller="Home" asp-action="Index" class="navbar-brand">
-                    <img src="~/images/logo0.png" alt="Logo">
+                    <img src="~/images/bc.png" alt="Biodefense Center Logo">
                 </a>
 
                 <!-- Mobile Button -->
@@ -109,56 +397,54 @@
                             @* Admin Links *@
                             @if (User.IsInRole(Roles.Admin.ToString()))
                             {
-                                <li class="nav-item mx-2">
-                                    <a class="nav-link fs-5 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
-                                        <i class="bi bi-people-fill fs-4"></i><br />Users
+                                <li class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
+                                        <i class="bi bi-people-fill"></i>Users
                                     </a>
                                 </li>
-                                <li class="nav-item mx-2">
-                                    <a class="nav-link fs-5 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
-                                        <i class="bi bi-collection-fill fs-4"></i><br />Roles
+                                <li class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
+                                        <i class="bi bi-collection-fill"></i>Roles
                                     </a>
                                 </li>
-
                             }
                             @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Dashboard.View).Result.Succeeded))
                             {
-                                <li class="nav-item mx-2">
-                                    <a class="nav-link fs-5 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
-                                        <i class="bi bi-speedometer fs-4"></i><br />Dashboard
+                                <li class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
+                                        <i class="bi bi-speedometer"></i>Dashboard
                                     </a>
                                 </li>
                             }
 
                             @* Inventory Links *@
-                            <li class="nav-item mx-2">
-                                <a class="nav-link fs-5 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
-                                    <i class="bi bi-boxes fs-4"></i><br />Inventory Catalog
+                            <li class="nav-item mx-1">
+                                <a class="nav-link fs-6 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
+                                    <i class="bi bi-boxes"></i>Inventory Catalog
                                 </a>
                             </li>
-                            <li class="nav-item mx-2">
-                                <a class="nav-link fs-5 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
-                                    <i class="bi bi-archive-fill fs-4"></i><br />Inventory Lots
+                            <li class="nav-item mx-1">
+                                <a class="nav-link fs-6 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
+                                    <i class="bi bi-archive-fill"></i>Inventory Lots
                                 </a>
                             </li>
-                            @* Rooms Links *@
-                            <li class="nav-item mx-2">
-                                <a class="nav-link fs-5 @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">
-                                    <i class="bi bi-building fs-4"></i><br />Rooms
+                            @* Rooms *@
+                            <li class="nav-item mx-1">
+                                <a class="nav-link fs-6 @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">
+                                    <i class="bi bi-building"></i>Rooms
                                 </a>
                             </li>
                             @* Bio Bank *@
-                            <li class="nav-item mx-2">
-                                <a class="nav-link fs-5 @(currentController == "BioBank" ? "active" : "")" asp-controller="BioBank" asp-action="Index">
-                                    <i class="bi bi-droplet fs-4"></i><br />Bio Bank
+                            <li class="nav-item mx-1">
+                                <a class="nav-link fs-6 @(currentController == "BioBank" ? "active" : "")" asp-controller="BioBank" asp-action="Index">
+                                    <i class="bi bi-droplet"></i>Bio Bank
                                 </a>
                             </li>
-                            
 
                             @* Services Dropdown *@
-                            <li class="nav-item dropdown mx-2">
-                                <a class="nav-link dropdown-toggle fs-5 @(isServicesActive ? "active" : "")" data-bs-toggle="dropdown">
-                                    <i class="bi bi-database-fill-gear fs-4"></i><br />Services
+                            <li class="nav-item dropdown mx-1">
+                                <a class="nav-link dropdown-toggle fs-6 @(isServicesActive ? "active" : "")" data-bs-toggle="dropdown">
+                                    <i class="bi bi-database-fill-gear"></i>Services
                                 </a>
                                 <ul class="dropdown-menu">
                                     @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
@@ -190,145 +476,105 @@
                     <partial name="_LoginPartial" />
                 </div>
             </div>
+
             @if (!User.IsInRole("Admin"))
             {
-                <button id="installBtn" class="btn btn-primary d-none">
+                <button id="installBtn" class="btn d-none">
                     Install App
                 </button>
             }
-
-
         </nav>
     </header>
-
-    <div class="container-fluid pt-0  px-0 mx-0" dir="rtl">
-        <main role="main" class="pb-0 ">
+    }
+    <div class="container-fluid pt-0 px-0 mx-0 page-enter" dir="rtl">
+        <main role="main" class="pb-0">
             @RenderBody()
         </main>
     </div>
 
-    @*
-        <footer class=" border-top footer text-muted " style="background-color:#032b42 !important;border-radius:0 80px 0 0">
-            <div class="container-fluid  text-center">
-
-                <a asp-area="" asp-controller="" asp-action="" class="fw-bold px-2 link-underline-opacity-0"> ادارة النظـم</a> <span class="text-light fw-light">&copy; ERP [ PackLine | Frist ] 2025 </span>
-            </div>
-        </footer>
-    *@
-   
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/Users.js" asp-append-version="true"></script>
-    
     <script src="~/js/Roles.js" asp-append-version="true"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts" asp-append-version="true"></script>
-    @* sweetalert liberary to pop msg*@
-    <script src="~/sweetalert2/sweetalert2.all.js"></script>
+
+    @* sweetalert *@
     <script src="~/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="~/sweetalert2/sweetalert2.esm.all.js"></script>
-    <script src="~/sweetalert2/sweetalert2.esm.all.min.js"></script>
-    <script src="~/sweetalert2/sweetalert2.esm.js"></script>
-    <script src="~/sweetalert2/sweetalert2.esm.min.js"></script>
-    <script src="~/sweetalert2/sweetalert2.js"></script>
-    <script src="~/sweetalert2/sweetalert2.min.js"></script>
-
 
     <script>
-        let deferredPrompt;
+            // Header shadow on scroll
+            window.addEventListener('scroll', function () {
+                const h = document.getElementById('mainHeader');
+                if (h) h.classList.toggle('scrolled', window.scrollY > 12);
+            });
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
+            // PWA install
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                const btn = document.getElementById('installBtn');
+                if (btn) btn.classList.remove('d-none');
+            });
 
-        const btn = document.getElementById('installBtn');
-        if (btn) {
-        btn.classList.remove('d-none');
-        }
-        });
+            document.getElementById('installBtn')?.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            });
 
-        document.getElementById('installBtn')?.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
+            window.addEventListener('appinstalled', () => {
+                const btn = document.getElementById('installBtn');
+                if (btn) btn.style.display = 'none';
+            });
 
-        deferredPrompt.prompt();
-        const result = await deferredPrompt.userChoice;
-
-        if (result.outcome === 'accepted') {
-        console.log('User accepted install');
-        }
-
-        deferredPrompt = null;
-        });
+            function isPwaInstalled() {
+                return window.matchMedia('(display-mode: standalone)').matches
+                    || window.navigator.standalone === true;
+            }
+            document.addEventListener('DOMContentLoaded', () => {
+                if (isPwaInstalled()) {
+                    const btn = document.getElementById('installBtn');
+                    if (btn) btn.style.display = 'none';
+                }
+            });
     </script>
+
     <script>
-        window.addEventListener('appinstalled', () => {
-        console.log('PWA Installed');
-        const btn = document.getElementById('installBtn');
-        if (btn) btn.style.display = 'none';
-        });
+            let installModal;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                const installShown = localStorage.getItem('installPromptShown');
+                if (installShown) return;
+                e.preventDefault();
+                deferredPrompt = e;
+                localStorage.setItem('installPromptShown', 'true');
+                const modalEl = document.getElementById('installModal');
+                if (modalEl) {
+                    installModal = new bootstrap.Modal(modalEl);
+                    installModal.show();
+                }
+            });
+
+            document.getElementById('confirmInstall')?.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                deferredPrompt = null;
+                installModal?.hide();
+            });
     </script>
 
-    <script>
-        function isPwaInstalled() {
-        return window.matchMedia('(display-mode: standalone)').matches
-        || window.navigator.standalone === true;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-        if (isPwaInstalled()) {
-        const btn = document.getElementById('installBtn');
-        if (btn) btn.style.display = 'none';
-        }
-        });
-    </script>
-    <script>
-        let deferredPrompt;
-        let installModal;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-
-        installModal = new bootstrap.Modal(
-        document.getElementById('installModal')
-        );
-
-        installModal.show();
-        });
-
-        document.getElementById('confirmInstall')?.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-        installModal.hide();
-        });
-    </script>
-    <script>
-        const installShown = localStorage.getItem('installPromptShown');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-        if (installShown) return;
-
-        e.preventDefault();
-        deferredPrompt = e;
-
-        localStorage.setItem('installPromptShown', 'true');
-
-        installModal.show();
-        });
-    </script>
-
-   
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>
+
 <div class="modal fade" id="installModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Install ERP System</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 Install the app for faster access and offline support.

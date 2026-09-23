@@ -3,105 +3,556 @@
 
 @{
     ViewData["Title"] = "Log in";
+    Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<div dir="rtl" class="text-center mb-2">
-    <div class="card border-0" style="border-radius:0  0 75px 0;background-color:#032b42 !important ">
-        <div class="card-body">
-            <div class="text-center fs-1 text-white">
-                <span class="text-center fs-1 fw-bold " style="color:#415E72 !important ">
-                   
-                    <i class="bi bi-box-arrow-in-right pe-2 fs-2"></i>
-                    Log in
-                </span>
-            </div>
-        </div>
+<style>
+    /* ========== LOGIN PAGE – matching Dashboard / Home theme ========== */
+    :root {
+        --bb-navy: #032b42;
+        --bb-navy-mid: #064663;
+        --bb-navy-light: #0a5a7a;
+        --bb-gold: #C5A547;
+        --bb-gold-dark: #a88b2e;
+        --bb-teal: #3F9AAE;
+    }
+
+    .login-page {
+        position: relative;
+        min-height: calc(110vh - 75px);
+        overflow: hidden;
+        background: linear-gradient(160deg, #021a28 0%, #032b42 45%, #064663 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    /* Background orbs */
+    .login-orbs {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .login-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(70px);
+        opacity: 0.35;
+        animation: loginOrb 18s ease-in-out infinite;
+    }
+
+    .login-orb-1 {
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, #C5A547 0%, transparent 70%);
+        top: -140px;
+        left: -80px;
+    }
+
+    .login-orb-2 {
+        width: 360px;
+        height: 360px;
+        background: radial-gradient(circle, #3F9AAE 0%, transparent 70%);
+        bottom: -100px;
+        right: -60px;
+        animation-delay: -6s;
+    }
+
+    .login-orb-3 {
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, #198754 0%, transparent 70%);
+        top: 50%;
+        left: 55%;
+        animation-delay: -12s;
+    }
+    @@keyframes loginOrb {
+        0%, 100% {
+            transform: translate(0,0) scale(1);
+        }
+
+        33% {
+            transform: translate(40px,-30px) scale(1.08);
+        }
+
+        66% {
+            transform: translate(-30px,25px) scale(0.94);
+        }
+    }
+
+    /* Grid */
+    .login-grid {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(197,165,71,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(197,165,71,0.05) 1px, transparent 1px);
+        background-size: 48px 48px;
+        z-index: 0;
+        mask-image: radial-gradient(ellipse at center, black 15%, transparent 70%);
+        -webkit-mask-image: radial-gradient(ellipse at center, black 15%, transparent 70%);
+    }
+
+    /* Card */
+    .login-card {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255,255,255,0.07);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 24px;
+        padding: 36px 32px 28px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+        animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s forwards;
+    }
+    @@keyframes cardIn {
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* Logo */
+    .login-logo {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+        .login-logo img {
+            width: 88px;
+            height: auto;
+            filter: drop-shadow(0 0 18px rgba(197,165,71,0.45));
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+    @@keyframes logoPulse {
+        0%, 100% {
+            filter: drop-shadow(0 0 14px rgba(197,165,71,0.4));
+            transform: scale(1);
+        }
+
+        50% {
+            filter: drop-shadow(0 0 28px rgba(197,165,71,0.65));
+            transform: scale(1.04);
+        }
+    }
+
+    /* Title */
+    .login-title {
+        text-align: center;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+        .login-title i {
+            color: var(--bb-gold);
+            margin-right: 8px;
+        }
+
+    .login-sub {
+        text-align: center;
+        color: rgba(255,255,255,0.55);
+        font-size: 0.9rem;
+        margin-bottom: 28px;
+        letter-spacing: 1px;
+    }
+
+    /* Form fields */
+    .login-field {
+        position: relative;
+        margin-bottom: 18px;
+    }
+
+        .login-field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+    .login-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+        .login-input-wrap i.field-icon {
+            position: absolute;
+            left: 14px;
+            color: rgba(255,255,255,0.45);
+            font-size: 1.15rem;
+            transition: color 0.3s ease;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .login-input-wrap input {
+            width: 100%;
+            padding: 13px 44px 13px 44px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.25);
+            color: #fff;
+            font-size: 0.95rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+            .login-input-wrap input::placeholder {
+                color: rgba(255,255,255,0.35);
+            }
+
+            .login-input-wrap input:focus {
+                border-color: var(--bb-gold);
+                background: rgba(0,0,0,0.35);
+                box-shadow: 0 0 0 3px rgba(197,165,71,0.2);
+            }
+
+                .login-input-wrap input:focus + i.field-icon,
+                .login-input-wrap:focus-within i.field-icon {
+                    color: var(--bb-gold);
+                }
+
+    /* Toggle password eye */
+    .toggle-pass {
+        position: absolute;
+        right: 14px;
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.4);
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 0;
+        z-index: 2;
+        transition: color 0.25s ease;
+    }
+
+        .toggle-pass:hover {
+            color: var(--bb-gold);
+        }
+
+    /* Validation */
+    .text-danger {
+        font-size: 0.8rem;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .validation-summary-errors ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 12px;
+    }
+
+    .validation-summary-errors li {
+        background: rgba(220,53,69,0.15);
+        border: 1px solid rgba(220,53,69,0.35);
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: #ff8a8a;
+        font-size: 0.85rem;
+    }
+
+    /* Remember + Forgot */
+    .login-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 8px 0 20px;
+        font-size: 0.88rem;
+    }
+
+        .login-options label {
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+
+        .login-options .form-check-input {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            background: transparent;
+            cursor: pointer;
+        }
+
+            .login-options .form-check-input:checked {
+                background-color: var(--bb-gold);
+                border-color: var(--bb-gold);
+            }
+
+        .login-options a {
+            color: var(--bb-gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.25s ease;
+        }
+
+            .login-options a:hover {
+                color: #e0c060;
+                text-decoration: underline;
+            }
+
+    /* Submit button */
+    .login-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        background: linear-gradient(135deg, var(--bb-gold), var(--bb-gold-dark));
+        box-shadow: 0 8px 24px rgba(197,165,71,0.35);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+
+        .login-btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 36px rgba(197,165,71,0.5);
+        }
+
+            .login-btn:hover::after {
+                transform: translateX(100%);
+            }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+    /* Register link */
+    .login-register {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.55);
+    }
+
+        .login-register a {
+            color: var(--bb-gold);
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+
+            .login-register a:hover {
+                color: #e0c060;
+                text-decoration: underline;
+            }
+
+    /* Divider */
+    .login-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 22px 0 16px;
+        color: rgba(255,255,255,0.35);
+        font-size: 0.8rem;
+    }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.12);
+        }
+
+    /* Social icons (optional decorative) */
+    .login-social {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+        .login-social button {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.55);
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .login-social button:hover {
+                background: rgba(197,165,71,0.15);
+                border-color: rgba(197,165,71,0.4);
+                color: var(--bb-gold);
+                transform: translateY(-3px);
+            }
+
+    /* Bottom strip */
+    .login-strip {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--bb-navy), var(--bb-gold), var(--bb-teal), var(--bb-gold), var(--bb-navy));
+        background-size: 200% 100%;
+        animation: stripMove 6s linear infinite;
+        z-index: 3;
+    }
+    @@keyframes stripMove {
+        to {
+            background-position: 200% 0;
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 480px) {
+        .login-card {
+            padding: 28px 20px 22px;
+            border-radius: 18px;
+        }
+
+        .login-title {
+            font-size: 1.45rem;
+        }
+    }
+</style>
+
+<div class="login-page" dir="ltr">
+    <div class="login-orbs">
+        <div class="login-orb login-orb-1"></div>
+        <div class="login-orb login-orb-2"></div>
+        <div class="login-orb login-orb-3"></div>
     </div>
-</div>
+    <div class="login-grid"></div>
 
-<section class="mt-2" id="loginfrm">
-    <div class="container-fluid pt-4">
-        <div class="row d-flex justify-content-center align-items-center mt-1">
-            <div class="col-md-4"></div>
-            <div class="col-md-4 mt-3">
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="login-logo">
+            <img src="~/images/bc.png" alt="Biodefense Center" />
+        </div>
 
-                <form id="account" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                    <!-- UserName -->
-                    <div class="input-group mt-3">
-                        <i class="bi bi-person-circle mx-2 fs-3 link-dark"></i>
-                        <input asp-for="Input.Email" id="userName" required class="form-control text-center me-1 px-1" aria-required="true" placeholder=" ! Enter Username or Email " type="text" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;"> 
-                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-start-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Username&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    </div>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+        <h1 class="login-title">
+            <i class="bi bi-box-arrow-in-right"></i> Log in
+        </h1>
+        <p class="login-sub">Biodefense Center · Chemical Storage</p>
 
-                    <!-- Password -->
-                    <div class="input-group mt-3">
-                        <i class="bi bi-shield-lock-fill mx-2 fs-3 link-dark"></i>
-                        <input asp-for="Input.Password" required id="pass" class="form-control text-center me-1 px-2" placeholder="! Enter fixed password " type="password" style="border-top-right-radius : 20px ;border-right-width:3px;border-left-width:3px;">
-                        <span class="input-group-text border-start-0 bg-info-subtle fw-bold text-center rounded-start-3 px-3" id="inputGroup-sizing-default">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Password&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    </div>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+        <form id="account" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
-                     <div class="d-flex justify-content-between  align-items-center pt-2">
-                        <!-- Checkbox -->
-                        <div class="checkbox mt-2">
-                            <label asp-for="Input.RememberMe" class="form-label">
-                                Remember me!
-                                <input class="form-check-input" asp-for="Input.RememberMe" />
-                            </label>
-                        </div>
-                        <a class="text-body text-decoration-none link-primary" id="forgot-password" asp-area="Identity" asp-page="./ForgotPassword"></a>
-                    </div>
-                    
-                    <div class="text-center text-lg-start mt-2 pt-2">
-                        <button id="login-submit" type="submit" data-mdb-button-init data-mdb-ripple-init class="btn fw-bold btn-lg text-white w-100"
-                                style="padding-left: 3rem; padding-right: 3rem;background-color:#032b42">
-                            Log in
-                        </button>
+            <!-- Email / Username -->
+            <div class="login-field">
+                <label for="userName">Username or Email</label>
+                <div class="login-input-wrap">
+                    <i class="bi bi-person-circle field-icon"></i>
+                    <input asp-for="Input.Email"
+                           id="userName"
+                           required
+                           class="form-control"
+                           aria-required="true"
+                           placeholder="Enter username or email"
+                           type="text"
+                           autocomplete="username" />
+                </div>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
 
-                        <p class="small fw-bold text-center mt-2 pt-1 mb-0">
-                            Are you have account ? <a href="#" class="link-danger">Register your account</a>
-                        </p>
-                        @*  <p class="small fw-bold text-center mt-2 pt-1 mb-0">
-                            هل لديك حساب ؟ <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl"
-                                              class="link-danger">تسجيل حساب جديد</a>
-                        </p> *@
-                    </div>
-                </form>
-                <div class="d-flex flex-row align-items-center justify-content-center mt-3">
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
-                        <i class="bi bi-google fs-4"></i>
-                    </button>
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
-                        <i class="bi bi-twitter fs-4"></i>
-                    </button>
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
-                        <i class="bi bi-youtube fs-4"></i>
-                    </button>
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
-                        <i class="bi bi-facebook fs-4"></i>
-                    </button>
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
-                        <i class="bi bi-whatsapp fs-4"></i>
-                    </button>
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn border-0 btn-floating mx-1">
-                        <i class="bi bi-twitter-x fs-4"></i>
+            <!-- Password -->
+            <div class="login-field">
+                <label for="pass">Password</label>
+                <div class="login-input-wrap">
+                    <i class="bi bi-shield-lock-fill field-icon"></i>
+                    <input asp-for="Input.Password"
+                           id="pass"
+                           required
+                           class="form-control"
+                           placeholder="Enter password"
+                           type="password"
+                           autocomplete="current-password" />
+                    <button type="button" class="toggle-pass" id="togglePass" title="Show / Hide password">
+                        <i class="bi bi-eye" id="togglePassIcon"></i>
                     </button>
                 </div>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
             </div>
-            <div class="col-md-1"></div>
-            <div class="col-md-3 justify-content-center mx-auto">
-               @*  <img src="~/images/dots/hero-image.png" /> *@
+
+            <!-- Remember + Forgot -->
+            <div class="login-options">
+                <label asp-for="Input.RememberMe">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    Remember me
+                </label>
+                @* <a id="forgot-password" asp-area="Identity" asp-page="./ForgotPassword">Forgot password?</a> *@
+                <a id="forgot-password" href="#">Forgot password?</a>
             </div>
+
+            <!-- Submit -->
+            <button id="login-submit" type="submit" class="login-btn">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Log in
+            </button>
+
+            <p class="login-register">
+                Don't have an account?
+                @* <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register</a> *@
+                <a href="#">Register</a>
+            </p>
+        </form>
+
+        <!-- Optional social (decorative / future) -->
+        <div class="login-divider">or</div>
+        <div class="login-social">
+            <button type="button" title="Google" aria-label="Google"><i class="bi bi-google"></i></button>
+            <button type="button" title="Microsoft" aria-label="Microsoft"><i class="bi bi-microsoft"></i></button>
+            <button type="button" title="Facebook" aria-label="Facebook"><i class="bi bi-facebook"></i></button>
         </div>
     </div>
-</section>
+
+    <div class="login-strip"></div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    @* <script src="~/js/Login.js"></script> *@
+    <script>
+        // Show / Hide password
+        document.getElementById('togglePass')?.addEventListener('click', function () {
+            const input = document.getElementById('pass');
+            const icon = document.getElementById('togglePassIcon');
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        });
+    </script>
 }
-
-
-

@@ -265,8 +265,10 @@ namespace X_ChemicalStorage.BioBank.Services
 
             var freezer = await _db.Bio_Freezers.AsNoTracking().FirstAsync(f => f.Id == freezerId);
 
+            // NEW
             var occupied = box.Bio_Tubes.Count(t => t.Status == TubeStatus.Occupied);
             var reserved = box.Bio_Tubes.Count(t => t.Status == TubeStatus.Reserved);
+            var checkedOut = box.Bio_Tubes.Count(t => t.Status == TubeStatus.CheckedOut);
             var total = box.Rows * box.Columns;
 
             return new Bio_BoxDetailsDto
@@ -279,13 +281,15 @@ namespace X_ChemicalStorage.BioBank.Services
                 Columns = box.Columns,
                 OccupiedCount = occupied,
                 ReservedCount = reserved,
-                AvailableCount = total - occupied - reserved,
-                OccupancyPercent = total == 0 ? 0 : (int)Math.Round((occupied + reserved) * 100.0 / total),
+                CheckedOutCount = checkedOut,
+                AvailableCount = total - occupied - reserved - checkedOut,
+                OccupancyPercent = total == 0 ? 0 : (int)Math.Round((occupied + reserved + checkedOut) * 100.0 / total),
                 Temperature = freezer.Temperature,
                 FreezerId = freezerId,
                 Bio_Tubes = box.Bio_Tubes.Select(t => new Bio_TubeDto
                 {
                     Id = t.Id,
+                    Barcode = t.Barcode,
                     BoxId = t.BoxId,
                     Position = t.Position,
                     Row = t.Row,
@@ -500,18 +504,20 @@ namespace X_ChemicalStorage.BioBank.Services
             foreach (var box in boxes)
             {
                 var stats = await _db.Bio_Tubes
-                    .AsNoTracking()
-                    .Where(t => t.BoxId == box.Id)
-                    .GroupBy(t => 1)
-                    .Select(g => new
-                    {
-                        Occupied = g.Count(t => t.Status == TubeStatus.Occupied),
-                        Reserved = g.Count(t => t.Status == TubeStatus.Reserved)
-                    })
-                    .FirstOrDefaultAsync();
+    .AsNoTracking()
+    .Where(t => t.BoxId == box.Id)
+    .GroupBy(t => 1)
+    .Select(g => new
+    {
+        Occupied = g.Count(t => t.Status == TubeStatus.Occupied),
+        Reserved = g.Count(t => t.Status == TubeStatus.Reserved),
+        CheckedOut = g.Count(t => t.Status == TubeStatus.CheckedOut)
+    })
+    .FirstOrDefaultAsync();
 
                 int occupied = stats?.Occupied ?? 0;
                 int reserved = stats?.Reserved ?? 0;
+                int checkedOut = stats?.CheckedOut ?? 0;
                 int total = box.Rows * box.Columns;
 
                 result.Add(new Bio_BoxDto
@@ -524,8 +530,9 @@ namespace X_ChemicalStorage.BioBank.Services
                     Columns = box.Columns,
                     OccupiedCount = occupied,
                     ReservedCount = reserved,
-                    AvailableCount = total - occupied - reserved,
-                    OccupancyPercent = total == 0 ? 0 : (int)Math.Round((occupied + reserved) * 100.0 / total)
+                    CheckedOutCount = checkedOut,
+                    AvailableCount = total - occupied - reserved - checkedOut,
+                    OccupancyPercent = total == 0 ? 0 : (int)Math.Round((occupied + reserved + checkedOut) * 100.0 / total)
                 });
             }
 
@@ -539,7 +546,7 @@ namespace X_ChemicalStorage.BioBank.Services
             // Count tubes that belong to any box under this freezer
             return await _db.Bio_Tubes
                 .AsNoTracking()
-                .Where(t => t.Status == TubeStatus.Occupied || t.Status == TubeStatus.Reserved)
+                .Where(t => t.Status == TubeStatus.Occupied || t.Status == TubeStatus.Reserved || t.Status == TubeStatus.CheckedOut)
                 .Where(t =>
                     _db.Bio_Boxes.Any(b => b.Id == t.BoxId &&
                         (
@@ -612,7 +619,9 @@ namespace X_ChemicalStorage.BioBank.Services
                     Status = dto.Status,
                     SampleId = dto.SampleId,
                     SampleName = dto.SampleName,
+                    Barcode = dto.Barcode?.Trim(),
                     StoredAt = dto.Status == TubeStatus.Occupied ? DateTime.UtcNow : null
+
                 };
                 _db.Bio_Tubes.Add(tube);
             }
@@ -621,6 +630,8 @@ namespace X_ChemicalStorage.BioBank.Services
                 tube.Status = dto.Status;
                 tube.SampleId = dto.SampleId;
                 tube.SampleName = dto.SampleName;
+                if (!string.IsNullOrWhiteSpace(dto.Barcode))
+                    tube.Barcode = dto.Barcode.Trim();
                 tube.StoredAt = dto.Status == TubeStatus.Occupied ? DateTime.UtcNow : tube.StoredAt;
             }
 
@@ -636,7 +647,7 @@ namespace X_ChemicalStorage.BioBank.Services
             var existing = await _db.Bio_Tubes
                 .FirstOrDefaultAsync(t => t.BoxId == boxId && t.Position == position);
 
-            if (existing != null && existing.Status == TubeStatus.Occupied)
+            if (existing != null && (existing.Status == TubeStatus.Occupied || existing.Status == TubeStatus.CheckedOut))
                 throw new InvalidOperationException($"Position {position} is already occupied.");
 
             if (existing == null)
@@ -660,7 +671,10 @@ namespace X_ChemicalStorage.BioBank.Services
             existing.Status = TubeStatus.Occupied;
             existing.SampleId = dto.SampleId;
             existing.SampleName = dto.SampleName;
+            
             existing.StoredAt = DateTime.UtcNow;
+            if (!string.IsNullOrWhiteSpace(dto.Barcode))
+                existing.Barcode = dto.Barcode.Trim();
 
             await _db.SaveChangesAsync();
             return MapTubeToDto(existing);
@@ -689,7 +703,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     var existing = await _db.Bio_Tubes
                         .FirstOrDefaultAsync(t => t.BoxId == boxId && t.Position == position);
 
-                    if (existing != null && existing.Status == TubeStatus.Occupied)
+                    if (existing != null && (existing.Status == TubeStatus.Occupied || existing.Status == TubeStatus.CheckedOut))
                         continue; // or throw if you want strict behavior
 
                     if (existing == null)
@@ -724,7 +738,7 @@ namespace X_ChemicalStorage.BioBank.Services
             var existing = await _db.Bio_Tubes
                 .FirstOrDefaultAsync(t => t.BoxId == boxId && t.Position == position);
 
-            if (existing != null && existing.Status == TubeStatus.Occupied)
+            if (existing != null && (existing.Status == TubeStatus.Occupied || existing.Status == TubeStatus.CheckedOut))
                 throw new InvalidOperationException($"Position {position} is already occupied and cannot be reserved.");
 
             if (existing == null)
@@ -796,6 +810,7 @@ namespace X_ChemicalStorage.BioBank.Services
             return new Bio_TubeDto
             {
                 Id = t.Id,
+                Barcode = t.Barcode,
                 BoxId = t.BoxId,
                 Position = t.Position,
                 Row = t.Row,

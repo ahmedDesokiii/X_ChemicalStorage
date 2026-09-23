@@ -1883,3 +1883,428 @@ navbar-toggler-icon {
         color: #dbe4ea;
         font-size: 0.9rem;
     }
+
+
+/* ============================================================
+   PAGE HERO – unified with Layout (navy / gold / teal)
+   Drop this into site.css (or link it) after your existing styles
+   ============================================================ */
+
+:root {
+    --bb-navy: #032b42;
+    --bb-navy-mid: #064663;
+    --bb-navy-light: #0a5a7a;
+    --bb-gold: #C5A547;
+    --bb-gold-dark: #a88b2e;
+    --bb-teal: #3F9AAE;
+    --bb-radius-lg: 20px;
+}
+
+/* ===== PAGE HERO – seamless with Layout navbar ===== */
+.page-hero {
+    /* Same gradient family as .main-header in _Layout */
+    background: linear-gradient(135deg, #032b42 0%, #064663 55%, #0a5a7a 100%);
+    padding: 28px 28px 32px;
+    border-radius: 0 0 var(--bb-radius-lg) 0;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(3, 43, 66, 0.28);
+    /* subtle top blend so it feels continuous with navbar */
+    border-top: 1px solid rgba(197, 165, 71, 0.18);
+}
+
+    /* Animated gold/teal shine sweep */
+    .page-hero::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        right: -15%;
+        width: 55%;
+        height: 180%;
+        background: radial-gradient(ellipse, rgba(197, 165, 71, 0.16) 0%, transparent 65%);
+        animation: heroShine 9s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .page-hero::after {
+        content: "";
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 40%;
+        height: 120%;
+        background: radial-gradient(ellipse, rgba(63, 154, 174, 0.12) 0%, transparent 70%);
+        animation: heroShine 11s ease-in-out infinite reverse;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+@keyframes heroShine {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: rotate(12deg) scale(1.12);
+        opacity: 1;
+    }
+}
+
+/* Soft grid overlay (very light) */
+.page-hero .bb-header-shine,
+.page-hero .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at 30% 50%, black 10%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at 30% 50%, black 10%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Content above effects */
+.page-hero > .container-fluid,
+.page-hero > .container,
+.page-hero .row {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== Hero icon box ===== */
+.hero-icon {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(197, 165, 71, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: iconFloat 4s ease-in-out infinite;
+}
+
+    .hero-icon:hover {
+        background: rgba(197, 165, 71, 0.18);
+        border-color: rgba(197, 165, 71, 0.5);
+        transform: scale(1.06);
+        box-shadow: 0 8px 24px rgba(197, 165, 71, 0.25);
+    }
+
+    .hero-icon i,
+    .hero-icon svg {
+        font-size: 28px;
+        color: #fff;
+        filter: drop-shadow(0 0 6px rgba(197, 165, 71, 0.4));
+    }
+
+/* BioBank logo icon variant */
+.bb-logo-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(145deg, rgba(197, 165, 71, 0.25), rgba(63, 154, 174, 0.2));
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(197, 165, 71, 0.35);
+}
+
+@keyframes iconFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* ===== Titles ===== */
+.hero-title,
+.bb-title {
+    color: #fff;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+    animation: titleIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-subtitle,
+.bb-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 4px 0 0 0;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    animation: titleIn 0.6s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes titleIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Optional gold accent underline under title */
+.hero-title::after,
+.bb-title::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin-top: 8px;
+    background: linear-gradient(90deg, var(--bb-gold), transparent);
+    border-radius: 3px;
+    animation: lineGrow 0.7s 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes lineGrow {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+
+    to {
+        width: 48px;
+        opacity: 1;
+    }
+}
+
+/* ===== Breadcrumb inside hero ===== */
+.bb-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    animation: titleIn 0.6s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bb-bcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.25s ease;
+    cursor: default;
+}
+
+    .bb-bcrumb-item.active {
+        color: var(--bb-gold);
+        background: rgba(197, 165, 71, 0.15);
+        border-color: rgba(197, 165, 71, 0.35);
+        box-shadow: 0 0 12px rgba(197, 165, 71, 0.15);
+    }
+
+    .bb-bcrumb-item:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+    }
+
+/* ===== Actions area (search + buttons) ===== */
+.bb-actions,
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    animation: titleIn 0.6s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bb-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+    min-width: 220px;
+}
+
+    .bb-search-box:focus-within {
+        border-color: var(--bb-gold);
+        background: rgba(0, 0, 0, 0.35);
+        box-shadow: 0 0 0 3px rgba(197, 165, 71, 0.2);
+    }
+
+    .bb-search-box .bb-search-icon {
+        font-size: 0.95rem;
+        opacity: 0.7;
+    }
+
+    .bb-search-box input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+        .bb-search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+.bb-btn-add,
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--bb-gold), var(--bb-gold-dark));
+    color: #1a1a1a;
+    box-shadow: 0 6px 18px rgba(197, 165, 71, 0.35);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+    .bb-btn-add::after,
+    .hero-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.5s ease;
+    }
+
+    .bb-btn-add:hover,
+    .hero-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(197, 165, 71, 0.5);
+        color: #1a1a1a;
+    }
+
+        .bb-btn-add:hover::after,
+        .hero-btn:hover::after {
+            transform: translateX(100%);
+        }
+
+/* ===== Stats inside hero (optional) ===== */
+.hero-stats .stat-value {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.hero-stats .stat-label {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+/* ===== Lot hero variant (same palette) ===== */
+.lot-hero {
+    background: linear-gradient(135deg, #032b42 0%, #064663 55%, #0a5a7a 100%);
+    padding: 28px 28px 30px;
+    border-radius: 0 0 var(--bb-radius-lg) 0;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(3, 43, 66, 0.28);
+    border-top: 1px solid rgba(197, 165, 71, 0.18);
+}
+
+    .lot-hero::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        right: -15%;
+        width: 55%;
+        height: 180%;
+        background: radial-gradient(ellipse, rgba(197, 165, 71, 0.14) 0%, transparent 65%);
+        animation: heroShine 9s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+.lot-title {
+    color: #fff;
+    font-size: 1.55rem;
+    font-weight: 800;
+    margin: 8px 0 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.lot-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(197, 165, 71, 0.15);
+    color: var(--bb-gold);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(197, 165, 71, 0.3);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .page-hero,
+    .lot-hero {
+        padding: 20px 16px 24px;
+        border-radius: 0 0 16px 0;
+    }
+
+    .hero-title,
+    .bb-title {
+        font-size: 1.4rem;
+    }
+
+    .hero-icon {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+    }
+
+        .hero-icon i {
+            font-size: 22px;
+        }
+
+    .bb-actions,
+    .hero-actions {
+        justify-content: flex-start;
+        margin-top: 14px;
+    }
+
+    .bb-search-box {
+        min-width: 100%;
+        flex: 1;
+    }
+}
