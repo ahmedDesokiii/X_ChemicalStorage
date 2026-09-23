@@ -35,6 +35,30 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public string? CurrentFreezerId { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? CreatedBy { get; set; }
+
+        // Add to Bio_SampleDto (the response shape)
+        public TestResult BacterialTestResult { get; set; }
+        public DateTime? BacterialTestDate { get; set; }
+        public TestResult IsolateTestResult { get; set; }
+        public DateTime? IsolateTestDate { get; set; }
+        public string? SOPId { get; set; }
+        public string? AnalyticsResults { get; set; }
+
+    }
+
+    // New DTOs — append near the other DTOs***************
+    public class Bio_SOPDto
+    {
+        public string Id { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; }
+    }
+
+    public class CreateSOPDto
+    {
+        [Required, MaxLength(50)] public string Id { get; set; } = null!;
+        [Required, MaxLength(200)] public string Name { get; set; } = null!;
+        [MaxLength(500)] public string? Description { get; set; }
     }
 
     public class Bio_SampleMovementDto
@@ -87,6 +111,14 @@ namespace X_ChemicalStorage.BioBank.DTOs
 
         [MaxLength(100)]
         public string? PerformedBy { get; set; }
+
+        // Add to StoreSampleDto (all optional — usually filled in later via Edit)
+        public TestResult? BacterialTestResult { get; set; }
+        public DateTime? BacterialTestDate { get; set; }
+        public TestResult? IsolateTestResult { get; set; }
+        public DateTime? IsolateTestDate { get; set; }
+        [MaxLength(50)] public string? SOPId { get; set; }
+        [MaxLength(1000)] public string? AnalyticsResults { get; set; }
     }
 
     public class ReserveSampleDto
@@ -218,6 +250,15 @@ namespace X_ChemicalStorage.BioBank.DTOs
         [MaxLength(100)] public string? CollectedByEmployeeId { get; set; }
 
         [MaxLength(100)] public string? PerformedBy { get; set; }
+
+
+        // Add to UpdateSampleDto — same shape as StoreSampleDto's version above
+        public TestResult? BacterialTestResult { get; set; }
+        public DateTime? BacterialTestDate { get; set; }
+        public TestResult? IsolateTestResult { get; set; }
+        public DateTime? IsolateTestDate { get; set; }
+        [MaxLength(50)] public string? SOPId { get; set; }
+        [MaxLength(1000)] public string? AnalyticsResults { get; set; }
     }
 
     /// <summary>Full ancestor chain of a box — lets the frontend rebuild currentPath

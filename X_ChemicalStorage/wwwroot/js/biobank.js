@@ -56,7 +56,7 @@
         if (isWide) {
             modalBox.style.maxWidth = window.innerWidth <= 900 ? "92%" : "960px";
         } else {
-            modalBox.style.maxWidth = "520px"; // back to the original inline value
+            modalBox.style.maxWidth = "620px"; // back to the original inline value
         }
     }
 
@@ -92,12 +92,45 @@
             el.value = "";
             el.placeholder = "SMP-2026-00001";
         }
+        populateSOPSelect("smSOP", null);
     }
 
     function bloodTypeLabel(v) {
         const map = { 0: "-", 1: "A+", 2: "A-", 3: "B+", 4: "B-", 5: "AB+", 6: "AB-", 7: "O+", 8: "O-" };
         return map[v] ?? "-";
     }
+
+
+    let sopsCache = [];
+
+    function testResultInfo(v) {
+        const map = {
+            0: { label: "Pending", color: "var(--bb-text-muted)" },
+            1: { label: "Negative", color: "var(--bb-success)" },
+            2: { label: "Positive", color: "#ef4444" }
+        };
+        return map[v] ?? map[0];
+    }
+
+    function testResultOptionsHtml(selected) {
+        return `
+        <option value="0" ${selected === 0 || selected == null ? "selected" : ""}>Pending</option>
+        <option value="1" ${selected === 1 ? "selected" : ""}>Negative</option>
+        <option value="2" ${selected === 2 ? "selected" : ""}>Positive</option>
+    `;
+    }
+
+    async function populateSOPSelect(selectId, selectedId) {
+        const el = $(selectId);
+        if (!el) return;
+        if (!sopsCache.length) {
+            try { sopsCache = await apiGet("/biobank/api/sops"); } catch { sopsCache = []; }
+        }
+        el.innerHTML = `<option value="">— None —</option>` +
+            sopsCache.map(s => `<option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${s.name}</option>`).join("");
+    }
+
+
 
     // NEW helper — add near bloodTypeLabel()
     function movementTypeInfo(type) {
@@ -888,8 +921,10 @@
         <div class="bb-info-row"><span class="label">Blood Type</span><span class="value text-light">${bloodTypeLabel(sample.bloodType)}</span></div>
         <div class="bb-info-row"><span class="label">Volume</span><span class="value text-light">${sample.remainingVolumeMl ?? sample.volumeMl ?? "-"}${sample.volumeMl ? " ml" : ""}</span></div>
         <div class="bb-info-row"><span class="label">FASTA Code</span><span class="value text-light">${sample.fastaAccessCode || "-"}</span></div>
-        <div class="bb-info-row"><span class="label">Project</span><span class="value text-light">${sample.projectCode || "-"}</span></div>
-        <div class="bb-info-row"><span class="label">Stored</span><span class="value">${sample.createdAt ? parseUtcDate(sample.createdAt).toLocaleString() : "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Project</span><span class="value">${sample.projectCode || "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Bacterial</span><span class="value" style="color:${testResultInfo(sample.bacterialTestResult).color}">${testResultInfo(sample.bacterialTestResult).label}</span></div>
+        <div class="bb-info-row"><span class="label">Isolate</span><span class="value" style="color:${testResultInfo(sample.isolateTestResult).color}">${testResultInfo(sample.isolateTestResult).label}</span></div>
+        <div class="bb-info-row"><span class="label">Freezer</span><span class="value">${sample.currentFreezerId || "-"}</span></div>
         ${sample.notes ? `<p style="margin-top:10px;font-size:0.85rem;color:var(--bb-text-muted)">${sample.notes}</p>` : ""}
     `;
             actions.innerHTML = `
@@ -949,41 +984,55 @@
         ${pathLine}
         <p style="margin-bottom:14px;color:var(--bb-text-muted)">Position is <strong style="color:var(--bb-success)">Available</strong>. Store a new blood sample:</p>
 
-        <div class="bb-form-grid-4">
-            <div class="bb-form-row"><label>Sample ID</label><input id="smId" readonly value="Generating…" style="opacity:0.75;cursor:not-allowed;"></div>
-            <div class="bb-form-row"><label>Sample Name *</label><input id="smName" required placeholder="Plasma Sample"></div>
-            <div class="bb-form-row"><label>Tube Barcode</label><input id="tbBarcode" placeholder="Scan or enter barcode"></div>
-            <div class="bb-form-row"><label>FASTA Access Code</label><input id="smFasta" placeholder="Sequence tracking code"></div>
-        </div>
+        <!-- Replace everything between the <p>Position is Available…</p> line and the
+     closing #smError div with this: -->
 
-        <div class="bb-form-grid-4">
-            <div class="bb-form-row"><label>Volume (ml)</label><input id="smVolume" type="number" step="0.1" placeholder="e.g. 5"></div>
-            <div class="bb-form-row"><label>Owner / PI</label><input id="smOwner" placeholder="Owner name"></div>
-            <div class="bb-form-row"><label>Blood Type</label>
-                <select id="smBloodType">
-                    <option value="0">Select</option>
-                    <option value="1">A+</option><option value="2">A-</option>
-                    <option value="3">B+</option><option value="4">B-</option>
-                    <option value="5">AB+</option><option value="6">AB-</option>
-                    <option value="7">O+</option><option value="8">O-</option>
-                </select>
-            </div>
-            <div class="bb-form-row"><label>Type</label><input id="smType" placeholder="Plasma"></div>
-        </div>
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Sample ID</label><input id="smId" readonly value="Generating…" style="opacity:0.75;cursor:not-allowed;"></div>
+    <div class="bb-form-row"><label>Sample Name *</label><input id="smName" required placeholder="Plasma Sample"></div>
+    <div class="bb-form-row"><label>Tube Barcode</label><input id="tbBarcode" placeholder="Scan or enter barcode"></div>
+    <div class="bb-form-row"><label>FASTA Access Code</label><input id="smFasta" placeholder="Sequence tracking code"></div>
+</div>
 
-        <div class="bb-form-grid-3">
-            <div class="bb-form-row"><label>Project</label><input id="smProject" placeholder="PRJ-01"></div>
-            <div class="bb-form-row"><label>Collected By</label><input id="smCollectedBy" placeholder="Employee name"></div>
-            <div class="bb-form-row"><label>Notes</label><input id="smNotes" placeholder="Optional"></div>
-        </div>
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Volume (ml)</label><input id="smVolume" type="number" step="0.1" placeholder="e.g. 5"></div>
+    <div class="bb-form-row"><label>Owner / PI</label><input id="smOwner" placeholder="Owner name"></div>
+    <div class="bb-form-row"><label>Blood Type</label>
+        <select id="smBloodType">
+            <option value="0">Select</option>
+            <option value="1">A+</option><option value="2">A-</option>
+            <option value="3">B+</option><option value="4">B-</option>
+            <option value="5">AB+</option><option value="6">AB-</option>
+            <option value="7">O+</option><option value="8">O-</option>
+        </select>
+    </div>
+    <div class="bb-form-row"><label>Sample Type</label><input id="smType" placeholder="Plasma"></div>
+</div>
 
-        <div class="bb-form-row">
-            <label>Sample Attachments</label>
-            <input type="file" id="smAttachments" multiple>
-            <div style="font-size:0.72rem;color:var(--bb-text-muted);margin-top:4px;">Not wired to storage yet — files chosen here aren't uploaded. Flagging this rather than pretending it works; ping me when you're ready to build the upload endpoint.</div>
-        </div>
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Project</label><input id="smProject" placeholder="PRJ-01"></div>
+    <div class="bb-form-row"><label>Collected By</label><input id="smCollectedBy" placeholder="Employee name"></div>
+    <div class="bb-form-row"><label>SOP</label><select id="smSOP"><option value="">Loading…</option></select></div>
+    <div class="bb-form-row"><label>Analytics</label><input id="smAnalytics" placeholder="Lab analysis notes"></div>
+</div>
 
-        <div id="smError" class="bb-form-error" style="display:none;"></div>
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Bacterial Result</label><select id="smBacterialResult">${testResultOptionsHtml(0)}</select></div>
+    <div class="bb-form-row"><label>Bacterial Test Date</label><input id="smBacterialDate" type="date"></div>
+    <div class="bb-form-row"><label>Isolate Result</label><select id="smIsolateResult">${testResultOptionsHtml(0)}</select></div>
+    <div class="bb-form-row"><label>Isolate Test Date</label><input id="smIsolateDate" type="date"></div>
+</div>
+
+<div class="bb-form-grid">
+    <div class="bb-form-row"><label>Sample Notes</label><input id="smNotes" placeholder="Optional"></div>
+    <div class="bb-form-row">
+        <label>Sample Attachments</label>
+        <input type="file" id="smAttachments" multiple>
+        <div style="font-size:0.72rem;color:var(--bb-text-muted);margin-top:4px;">Not wired to storage yet — files chosen here aren't uploaded.</div>
+    </div>
+</div>
+
+<div id="smError" class="bb-form-error" style="display:none;"></div>
     `;
             actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
@@ -1000,8 +1049,8 @@
 
 
     async function openSampleSearch() {
-        setModalWidth(true);
         $("modalTitle").textContent = "Search Samples";
+        $("modalTitle").className = "text-light";
         const body = $("modalBody");
         const actions = $("modalActions");
 
@@ -1018,6 +1067,7 @@
         $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
         $("bbModal").classList.add("show");
 
+        setModalWidth(true);
         let searchDebounce = null;
         $("sampleSearchInput").addEventListener("input", function () {
             clearTimeout(searchDebounce);
@@ -1060,7 +1110,7 @@
         return `
     <div class="bb-search-result-row">
         <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;">${s.id} <span style="font-weight:400;color:var(--bb-text-muted);">· ${s.name}</span></div>
+            <div class="text-light " style="font-weight:700;">${s.id} <span style="font-weight:400;color:var(--bb-text-muted);">· ${s.name}</span></div>
             <div style="font-size:0.78rem;color:var(--bb-text-muted);">
                 ${bloodTypeLabel(s.bloodType)} · ${s.sampleType || "-"} · ${located ? `${s.currentBoxId} · ${s.currentPosition}` : "Not currently stored"}
             </div>
@@ -1087,31 +1137,45 @@
         const actions = $("modalActions");
 
         body.innerHTML = `
-        <div class="bb-form-grid-4">
-            <div class="bb-form-row"><label>Sample ID</label><input value="${sample.id}" readonly style="opacity:0.75;cursor:not-allowed;"></div>
-            <div class="bb-form-row"><label>Sample Name *</label><input id="emName" value="${sample.name || ""}"></div>
-            <div class="bb-form-row"><label>FASTA Access Code</label><input id="emFasta" value="${sample.fastaAccessCode || ""}"></div>
-            <div class="bb-form-row"><label>Volume (ml)</label><input id="emVolume" type="number" step="0.1" value="${sample.volumeMl ?? ""}"></div>
-        </div>
-        <div class="bb-form-grid-4">
-            <div class="bb-form-row"><label>Owner / PI</label><input id="emOwner" value="${sample.patientRef || ""}"></div>
-            <div class="bb-form-row"><label>Blood Type</label>
-                <select id="emBloodType">
-                    <option value="0">Select</option>
-                    <option value="1">A+</option><option value="2">A-</option>
-                    <option value="3">B+</option><option value="4">B-</option>
-                    <option value="5">AB+</option><option value="6">AB-</option>
-                    <option value="7">O+</option><option value="8">O-</option>
-                </select>
-            </div>
-            <div class="bb-form-row"><label>Type</label><input id="emType" value="${sample.sampleType || ""}"></div>
-            <div class="bb-form-row"><label>Project</label><input id="emProject" value="${sample.projectCode || ""}"></div>
-        </div>
-        <div class="bb-form-grid">
-            <div class="bb-form-row"><label>Collected By</label><input id="emCollectedBy" value="${sample.collectedByEmployeeId || ""}"></div>
-            <div class="bb-form-row"><label>Notes</label><input id="emNotes" value="${sample.notes || ""}"></div>
-        </div>
-        <div id="emError" class="bb-form-error" style="display:none;"></div>
+<!-- Replace the whole body.innerHTML template in openSampleEditForm() with: -->
+
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Sample ID</label><input value="${sample.id}" readonly style="opacity:0.75;cursor:not-allowed;"></div>
+    <div class="bb-form-row"><label>Sample Name *</label><input id="emName" value="${sample.name || ""}"></div>
+    <div class="bb-form-row"><label>FASTA Access Code</label><input id="emFasta" value="${sample.fastaAccessCode || ""}"></div>
+    <div class="bb-form-row"><label>Volume (ml)</label><input id="emVolume" type="number" step="0.1" value="${sample.volumeMl ?? ""}"></div>
+</div>
+
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Owner / PI</label><input id="emOwner" value="${sample.patientRef || ""}"></div>
+    <div class="bb-form-row"><label>Blood Type</label>
+        <select id="emBloodType">
+            <option value="0">Select</option>
+            <option value="1">A+</option><option value="2">A-</option>
+            <option value="3">B+</option><option value="4">B-</option>
+            <option value="5">AB+</option><option value="6">AB-</option>
+            <option value="7">O+</option><option value="8">O-</option>
+        </select>
+    </div>
+    <div class="bb-form-row"><label>Sample Type</label><input id="emType" value="${sample.sampleType || ""}"></div>
+    <div class="bb-form-row"><label>Project</label><input id="emProject" value="${sample.projectCode || ""}"></div>
+</div>
+
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Collected By</label><input id="emCollectedBy" value="${sample.collectedByEmployeeId || ""}"></div>
+    <div class="bb-form-row"><label>SOP</label><select id="emSOP"><option value="">Loading…</option></select></div>
+    <div class="bb-form-row"><label>Analytics</label><input id="emAnalytics" value="${sample.analyticsResults || ""}"></div>
+    <div class="bb-form-row"><label>Sample Notes</label><input id="emNotes" value="${sample.notes || ""}"></div>
+</div>
+
+<div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Bacterial Result</label><select id="emBacterialResult">${testResultOptionsHtml(sample.bacterialTestResult)}</select></div>
+    <div class="bb-form-row"><label>Bacterial Test Date</label><input id="emBacterialDate" type="date" value="${sample.bacterialTestDate ? sample.bacterialTestDate.substring(0, 10) : ""}"></div>
+    <div class="bb-form-row"><label>Isolate Result</label><select id="emIsolateResult">${testResultOptionsHtml(sample.isolateTestResult)}</select></div>
+    <div class="bb-form-row"><label>Isolate Test Date</label><input id="emIsolateDate" type="date" value="${sample.isolateTestDate ? sample.isolateTestDate.substring(0, 10) : ""}"></div>
+</div>
+
+<div id="emError" class="bb-form-error" style="display:none;"></div>
     `;
         actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
@@ -1123,6 +1187,8 @@
 
         const bt = $("emBloodType");
         if (bt) bt.value = String(sample.bloodType ?? 0);
+
+        populateSOPSelect("emSOP", sample.sopId);
     }
 
     async function doUpdateSample(sampleId) {
@@ -1139,6 +1205,13 @@
             sampleType: $("emType").value.trim() || null,
             projectCode: $("emProject").value.trim() || null,
             collectedByEmployeeId: $("emCollectedBy").value.trim() || null,
+            // Add to the payload object in doUpdateSample()
+            bacterialTestResult: parseInt($("emBacterialResult").value, 10),
+            bacterialTestDate: $("emBacterialDate").value || null,
+            isolateTestResult: parseInt($("emIsolateResult").value, 10),
+            isolateTestDate: $("emIsolateDate").value || null,
+            sopId: $("emSOP").value || null,
+            analyticsResults: $("emAnalytics").value.trim() || null,
             notes: $("emNotes").value.trim() || null,
             performedBy: "web-user"
         };
@@ -1176,8 +1249,16 @@
             collectedByEmployeeId: $("smCollectedBy").value.trim() || null,
             tubeBarcode: $("tbBarcode").value.trim() || null,
             boxId: currentTubeContext.boxId,
+            // Add to the payload object in doStore()
+            bacterialTestResult: parseInt($("smBacterialResult").value, 10),
+            bacterialTestDate: $("smBacterialDate").value || null,
+            isolateTestResult: parseInt($("smIsolateResult").value, 10),
+            isolateTestDate: $("smIsolateDate").value || null,
+            sopId: $("smSOP").value || null,
+            analyticsResults: $("smAnalytics").value.trim() || null,
             position: currentTubeContext.position,
             performedBy: "web-user"
+
         };
         if (!payload.sampleId || !payload.name) {
             err.textContent = "Sample ID and Name are required.";

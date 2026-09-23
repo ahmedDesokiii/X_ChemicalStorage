@@ -247,6 +247,75 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
 
+        #region Receiving → Lot Creation
+        [HttpGet]
+        public IActionResult CreateLot(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ItemViewModel model = new()
+            {
+                NewLot = new Lot(),
+                NewItem = _servicesItem.FindBy(id),
+                ItemsList = _servicesItem.GetAll(),
+                LotsList = _servicesOfItem.GetLotsOfItem(id),
+                ItemTransactionsList = _servicesOfItem.GetItemTransactionsOfItem(id),
+
+                // ✅ بدل ListLocations القديمة - أول خطوة في الكاسكيد
+                ListRooms = _context.Rooms
+                                    .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name })
+                                    .ToList(),
+
+                ListSuppliers = _context.Suppliers
+                                    .Where(s => s.CurrentState > 0)
+                                    .Include(s => s.Lot)
+                                    .Select(s => new SelectListItem
+                                    {
+                                        Value = s.Id.ToString(),
+                                        Text = s.Name
+                                    }).ToList(),
+            };
+
+            return View(model);
+        }
+        #endregion
+
+        #region Disbursing → Lot Exchange
+        [HttpGet]
+        public IActionResult ExchangeLot(int id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var item = _context.Items.FirstOrDefault(x => x.Id == id);
+            if (item == null) return NotFound();
+
+            var lots = _context.Lots
+                .Where(x => x.ItemId == id && x.AvilableQuantity > 0)
+                .OrderBy(x => x.ExpiryDate)
+                .ToList();
+
+            var newLot = lots.FirstOrDefault();
+
+            var listLotsOfItem = lots.Select(lot => new SelectListItem
+            {
+                Value = lot.Id.ToString(),
+                Text = $"Exp Date [{lot.ExpiryDate:yyyy-MM-dd}] → Available Qty [{lot.AvilableQuantity}]  ",
+                Selected = (newLot != null && lot.Id == newLot.Id)
+            }).ToList();
+
+            var model = new ItemViewModel
+            {
+                NewItem = item,
+                LotsList = lots,
+                NewLot = newLot,
+                ListLotsOfItem = listLotsOfItem
+            };
+
+            return View(model);
+        }
+        #endregion
+
+
         #region Print Barcode
         public IActionResult PrintItemBarcode(string barcodeFile, string code)
         {

@@ -65,7 +65,14 @@ namespace X_ChemicalStorage.BioBank.Services
                         FastaAccessCode = dto.FastaAccessCode,
                         VolumeMl = dto.VolumeMl,
                         RemainingVolumeMl = dto.VolumeMl,   // starts full
+                                                            // NEW
                         CollectedByEmployeeId = dto.CollectedByEmployeeId,
+                        BacterialTestResult = dto.BacterialTestResult ?? TestResult.Pending,
+                        BacterialTestDate = dto.BacterialTestDate,
+                        IsolateTestResult = dto.IsolateTestResult ?? TestResult.Pending,
+                        IsolateTestDate = dto.IsolateTestDate,
+                        SOPId = dto.SOPId,
+                        AnalyticsResults = dto.AnalyticsResults,
                         CreatedAt = DateTime.UtcNow,
                         CreatedBy = dto.PerformedBy
                     };
@@ -719,6 +726,12 @@ namespace X_ChemicalStorage.BioBank.Services
             CurrentBoxId = s.CurrentBoxId,
             CurrentPosition = s.CurrentPosition,
             CurrentFreezerId = s.CurrentFreezerId,
+            BacterialTestResult = s.BacterialTestResult,
+            BacterialTestDate = s.BacterialTestDate,
+            IsolateTestResult = s.IsolateTestResult,
+            IsolateTestDate = s.IsolateTestDate,
+            SOPId = s.SOPId,
+            AnalyticsResults = s.AnalyticsResults,
             CreatedAt = s.CreatedAt,
             CreatedBy = s.CreatedBy
         };
@@ -779,6 +792,13 @@ namespace X_ChemicalStorage.BioBank.Services
                 if (dto.VolumeMl.HasValue) sample.VolumeMl = dto.VolumeMl;
                 sample.CollectedByEmployeeId = dto.CollectedByEmployeeId ?? sample.CollectedByEmployeeId;
                 sample.UpdatedAt = DateTime.UtcNow;
+
+                if (dto.BacterialTestResult.HasValue) sample.BacterialTestResult = dto.BacterialTestResult.Value;
+                sample.BacterialTestDate = dto.BacterialTestDate ?? sample.BacterialTestDate;
+                if (dto.IsolateTestResult.HasValue) sample.IsolateTestResult = dto.IsolateTestResult.Value;
+                sample.IsolateTestDate = dto.IsolateTestDate ?? sample.IsolateTestDate;
+                sample.SOPId = dto.SOPId ?? sample.SOPId;
+                sample.AnalyticsResults = dto.AnalyticsResults ?? sample.AnalyticsResults;
 
                 // Keep the tube's denormalized SampleName in sync if the name changed
                 if (!string.IsNullOrEmpty(sample.CurrentTubeId) && !string.IsNullOrWhiteSpace(dto.Name))
@@ -894,6 +914,28 @@ namespace X_ChemicalStorage.BioBank.Services
             }
 
             return null; // every online freezer is completely full
+        }
+
+        // ===================== SOPs (NEW) =====================
+        public async Task<List<Bio_SOPDto>> GetSOPsAsync()
+        {
+            return await _db.Bio_SOPs.AsNoTracking()
+                .Where(s => s.IsActive)
+                .OrderBy(s => s.Name)
+                .Select(s => new Bio_SOPDto { Id = s.Id, Name = s.Name, Description = s.Description })
+                .ToListAsync();
+        }
+
+        public async Task<Bio_SOPDto> CreateSOPAsync(CreateSOPDto dto)
+        {
+            if (await _db.Bio_SOPs.AnyAsync(s => s.Id == dto.Id))
+                throw new InvalidOperationException($"SOP '{dto.Id}' already exists.");
+
+            var sop = new Bio_SOP { Id = dto.Id.Trim(), Name = dto.Name.Trim(), Description = dto.Description, IsActive = true };
+            _db.Bio_SOPs.Add(sop);
+            await _db.SaveChangesAsync();
+
+            return new Bio_SOPDto { Id = sop.Id, Name = sop.Name, Description = sop.Description };
         }
     }
 }

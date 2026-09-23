@@ -64,4 +64,14 @@ namespace X_ChemicalStorage.BioBank.Enums
         OPos = 7,
         ONeg = 8
     }
+
+    // Add inside the namespace, next to BloodType:
+    public enum TestResult
+    {
+        Pending = 0,
+        Negative = 1,
+        Positive = 2
+    }
+
+
 }

@@ -253,6 +253,8 @@ namespace X_ChemicalStorage.Data
         public DbSet<Bio_Box> Bio_Boxes => Set<Bio_Box>();
         public DbSet<Bio_Tube> Bio_Tubes => Set<Bio_Tube>();
 
+        public DbSet<Bio_SOP> Bio_SOPs { get; set; }
+
         // Bio Samples 
 
         public DbSet<Bio_Sample> Bio_Samples => Set<Bio_Sample>();

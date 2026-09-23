@@ -376,11 +376,44 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("Bio_Racks");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SOP", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bio_SOPs");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Sample", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("AnalyticsResults")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("BacterialTestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("BacterialTestResult")
+                        .HasColumnType("int");
 
                     b.Property<int>("BloodType")
                         .HasColumnType("int");
@@ -440,6 +473,12 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<DateTime?>("IsolateTestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IsolateTestResult")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -462,6 +501,10 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     b.Property<DateTime?>("ReturnedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("SOPId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("SampleType")
                         .HasMaxLength(100)

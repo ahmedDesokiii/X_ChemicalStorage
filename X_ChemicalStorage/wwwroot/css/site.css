@@ -1911,7 +1911,7 @@ navbar-toggler-icon {
     overflow: hidden;
     box-shadow: 0 8px 28px rgba(3, 43, 66, 0.28);
     /* subtle top blend so it feels continuous with navbar */
-    border-top: 1px solid rgba(197, 165, 71, 0.18);
+    /*border-top: 1px solid rgba(197, 165, 71, 0.18);*/
 }
 
     /* Animated gold/teal shine sweep */

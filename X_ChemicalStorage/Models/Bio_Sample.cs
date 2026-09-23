@@ -77,5 +77,19 @@ namespace X_ChemicalStorage.Models
         public DateTime? UpdatedAt { get; set; }
 
         public ICollection<Bio_SampleMovement> Movements { get; set; } = new List<Bio_SampleMovement>();
+
+
+        // ===== NEW: QA / lab testing fields =====
+        public TestResult BacterialTestResult { get; set; } = TestResult.Pending;
+        public DateTime? BacterialTestDate { get; set; }
+
+        public TestResult IsolateTestResult { get; set; } = TestResult.Pending;
+        public DateTime? IsolateTestDate { get; set; }
+
+        [MaxLength(50)]
+        public string? SOPId { get; set; }
+
+        [MaxLength(1000)]
+        public string? AnalyticsResults { get; set; }
     }
 }

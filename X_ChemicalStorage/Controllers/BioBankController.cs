@@ -607,5 +607,24 @@ namespace X_ChemicalStorage.Controllers
             return Ok(slot);
         }
 
+        [HttpGet("api/sops")]
+        public async Task<IActionResult> GetSOPs()
+        {
+            var sops = await _sampleService.GetSOPsAsync();
+            return Ok(sops);
+        }
+
+        [HttpPost("api/sops")]
+        public async Task<IActionResult> CreateSOP([FromBody] CreateSOPDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _sampleService.CreateSOPAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
     }
 }

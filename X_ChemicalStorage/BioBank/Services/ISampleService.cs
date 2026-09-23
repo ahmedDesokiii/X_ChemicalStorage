@@ -35,5 +35,8 @@ namespace X_ChemicalStorage.BioBank.Services
         Task<Bio_SampleDto> UpdateAsync(UpdateSampleDto dto);
         Task<BoxLocationDto?> GetBoxLocationAsync(string boxId);
         Task<NextAvailableSlotDto?> FindNextAvailableSlotAsync(string? freezerId = null);
+
+        Task<List<Bio_SOPDto>> GetSOPsAsync();
+        Task<Bio_SOPDto> CreateSOPAsync(CreateSOPDto dto);
     }
 }
