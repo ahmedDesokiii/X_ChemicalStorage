@@ -181,6 +181,7 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public string BoxId { get; set; } = null!;
         public string Position { get; set; } = null!;
         public TubeStatus TubeStatus { get; set; }
+        public string? Barcode { get; set; }   // NEW
         public Bio_SampleDto? Sample { get; set; }
     }
 
@@ -259,6 +260,7 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public DateTime? IsolateTestDate { get; set; }
         [MaxLength(50)] public string? SOPId { get; set; }
         [MaxLength(1000)] public string? AnalyticsResults { get; set; }
+        [MaxLength(100)] public string? TubeBarcode { get; set; }   // NEW
     }
 
     /// <summary>Full ancestor chain of a box — lets the frontend rebuild currentPath
@@ -280,5 +282,18 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public string FreezerId { get; set; } = null!;
         public string BoxId { get; set; } = null!;
         public string Position { get; set; } = null!;
+    }
+
+    // Add near the other DTOs
+    public class Bio_SampleAttachmentDto
+    {
+        public string Id { get; set; } = null!;
+        public string SampleId { get; set; } = null!;
+        public AttachmentCategory Category { get; set; }
+        public string OriginalFileName { get; set; } = null!;
+        public long FileSizeBytes { get; set; }
+        public string ContentType { get; set; } = null!;
+        public DateTime UploadedAt { get; set; }
+        public string? UploadedBy { get; set; }
     }
 }

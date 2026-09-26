@@ -102,9 +102,21 @@ builder.Services.AddScoped<IServicesLot, ServicesLot>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();
+// جنب باقي الـ builder.Services.AddScoped<...>
+builder.Services.AddScoped<IBioAttachmentService, BioAttachmentService>();
+
+
 //builder.Services.AddScoped<LotCleanupJob>();
 
+
+
 #endregion
+// عشان الـ multipart form data يقبل لحد 100MB
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 105_000_000;
+});
+
 var app = builder.Build();
 app.UseSession();
 

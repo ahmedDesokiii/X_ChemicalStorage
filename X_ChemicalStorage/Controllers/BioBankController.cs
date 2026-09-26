@@ -10,11 +10,22 @@ namespace X_ChemicalStorage.Controllers
     {
         private readonly IBioBankService _bioBankService;
         private readonly ISampleService _sampleService;
-
-        public BioBankController(IBioBankService bioBankService, ISampleService sampleService)
+        private readonly IBioAttachmentService _attachmentService;
+        
+        public BioBankController(IBioBankService bioBankService, ISampleService sampleService, IBioAttachmentService attachmentService)
         {
             _bioBankService = bioBankService;
             _sampleService = sampleService;
+            _attachmentService = attachmentService;
+        }
+
+        // NEW — resolves the real logged-in user instead of trusting whatever the client sends.
+        // Falls back to whatever the client provided only if there's no authenticated identity.
+        private string ResolvePerformedBy(string? fallback)
+        {
+            var identityName = User?.Identity?.IsAuthenticated == true ? User.Identity!.Name : null;
+            if (!string.IsNullOrWhiteSpace(identityName)) return identityName;
+            return string.IsNullOrWhiteSpace(fallback) ? "Unknown user" : fallback;
         }
 
         // ==================== VIEW ====================
@@ -309,6 +320,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> StoreSample([FromBody] StoreSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.StoreAsync(dto);
@@ -322,6 +334,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> ReserveSample([FromBody] ReserveSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.ReserveAsync(dto);
@@ -335,6 +348,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> WithdrawSample([FromBody] WithdrawSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.WithdrawAsync(dto);
@@ -347,6 +361,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> TransferSample([FromBody] TransferSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.TransferAsync(dto);
@@ -359,6 +374,7 @@ namespace X_ChemicalStorage.Controllers
         [HttpDelete("api/boxes/{boxId}/tubes/{position}/reserve")]
         public async Task<IActionResult> CancelReserve(string boxId, string position, [FromQuery] string? performedBy = null)
         {
+            performedBy = ResolvePerformedBy(performedBy);
             var ok = await _sampleService.CancelReserveAsync(boxId, position, performedBy);
             if (!ok) return NotFound(new { message = "No active reservation found." });
             return NoContent();
@@ -525,6 +541,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> CheckOutSample([FromBody] CheckOutSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.CheckOutAsync(dto);
@@ -537,6 +554,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> CheckInSample([FromBody] CheckInSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.CheckInAsync(dto);
@@ -583,6 +601,7 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> UpdateSample([FromBody] UpdateSampleDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            dto.PerformedBy = ResolvePerformedBy(dto.PerformedBy);
             try
             {
                 var result = await _sampleService.UpdateAsync(dto);
@@ -624,6 +643,48 @@ namespace X_ChemicalStorage.Controllers
                 return Ok(result);
             }
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
+
+
+        // ==================== ATTACHMENTS (NEW) ====================
+
+        [HttpPost("api/samples/{sampleId}/attachments")]
+        [RequestSizeLimit(105_000_000)] // ~100MB + small buffer for multipart overhead
+        public async Task<IActionResult> UploadAttachment(string sampleId, [FromQuery] AttachmentCategory category, IFormFile file)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var performedBy = ResolvePerformedBy(null);
+                var result = await _attachmentService.UploadAsync(sampleId, category, file, performedBy);
+                return Ok(result);
+            }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+
+        [HttpGet("api/samples/{sampleId}/attachments")]
+        public async Task<IActionResult> GetAttachments(string sampleId, [FromQuery] AttachmentCategory? category = null)
+        {
+            var list = await _attachmentService.GetAttachmentsAsync(sampleId, category);
+            return Ok(list);
+        }
+
+        [HttpGet("api/attachments/{id}/download")]
+        public async Task<IActionResult> DownloadAttachment(string id)
+        {
+            var result = await _attachmentService.DownloadAsync(id);
+            if (result == null) return NotFound(new { message = "Attachment not found." });
+            return File(result.Stream, result.ContentType, result.FileName);
+        }
+
+        [HttpDelete("api/attachments/{id}")]
+        public async Task<IActionResult> DeleteAttachment(string id)
+        {
+            var deleted = await _attachmentService.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = "Attachment not found." });
+            return NoContent();
         }
 
     }

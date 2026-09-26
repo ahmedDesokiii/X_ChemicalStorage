@@ -22,7 +22,11 @@
         boxesByDrawer: (drawerId) => `/biobank/api/drawers/${drawerId}/boxes`,
         boxesByRack: (rackId) => `/biobank/api/racks/${rackId}/boxes`,
         boxDetails: (boxId) => `/biobank/api/boxes/${boxId}`,
-        search: (q) => `/biobank/api/search?q=${encodeURIComponent(q)}`
+        search: (q) => `/biobank/api/search?q=${encodeURIComponent(q)}`,
+
+        attachments: (sampleId, category) => `/biobank/api/samples/${encodeURIComponent(sampleId)}/attachments?category=${category}`,
+        attachmentDownload: (id) => `/biobank/api/attachments/${id}/download`,
+        attachmentDelete: (id) => `/biobank/api/attachments/${id}`
     };
 
     // ===================== STATE =====================
@@ -92,7 +96,7 @@
             el.value = "";
             el.placeholder = "SMP-2026-00001";
         }
-        populateSOPSelect("smSOP", null);
+        //populateSOPSelect("smSOP", null);
     }
 
     function bloodTypeLabel(v) {
@@ -679,12 +683,13 @@
 
                 const tubeId = tube ? tube.id : `${boxId}-${pos}`;
                 tubes += `<div class="bb-tube ${stateClass}"
-            data-hover="tube" data-action="open-modal"
-            data-tube-id="${tubeId}" data-pos="${pos}"
-            data-occupied="${isOccupied}" data-reserved="${isReserved}" data-checked-out="${isCheckedOut}"
-            data-sample-id="${tube?.sampleId || ""}"
-            data-sample-name="${tube?.sampleName || ""}"
-            title="${pos}"></div>`;
+                    data-hover="tube" data-action="open-modal"
+                    data-tube-id="${tubeId}" data-pos="${pos}"
+                    data-occupied="${isOccupied}" data-reserved="${isReserved}" data-checked-out="${isCheckedOut}"
+                    data-sample-id="${tube?.sampleId || ""}"
+                    data-sample-name="${tube?.sampleName || ""}"
+                    data-barcode="${tube?.barcode || ""}"
+                    title="${pos}"></div>`;
             }
         }
 
@@ -799,10 +804,11 @@
         const statusColor = isOccupied ? "var(--bb-accent)" : (isCheckedOut ? "#a78bfa" : (isReserved ? "var(--bb-warning)" : "var(--bb-success)"));
 
         $("ttContent").innerHTML = `
-            <div class="bb-tooltip-row"><span>Position</span><span>${el.dataset.pos}</span></div>
-            <div class="bb-tooltip-row"><span>Status</span><span style="color:${statusColor};font-weight:600">${status}</span></div>
-            ${el.dataset.sampleId ? `<div class="bb-tooltip-row"><span>Sample</span><span>${el.dataset.sampleId}</span></div>` : ""}
-            ${el.dataset.sampleName ? `<div class="bb-tooltip-row"><span>Name</span><span>${el.dataset.sampleName}</span></div>` : ""}`;
+        <div class="bb-tooltip-row"><span>Position</span><span>${el.dataset.pos}</span></div>
+        <div class="bb-tooltip-row"><span>Status</span><span style="color:${statusColor};font-weight:600">${status}</span></div>
+        ${el.dataset.barcode ? `<div class="bb-tooltip-row"><span>Barcode</span><span>${el.dataset.barcode}</span></div>` : ""}
+        ${el.dataset.sampleId ? `<div class="bb-tooltip-row"><span>Sample</span><span>${el.dataset.sampleId}</span></div>` : ""}
+        ${el.dataset.sampleName ? `<div class="bb-tooltip-row"><span>Name</span><span>${el.dataset.sampleName}</span></div>` : ""}`;
 
         tt.style.left = (event.clientX + 15) + "px";
         tt.style.top = (event.clientY + 15) + "px";
@@ -912,31 +918,49 @@
         const pathLine = `<div style="font-size:0.75rem;color:var(--bb-text-muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bb-border);">📍 ${buildLocationPath()}</div>`;
 
         if (isOccupied && sample) {
+            setModalWidth(true); // give the 75/25 split room to breathe
+
             body.innerHTML = `
         ${pathLine}
-        <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-accent)">Occupied</span></div>
-        <div class="bb-info-row"><span class="label">Sample ID</span><span class="value text-light">${sample.id}</span></div>
-        <div class="bb-info-row"><span class="label">Name</span><span class="value text-light">${sample.name}</span></div>
-        <div class="bb-info-row"><span class="label">Type</span><span class="value text-light">${sample.sampleType || "-"}</span></div>
-        <div class="bb-info-row"><span class="label">Blood Type</span><span class="value text-light">${bloodTypeLabel(sample.bloodType)}</span></div>
-        <div class="bb-info-row"><span class="label">Volume</span><span class="value text-light">${sample.remainingVolumeMl ?? sample.volumeMl ?? "-"}${sample.volumeMl ? " ml" : ""}</span></div>
-        <div class="bb-info-row"><span class="label">FASTA Code</span><span class="value text-light">${sample.fastaAccessCode || "-"}</span></div>
-        <div class="bb-info-row"><span class="label">Project</span><span class="value">${sample.projectCode || "-"}</span></div>
-        <div class="bb-info-row"><span class="label">Bacterial</span><span class="value" style="color:${testResultInfo(sample.bacterialTestResult).color}">${testResultInfo(sample.bacterialTestResult).label}</span></div>
-        <div class="bb-info-row"><span class="label">Isolate</span><span class="value" style="color:${testResultInfo(sample.isolateTestResult).color}">${testResultInfo(sample.isolateTestResult).label}</span></div>
-        <div class="bb-info-row"><span class="label">Freezer</span><span class="value">${sample.currentFreezerId || "-"}</span></div>
-        ${sample.notes ? `<p style="margin-top:10px;font-size:0.85rem;color:var(--bb-text-muted)">${sample.notes}</p>` : ""}
+        <div class="bb-occ-split">
+            <div class="bb-occ-info-col">
+                <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:var(--bb-accent)">Occupied</span></div>
+                <div class="bb-info-row"><span class="label">Sample ID</span><span class="value text-light">${sample.id}</span></div>
+                <div class="bb-info-row"><span class="label">Name</span><span class="value text-light">${sample.name}</span></div>
+                <div class="bb-info-row"><span class="label">Tube Barcode</span><span class="value text-light">${details.barcode || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">Sample Type</span><span class="value text-light">${sample.sampleType || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">Volume</span><span class="value text-light">${sample.remainingVolumeMl ?? sample.volumeMl ?? "-"}${sample.volumeMl ? " ml" : ""}</span></div>
+                <div class="bb-info-row"><span class="label">Owner / PI</span><span class="value text-light">${sample.patientRef || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">Project</span><span class="value text-light">${sample.projectCode || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">Collected By</span><span class="value text-light">${sample.collectedByEmployeeId || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">SOP</span><span class="value text-light">${sample.sopId || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">Analytics</span><span class="value text-light">${sample.analyticsResults || "-"}</span></div>
+                <div class="bb-info-row"><span class="label">Freezer</span><span class="value text-light">${sample.currentFreezerId || "-"}</span></div>
+                ${sample.notes ? `<p style="margin-top:10px;font-size:0.85rem;color:var(--bb-text-muted)">${sample.notes}</p>` : ""}
+            </div>
+            <div class="bb-occ-attach-col">
+                <div style="font-size:0.78rem;color:var(--bb-text-muted);font-weight:600;margin-bottom:6px;">FASTA Access Code</div>
+                <div id="occFastaList" class="bb-attachment-list"></div>
+                <div style="font-size:0.78rem;color:var(--bb-text-muted);font-weight:600;margin:14px 0 6px;">Sample Attachments</div>
+                <div id="occAttachmentsList" class="bb-attachment-list"></div>
+            </div>
+        </div>
     `;
             actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
+        <button class="bb-modal-btn" id="btnEditSample">Edit</button>
         <button class="bb-modal-btn" style="background:linear-gradient(135deg,#a78bfa,var(--bb-primary))" id="btnCheckOut">Check Out</button>
         <button class="bb-modal-btn" style="background:linear-gradient(135deg,#f59e0b,#ef4444)" id="btnWithdraw">Withdraw</button>
         <button class="bb-modal-btn" id="btnHistory">History</button>
     `;
             $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
+            $("btnEditSample").onclick = () => openSampleEditForm(sample);
             $("btnCheckOut").onclick = () => doCheckOut(sample.id);
             $("btnWithdraw").onclick = () => doWithdraw(sample.id);
             $("btnHistory").onclick = () => showHistory(sample.id);
+
+            loadAttachmentList(sample.id, "Fasta", "occFastaList", false);
+            loadAttachmentList(sample.id, "General", "occAttachmentsList", false);
         }
         else if (isCheckedOut && sample) {
             const isOverdue = sample.expectedReturnAt && parseUtcDate(sample.expectedReturnAt) < new Date();
@@ -981,50 +1005,34 @@
             // Available — blood sample intake form, widened (XL) + 4/4/3 column layout
             setModalWidth(true);
             body.innerHTML = `
-        ${pathLine}
-        <p style="margin-bottom:14px;color:var(--bb-text-muted)">Position is <strong style="color:var(--bb-success)">Available</strong>. Store a new blood sample:</p>
-
-        <!-- Replace everything between the <p>Position is Available…</p> line and the
-     closing #smError div with this: -->
+  ${pathLine}
+<p style="margin-bottom:14px;color:var(--bb-text-muted)">Position is <strong style="color:var(--bb-success)">Available</strong>. Store a new blood sample:</p>
 
 <div class="bb-form-grid-4">
     <div class="bb-form-row"><label>Sample ID</label><input id="smId" readonly value="Generating…" style="opacity:0.75;cursor:not-allowed;"></div>
     <div class="bb-form-row"><label>Sample Name *</label><input id="smName" required placeholder="Plasma Sample"></div>
     <div class="bb-form-row"><label>Tube Barcode</label><input id="tbBarcode" placeholder="Scan or enter barcode"></div>
-    <div class="bb-form-row"><label>FASTA Access Code</label><input id="smFasta" placeholder="Sequence tracking code"></div>
-</div>
-
-<div class="bb-form-grid-4">
     <div class="bb-form-row"><label>Volume (ml)</label><input id="smVolume" type="number" step="0.1" placeholder="e.g. 5"></div>
-    <div class="bb-form-row"><label>Owner / PI</label><input id="smOwner" placeholder="Owner name"></div>
-    <div class="bb-form-row"><label>Blood Type</label>
-        <select id="smBloodType">
-            <option value="0">Select</option>
-            <option value="1">A+</option><option value="2">A-</option>
-            <option value="3">B+</option><option value="4">B-</option>
-            <option value="5">AB+</option><option value="6">AB-</option>
-            <option value="7">O+</option><option value="8">O-</option>
-        </select>
-    </div>
-    <div class="bb-form-row"><label>Sample Type</label><input id="smType" placeholder="Plasma"></div>
 </div>
 
 <div class="bb-form-grid-4">
+    <div class="bb-form-row"><label>Sample Type</label><input id="smType" placeholder="Plasma"></div>
+    <div class="bb-form-row"><label>Owner / PI</label><input id="smOwner" placeholder="Owner name"></div>
     <div class="bb-form-row"><label>Project</label><input id="smProject" placeholder="PRJ-01"></div>
     <div class="bb-form-row"><label>Collected By</label><input id="smCollectedBy" placeholder="Employee name"></div>
-    <div class="bb-form-row"><label>SOP</label><select id="smSOP"><option value="">Loading…</option></select></div>
-    <div class="bb-form-row"><label>Analytics</label><input id="smAnalytics" placeholder="Lab analysis notes"></div>
 </div>
 
 <div class="bb-form-grid-4">
-    <div class="bb-form-row"><label>Bacterial Result</label><select id="smBacterialResult">${testResultOptionsHtml(0)}</select></div>
-    <div class="bb-form-row"><label>Bacterial Test Date</label><input id="smBacterialDate" type="date"></div>
-    <div class="bb-form-row"><label>Isolate Result</label><select id="smIsolateResult">${testResultOptionsHtml(0)}</select></div>
-    <div class="bb-form-row"><label>Isolate Test Date</label><input id="smIsolateDate" type="date"></div>
+    <div class="bb-form-row"><label>SOP</label><input id="smSOP" placeholder="SOP reference"></div>
+    <div class="bb-form-row"><label>Analytics</label><input id="smAnalytics" placeholder="Lab analysis notes"></div>
+    <div class="bb-form-row bb-span-2"><label>Sample Notes</label><input id="smNotes" placeholder="Optional"></div>
 </div>
 
 <div class="bb-form-grid">
-    <div class="bb-form-row"><label>Sample Notes</label><input id="smNotes" placeholder="Optional"></div>
+    <div class="bb-form-row">
+        <label>FASTA Access Code (.txt file)</label>
+        <input type="file" id="smFasta" accept=".txt">
+    </div>
     <div class="bb-form-row">
         <label>Sample Attachments</label>
         <input type="file" id="smAttachments" multiple>
@@ -1130,49 +1138,58 @@
         const hasTz = /Z$|[+-]\d{2}:\d{2}$/.test(dateStr);
         return new Date(hasTz ? dateStr : dateStr + "Z");
     }
-    function openSampleEditForm(sample) {
+
+
+    async function openSampleEditForm(sample) {
         setModalWidth(true);
         $("modalTitle").textContent = `Edit ${sample.id}`;
         const body = $("modalBody");
         const actions = $("modalActions");
 
-        body.innerHTML = `
-<!-- Replace the whole body.innerHTML template in openSampleEditForm() with: -->
+        body.innerHTML = `<div class="bb-loading"><div class="bb-spinner"></div></div>`;
+        actions.innerHTML = "";
+        $("bbModal").classList.add("show");
 
+        let tubeBarcode = "";
+        if (sample.currentBoxId && sample.currentPosition) {
+            try {
+                const details = await apiGet(`/biobank/api/boxes/${encodeURIComponent(sample.currentBoxId)}/tubes/${encodeURIComponent(sample.currentPosition)}`);
+                tubeBarcode = details.barcode || "";
+            } catch { /* ignore */ }
+        }
+
+        body.innerHTML = `
 <div class="bb-form-grid-4">
     <div class="bb-form-row"><label>Sample ID</label><input value="${sample.id}" readonly style="opacity:0.75;cursor:not-allowed;"></div>
     <div class="bb-form-row"><label>Sample Name *</label><input id="emName" value="${sample.name || ""}"></div>
-    <div class="bb-form-row"><label>FASTA Access Code</label><input id="emFasta" value="${sample.fastaAccessCode || ""}"></div>
+    <div class="bb-form-row"><label>Tube Barcode</label><input id="emBarcode" value="${tubeBarcode}" placeholder="Scan or enter barcode"></div>
     <div class="bb-form-row"><label>Volume (ml)</label><input id="emVolume" type="number" step="0.1" value="${sample.volumeMl ?? ""}"></div>
 </div>
 
 <div class="bb-form-grid-4">
-    <div class="bb-form-row"><label>Owner / PI</label><input id="emOwner" value="${sample.patientRef || ""}"></div>
-    <div class="bb-form-row"><label>Blood Type</label>
-        <select id="emBloodType">
-            <option value="0">Select</option>
-            <option value="1">A+</option><option value="2">A-</option>
-            <option value="3">B+</option><option value="4">B-</option>
-            <option value="5">AB+</option><option value="6">AB-</option>
-            <option value="7">O+</option><option value="8">O-</option>
-        </select>
-    </div>
     <div class="bb-form-row"><label>Sample Type</label><input id="emType" value="${sample.sampleType || ""}"></div>
+    <div class="bb-form-row"><label>Owner / PI</label><input id="emOwner" value="${sample.patientRef || ""}"></div>
     <div class="bb-form-row"><label>Project</label><input id="emProject" value="${sample.projectCode || ""}"></div>
-</div>
-
-<div class="bb-form-grid-4">
     <div class="bb-form-row"><label>Collected By</label><input id="emCollectedBy" value="${sample.collectedByEmployeeId || ""}"></div>
-    <div class="bb-form-row"><label>SOP</label><select id="emSOP"><option value="">Loading…</option></select></div>
-    <div class="bb-form-row"><label>Analytics</label><input id="emAnalytics" value="${sample.analyticsResults || ""}"></div>
-    <div class="bb-form-row"><label>Sample Notes</label><input id="emNotes" value="${sample.notes || ""}"></div>
 </div>
 
 <div class="bb-form-grid-4">
-    <div class="bb-form-row"><label>Bacterial Result</label><select id="emBacterialResult">${testResultOptionsHtml(sample.bacterialTestResult)}</select></div>
-    <div class="bb-form-row"><label>Bacterial Test Date</label><input id="emBacterialDate" type="date" value="${sample.bacterialTestDate ? sample.bacterialTestDate.substring(0, 10) : ""}"></div>
-    <div class="bb-form-row"><label>Isolate Result</label><select id="emIsolateResult">${testResultOptionsHtml(sample.isolateTestResult)}</select></div>
-    <div class="bb-form-row"><label>Isolate Test Date</label><input id="emIsolateDate" type="date" value="${sample.isolateTestDate ? sample.isolateTestDate.substring(0, 10) : ""}"></div>
+    <div class="bb-form-row"><label>SOP</label><input id="emSOP" value="${sample.sopId || ""}" placeholder="SOP reference"></div>
+    <div class="bb-form-row"><label>Analytics</label><input id="emAnalytics" value="${sample.analyticsResults || ""}"></div>
+    <div class="bb-form-row bb-span-2"><label>Sample Notes</label><input id="emNotes" value="${sample.notes || ""}"></div>
+</div>
+
+<div class="bb-form-grid">
+    <div class="bb-form-row">
+        <label>FASTA Access Code (.txt file)</label>
+        <input type="file" id="emFastaInput" accept=".txt">
+        <div id="emFastaList" class="bb-attachment-list"></div>
+    </div>
+    <div class="bb-form-row">
+        <label>Sample Attachments</label>
+        <input type="file" id="emAttachmentsInput" multiple>
+        <div id="emAttachmentsList" class="bb-attachment-list"></div>
+    </div>
 </div>
 
 <div id="emError" class="bb-form-error" style="display:none;"></div>
@@ -1183,12 +1200,31 @@
     `;
         $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
         $("btnSaveEdit").onclick = () => doUpdateSample(sample.id);
-        $("bbModal").classList.add("show");
 
-        const bt = $("emBloodType");
-        if (bt) bt.value = String(sample.bloodType ?? 0);
+        // Attachments upload/delete immediately — independent of "Save Changes"
+        $("emFastaInput").onchange = async function () {
+            const file = this.files[0];
+            if (!file) return;
+            try {
+                await uploadAttachment(sample.id, "Fasta", file);
+                this.value = "";
+                await loadAttachmentList(sample.id, "Fasta", "emFastaList", true);
+            } catch (e) {
+                Swal.fire({ icon: "error", title: "Upload failed", text: e.message, ...BB_SWAL_THEME });
+            }
+        };
+        $("emAttachmentsInput").onchange = async function () {
+            const files = Array.from(this.files || []);
+            this.value = "";
+            for (const f of files) {
+                try { await uploadAttachment(sample.id, "General", f); }
+                catch (e) { Swal.fire({ icon: "error", title: `Upload failed: ${f.name}`, text: e.message, ...BB_SWAL_THEME }); }
+            }
+            await loadAttachmentList(sample.id, "General", "emAttachmentsList", true);
+        };
 
-        populateSOPSelect("emSOP", sample.sopId);
+        await loadAttachmentList(sample.id, "Fasta", "emFastaList", true);
+        await loadAttachmentList(sample.id, "General", "emAttachmentsList", true);
     }
 
     async function doUpdateSample(sampleId) {
@@ -1198,22 +1234,16 @@
         const payload = {
             sampleId,
             name: $("emName").value.trim(),
-            fastaAccessCode: $("emFasta").value.trim() || null,
             volumeMl: $("emVolume").value ? parseFloat($("emVolume").value) : null,
             patientRef: $("emOwner").value.trim() || null,
-            bloodType: parseInt($("emBloodType").value, 10),
             sampleType: $("emType").value.trim() || null,
             projectCode: $("emProject").value.trim() || null,
             collectedByEmployeeId: $("emCollectedBy").value.trim() || null,
-            // Add to the payload object in doUpdateSample()
-            bacterialTestResult: parseInt($("emBacterialResult").value, 10),
-            bacterialTestDate: $("emBacterialDate").value || null,
-            isolateTestResult: parseInt($("emIsolateResult").value, 10),
-            isolateTestDate: $("emIsolateDate").value || null,
-            sopId: $("emSOP").value || null,
+            sopId: $("emSOP").value.trim() || null,
             analyticsResults: $("emAnalytics").value.trim() || null,
             notes: $("emNotes").value.trim() || null,
-            performedBy: "web-user"
+            tubeBarcode: $("emBarcode").value.trim() || null,
+            performedBy: null
         };
 
         if (!payload.name) {
@@ -1232,10 +1262,23 @@
         }
     }
 
-    // NEW
+
+    function readTextFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(file);
+        });
+    }
+
     async function doStore() {
         const err = $("smError");
         err.style.display = "none";
+
+        const fastaFile = $("smFasta")?.files?.[0] || null;
+        const generalFiles = Array.from($("smAttachments")?.files || []);
+
         const payload = {
             sampleId: $("smId").value.trim(),
             name: $("smName").value.trim(),
@@ -1243,32 +1286,35 @@
             patientRef: $("smOwner").value.trim() || null,
             projectCode: $("smProject").value.trim() || null,
             notes: $("smNotes").value.trim() || null,
-            bloodType: parseInt($("smBloodType").value, 10) || 0,
-            fastaAccessCode: $("smFasta").value.trim() || null,
             volumeMl: $("smVolume").value ? parseFloat($("smVolume").value) : null,
             collectedByEmployeeId: $("smCollectedBy").value.trim() || null,
             tubeBarcode: $("tbBarcode").value.trim() || null,
             boxId: currentTubeContext.boxId,
-            // Add to the payload object in doStore()
-            bacterialTestResult: parseInt($("smBacterialResult").value, 10),
-            bacterialTestDate: $("smBacterialDate").value || null,
-            isolateTestResult: parseInt($("smIsolateResult").value, 10),
-            isolateTestDate: $("smIsolateDate").value || null,
-            sopId: $("smSOP").value || null,
+            sopId: $("smSOP").value.trim() || null,
             analyticsResults: $("smAnalytics").value.trim() || null,
             position: currentTubeContext.position,
-            performedBy: "web-user"
-
+            performedBy: null
         };
+
         if (!payload.sampleId || !payload.name) {
             err.textContent = "Sample ID and Name are required.";
             err.style.display = "block";
             return;
         }
+
         try {
-            await apiPost("/biobank/api/samples/store", payload);
+            const stored = await apiPost("/biobank/api/samples/store", payload);
+
+            if (fastaFile) {
+                try { await uploadAttachment(stored.id, "Fasta", fastaFile); }
+                catch (e) { console.warn("FASTA upload failed:", e.message); }
+            }
+            for (const f of generalFiles) {
+                try { await uploadAttachment(stored.id, "General", f); }
+                catch (e) { console.warn(`Attachment upload failed (${f.name}):`, e.message); }
+            }
+
             $("bbModal").classList.remove("show");
-            // refresh box view
             if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
         } catch (e) {
             err.textContent = e.message;
@@ -1318,7 +1364,7 @@
                 boxId: currentTubeContext.boxId,
                 position: currentTubeContext.position,
                 sampleName: $("smName")?.value || "Reserved",
-                performedBy: "web-user"
+                performedBy: null
             });
             $("bbModal").classList.remove("show");
             if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
@@ -1363,7 +1409,7 @@
             await apiPost("/biobank/api/samples/withdraw", {
                 sampleId,
                 reason,
-                performedBy: "web-user"
+                performedBy: null
             });
             $("bbModal").classList.remove("show");
             if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
@@ -1412,7 +1458,7 @@
                 sampleId,
                 reason: formValues.reason,
                 expectedReturnAt,
-                performedBy: "web-user"
+                performedBy: null
             });
             $("bbModal").classList.remove("show");
             if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
@@ -1455,7 +1501,7 @@
                 sampleId,
                 remainingVolumeMl: consumed ? null : parseFloat(remaining),
                 consumed,
-                performedBy: "web-user"
+                performedBy: null
             });
             $("bbModal").classList.remove("show");
             if (currentPath[4]?.boxId) await navigateTo("box", currentPath[4]);
@@ -1522,6 +1568,77 @@
     function closeModal(e) {
         if (!e || e.target.id === "bbModal" || e.target.id === "bbModalCloseBtn") {
             $("bbModal").classList.remove("show");
+        }
+    }
+
+
+    function formatFileSize(bytes) {
+        if (bytes == null) return "-";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    async function uploadAttachment(sampleId, category, file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch(API.attachments(sampleId, category), {
+            method: "POST",
+            body: formData
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || `Upload failed (${res.status})`);
+        }
+        return res.json();
+    }
+
+    async function loadAttachmentList(sampleId, category, containerId, allowDelete) {
+        const container = $(containerId);
+        if (!container) return;
+        container.innerHTML = `<div style="font-size:0.75rem;color:var(--bb-text-muted);">Loading…</div>`;
+        try {
+            const list = await apiGet(API.attachments(sampleId, category));
+            if (!list.length) {
+                container.innerHTML = `<div style="font-size:0.75rem;color:var(--bb-text-muted);">No files uploaded.</div>`;
+                return;
+            }
+            container.innerHTML = list.map(a => `
+            <div class="bb-attachment-item">
+                <div class="bb-attachment-name" title="${a.originalFileName}">${a.originalFileName}</div>
+                <div class="bb-attachment-meta">${formatFileSize(a.fileSizeBytes)} · ${new Date(a.uploadedAt).toLocaleDateString()}</div>
+                <div class="bb-attachment-actions">
+                    <a href="${API.attachmentDownload(a.id)}" class="bb-attachment-btn" title="Download">⬇</a>
+                    ${allowDelete ? `<button type="button" class="bb-attachment-btn bb-attachment-btn-danger" data-delete-attachment="${a.id}" title="Delete">✕</button>` : ""}
+                </div>
+            </div>
+        `).join("");
+
+            if (allowDelete) {
+                container.querySelectorAll("[data-delete-attachment]").forEach(btn => {
+                    btn.onclick = async () => {
+                        const id = btn.dataset.deleteAttachment;
+                        const confirmResult = await Swal.fire({
+                            title: "Delete this file?",
+                            text: "This cannot be undone.",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Delete",
+                            ...BB_SWAL_THEME
+                        });
+                        if (!confirmResult.isConfirmed) return;
+                        try {
+                            const res = await fetch(API.attachmentDelete(id), { method: "DELETE" });
+                            if (!res.ok) throw new Error("Delete failed");
+                            await loadAttachmentList(sampleId, category, containerId, allowDelete);
+                        } catch (e) {
+                            Swal.fire({ icon: "error", title: "Delete failed", text: e.message, ...BB_SWAL_THEME });
+                        }
+                    };
+                });
+            }
+        } catch (e) {
+            container.innerHTML = `<div style="font-size:0.75rem;color:#fca5a5;">Couldn't load files.</div>`;
         }
     }
 

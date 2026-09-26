@@ -227,6 +227,20 @@ namespace X_ChemicalStorage.Data
                     .HasForeignKey(x => x.SampleId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+            // ===== Bio_SampleAttachment (NEW) =====
+            builder.Entity<Bio_SampleAttachment>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Category).HasConversion<string>();
+                e.HasIndex(x => x.SampleId);
+                e.HasIndex(x => new { x.SampleId, x.Category });
+
+                // Shadow FK to Bio_Sample — no navigation property needed on Bio_Sample itself.
+                e.HasOne<Bio_Sample>()
+                    .WithMany()
+                    .HasForeignKey(x => x.SampleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
         }
         public DbSet<Room> Rooms { get; set; }
@@ -259,6 +273,7 @@ namespace X_ChemicalStorage.Data
 
         public DbSet<Bio_Sample> Bio_Samples => Set<Bio_Sample>();
         public DbSet<Bio_SampleMovement> Bio_SampleMovements => Set<Bio_SampleMovement>();
+        public DbSet<Bio_SampleAttachment> Bio_SampleAttachments => Set<Bio_SampleAttachment>();   // NEW
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -535,6 +535,53 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("Bio_Samples");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SampleAttachment", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RelativePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SampleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UploadedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SampleId");
+
+                    b.HasIndex("SampleId", "Category");
+
+                    b.ToTable("Bio_SampleAttachments");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SampleMovement", b =>
                 {
                     b.Property<long>("Id")
@@ -1354,6 +1401,15 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Bio_Freezer");
 
                     b.Navigation("Bio_Shelf");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SampleAttachment", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Sample", null)
+                        .WithMany()
+                        .HasForeignKey("SampleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_SampleMovement", b =>

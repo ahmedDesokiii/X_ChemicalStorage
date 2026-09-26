@@ -125,7 +125,9 @@ namespace X_ChemicalStorage.BioBank.Services
                     ToTubeId = tube.Id,
                     ToBoxId = dto.BoxId,
                     ToPosition = position,
-                    Reason = "Stored in cryobox",
+                    Reason = string.IsNullOrEmpty(freezerId)
+                        ? "Stored in cryobox"
+                        : $"Stored in cryobox — Freezer {freezerId}",
                     PerformedBy = dto.PerformedBy,
                     PerformedAt = DateTime.UtcNow
                 });
@@ -374,7 +376,9 @@ namespace X_ChemicalStorage.BioBank.Services
                     ToTubeId = toTube.Id,
                     ToBoxId = dto.ToBoxId,
                     ToPosition = toPosition,
-                    Reason = dto.Reason ?? "Transferred",
+                    Reason = !string.IsNullOrWhiteSpace(dto.Reason)
+                    ? dto.Reason
+                    : (string.IsNullOrEmpty(freezerId) ? "Transferred" : $"Transferred to Freezer {freezerId}"),
                     PerformedBy = dto.PerformedBy,
                     PerformedAt = DateTime.UtcNow
                 });
@@ -616,6 +620,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     BoxId = boxId,
                     Position = position,
                     TubeStatus = TubeStatus.Available,
+                    Barcode = null,
                     Sample = null
                 };
             }
@@ -634,6 +639,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 BoxId = boxId,
                 Position = position,
                 TubeStatus = tube.Status,
+                Barcode = tube.Barcode,
                 Sample = sampleDto
             };
         }
@@ -800,11 +806,18 @@ namespace X_ChemicalStorage.BioBank.Services
                 sample.SOPId = dto.SOPId ?? sample.SOPId;
                 sample.AnalyticsResults = dto.AnalyticsResults ?? sample.AnalyticsResults;
 
-                // Keep the tube's denormalized SampleName in sync if the name changed
-                if (!string.IsNullOrEmpty(sample.CurrentTubeId) && !string.IsNullOrWhiteSpace(dto.Name))
+                // Keep the tube's denormalized SampleName / Barcode in sync
+                if (!string.IsNullOrEmpty(sample.CurrentTubeId))
                 {
                     var tube = await _db.Bio_Tubes.FirstOrDefaultAsync(t => t.Id == sample.CurrentTubeId);
-                    if (tube != null) tube.SampleName = sample.Name;
+                    if (tube != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(dto.Name))
+                            tube.SampleName = sample.Name;
+
+                        if (!string.IsNullOrWhiteSpace(dto.TubeBarcode))
+                            tube.Barcode = dto.TubeBarcode.Trim();
+                    }
                 }
 
                 _db.Bio_SampleMovements.Add(new Bio_SampleMovement
