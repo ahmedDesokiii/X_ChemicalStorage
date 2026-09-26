@@ -2226,3 +2226,32 @@
         padding-top: 16px;
     }
 }
+/* ---- Modal explicit close (X) button ---- */
+.bb-modal {
+    position: relative;
+}
+
+.bb-modal-x-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--bb-border);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--bb-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+    .bb-modal-x-close:hover {
+        border-color: var(--bb-danger);
+        color: var(--bb-danger);
+        background: rgba(239, 68, 68, 0.1);
+    }

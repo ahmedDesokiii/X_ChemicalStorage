@@ -96,7 +96,8 @@
 <!-- Modals outside widget (avoid overflow:hidden clipping) -->
 <!-- Modal -->
 <div class="bb-modal-overlay" id="bbModal" dir="ltr">
-    <div class=".bb-modal.bb-modal-xl" >
+    <div class="bb-modal">
+        <button type="button" class="bb-modal-x-close" id="bbModalCloseBtn" aria-label="Close">✕</button>
         <div class="bb-modal-icon" id="modalIcon">🧪</div>
         <h3 id="modalTitle">Sample Details</h3>
         <div id="modalBody" dir="ltr"></div>
@@ -230,6 +231,5 @@
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="~/js/biobank.js" asp-append-version="true"></script>
     <script src="~/js/biobank.js" asp-append-version="true"></script>
 }

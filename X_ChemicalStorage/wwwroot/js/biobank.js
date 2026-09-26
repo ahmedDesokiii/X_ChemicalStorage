@@ -52,18 +52,25 @@
     }
 
     // NEW (walks up from an element we KNOW exists, instead of guessing nesting)
-    function setModalWidth(isWide) {
+    function setModalWidth(size) {
+        // size: falsy = default (620px), true/"wide" = 960px (Store/Edit/History), "xl" = larger (Sample Search)
         const modalBody = $("modalBody");
         const modalBox = modalBody ? modalBody.closest(".bb-modal") : null;
         if (!modalBox) return;
 
-        if (isWide) {
-            modalBox.style.maxWidth = window.innerWidth <= 900 ? "92%" : "960px";
+        let value;
+        if (size === "xl") {
+            value = window.innerWidth <= 900 ? "96%" : "1200px";
+        } else if (size) {
+            value = window.innerWidth <= 900 ? "92%" : "960px";
         } else {
-            modalBox.style.maxWidth = "620px"; // back to the original inline value
+            value = "620px";
         }
-    }
 
+        // setProperty with "important" guarantees this wins over any CSS class
+        // (e.g. .bb-modal's own max-width:420px) regardless of specificity order.
+        modalBox.style.setProperty("max-width", value, "important");
+    }
     // "FZ80-01 › S01 › R02 › D03 › BX01 › A05" — mirrors the logic already used
     // in updateBreadcrumb(), just as plain text instead of clickable crumbs.
     function buildLocationPath() {
@@ -967,12 +974,18 @@
             body.innerHTML = `
         ${pathLine}
         <div class="bb-info-row"><span class="label">Status</span><span class="value" style="color:#a78bfa">Checked Out</span></div>
-        <div class="bb-info-row"><span class="label">Sample ID</span><span class="value">${sample.id}</span></div>
-        <div class="bb-info-row"><span class="label">Name</span><span class="value">${sample.name}</span></div>
-        <div class="bb-info-row"><span class="label">Reason</span><span class="value">${sample.checkOutReason || "-"}</span></div>
-        <div class="bb-info-row"><span class="label">Checked Out At</span><span class="value">${sample.checkedOutAt ? parseUtcDate(sample.checkedOutAt).toLocaleString() : "-"}</span></div>
-<div class="bb-info-row"><span class="label">Expected Back</span><span class="value" style="${isOverdue ? "color:var(--bb-danger);font-weight:700" : ""}">${sample.expectedReturnAt ? parseUtcDate(sample.expectedReturnAt).toLocaleDateString() : "-"}${isOverdue ? " ⚠ Overdue" : ""}</span></div>
-<div class="bb-info-row"><span class="label">Expected Back</span><span class="value" style="${isOverdue ? "color:var(--bb-danger);font-weight:700" : ""}">${sample.expectedReturnAt ? new Date(sample.expectedReturnAt).toLocaleDateString() : "-"}${isOverdue ? " ⚠ Overdue" : ""}</span></div>
+        <div class="bb-info-row"><span class="label">Sample ID</span><span class="value text-light">${sample.id}</span></div>
+        <div class="bb-info-row"><span class="label">Name</span><span class="value text-light">${sample.name}</span></div>
+        <div class="bb-info-row"><span class="label">Tube Barcode</span><span class="value text-light">${details.barcode || "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Sample Type</span><span class="value text-light">${sample.sampleType || "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Volume</span><span class="value text-light">${sample.remainingVolumeMl ?? sample.volumeMl ?? "-"}${sample.volumeMl ? " ml" : ""}</span></div>
+        <div class="bb-info-row"><span class="label">Owner / PI</span><span class="value text-light">${sample.patientRef || "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Project</span><span class="value text-light">${sample.projectCode || "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Collected By</span><span class="value text-light">${sample.collectedByEmployeeId || "-"}</span></div>
+        
+        <div class="bb-info-row"><span class="label">Reason</span><span class="value text-light">${sample.checkOutReason || "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Checked Out At</span><span class="value text-light">${sample.checkedOutAt ? parseUtcDate(sample.checkedOutAt).toLocaleString() : "-"}</span></div>
+        <div class="bb-info-row"><span class="label">Expected Back</span><span class="value text-light" style="${isOverdue ? "color:var(--bb-danger);font-weight:700" : ""}">${sample.expectedReturnAt ? parseUtcDate(sample.expectedReturnAt).toLocaleDateString() : "-"}${isOverdue ? " ⚠ Overdue" : ""}</span></div>
         <p style="margin-top:12px;font-size:0.85rem;color:var(--bb-text-muted)">This slot stays locked for this sample until it's checked back in.</p>
     `;
             actions.innerHTML = `
@@ -984,6 +997,7 @@
             $("btnCheckIn").onclick = () => doCheckIn(sample.id);
             $("btnHistory").onclick = () => showHistory(sample.id);
         }
+
         else if (isReserved) {
             body.innerHTML = `
         ${pathLine}
@@ -1062,7 +1076,6 @@
         const body = $("modalBody");
         const actions = $("modalActions");
 
-        // NEW
         body.innerHTML = `
     <div class="bb-form-row">
         <input id="sampleSearchInput" class="bb-search-input-xl" placeholder="Search by Sample ID, Name, Owner, Project, FASTA code, or Tube Barcode…" autofocus>
@@ -1075,7 +1088,11 @@
         $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
         $("bbModal").classList.add("show");
 
-        setModalWidth(true);
+        setModalWidth("xl");
+
+        // Focus after the modal's open transition so the input is actually interactive.
+        setTimeout(() => $("sampleSearchInput")?.focus(), 60);
+
         let searchDebounce = null;
         $("sampleSearchInput").addEventListener("input", function () {
             clearTimeout(searchDebounce);
