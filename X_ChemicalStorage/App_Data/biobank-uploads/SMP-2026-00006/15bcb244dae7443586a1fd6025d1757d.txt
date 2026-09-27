@@ -2076,7 +2076,7 @@ navbar-toggler-icon {
 
 /* ===== Page Hero ===== */
 .lot-hero {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 50%, var(--primary-light) 100%);
+     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 50%, var(--primary-light) 100%);
     padding: 30px;
     border-radius: 0 0 var(--radius-lg) 0;
     margin-bottom: 24px;
