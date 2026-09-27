@@ -10,12 +10,15 @@ namespace X_ChemicalStorage.Controllers
     {
         private readonly IBioBankService _bioBankService;
         private readonly ISampleService _sampleService;
+        private readonly IFreezerIoTService _ioTService;
         private readonly IBioAttachmentService _attachmentService;
         
-        public BioBankController(IBioBankService bioBankService, ISampleService sampleService, IBioAttachmentService attachmentService)
+
+        public BioBankController(IBioBankService bioBankService, ISampleService sampleService, IFreezerIoTService ioTService, IBioAttachmentService attachmentService)
         {
             _bioBankService = bioBankService;
             _sampleService = sampleService;
+            _ioTService = ioTService;
             _attachmentService = attachmentService;
         }
 
@@ -685,6 +688,124 @@ namespace X_ChemicalStorage.Controllers
             var deleted = await _attachmentService.DeleteAsync(id);
             if (!deleted) return NotFound(new { message = "Attachment not found." });
             return NoContent();
+        }
+
+
+        // ==================== IoT ====================
+
+        [HttpPost("api/iot/ingest")]
+        public async Task<IActionResult> IngestReading([FromBody] IngestReadingDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            await _ioTService.ProcessIncomingReadingAsync(dto);
+            return Ok(new { message = "Reading processed" });
+        }
+
+        [HttpPost("api/iot/link")]
+        public async Task<IActionResult> LinkDevice([FromBody] LinkIoTDeviceDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _ioTService.LinkDeviceAsync(dto);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("api/freezers/{id}/readings")]
+        public async Task<IActionResult> GetReadings(string id, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
+            var fromDate = from ?? DateTime.UtcNow.AddDays(-7);
+            var toDate = to ?? DateTime.UtcNow;
+            var list = await _ioTService.GetHistoricalAsync(id, fromDate, toDate);
+            return Ok(list);
+        }
+
+        [HttpGet("api/freezers/{id}/alarms")]
+        public async Task<IActionResult> GetAlarms(string id)
+        {
+            var list = await _ioTService.GetActiveAlarmsAsync(id);
+            return Ok(list);
+        }
+
+        [HttpPost("api/alarms/{id}/acknowledge")]
+        public async Task<IActionResult> AcknowledgeAlarm(long id)
+        {
+            var user = ResolvePerformedBy(null);
+            try
+            {
+                await _ioTService.AcknowledgeAlarmAsync(id, user);
+                return Ok(new { message = "Acknowledged" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+
+
+        //////////// Test 
+        ///
+        /// <summary>
+        /// تجربة سريعة من البراوزر — امسح بعد الاختبار
+        /// مثال: /biobank/api/iot/test-ingest?collector=GF5022315032881&temp=-65
+        /// </summary>
+
+        [HttpGet("api/iot/test-ingest")]
+        public async Task<IActionResult> TestIngest(
+            [FromQuery] string collector = "GF5022315032881",
+            [FromQuery] decimal temp = -78.5m,
+            [FromQuery] bool online = true)
+        {
+            await _ioTService.ProcessIncomingReadingAsync(new IngestReadingDto
+            {
+                CollectorCode = collector,
+                Temperature = temp,
+                IsOnline = online,
+                DoorStatus = "Closed",
+                PowerStatus = "OK"
+            });
+
+            return Ok(new
+            {
+                message = "Reading ingested successfully",
+                collector,
+                temperature = temp,
+                isOnline = online
+            });
+        }
+
+
+        /// <summary>
+        /// ربط سريع من البراوزر — امسحه بعد الاختبار
+        /// مثال: /biobank/api/iot/test-link?freezerId=FZ80-01&collector=GF5022315032881&serial=GF50222308030161
+        /// </summary>
+        [HttpGet("api/iot/test-link")]
+        public async Task<IActionResult> TestLink(
+            [FromQuery] string freezerId = "FZ80-01",
+            [FromQuery] string collector = "GF5022315032881",
+            [FromQuery] string serial = "GF50222308030161")
+        {
+            try
+            {
+                var result = await _ioTService.LinkDeviceAsync(new LinkIoTDeviceDto
+                {
+                    FreezerId = freezerId,
+                    CollectorCode = collector,
+                    GatewaySerial = serial,
+                    DeviceName = "Test Gateway"
+                });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
     }

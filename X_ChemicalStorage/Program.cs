@@ -1,4 +1,5 @@
-﻿using X_ChemicalStorage.BioBank.Services;
+﻿using X_ChemicalStorage.BioBank.Options;
+using X_ChemicalStorage.BioBank.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,7 +105,7 @@ builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();
 // جنب باقي الـ builder.Services.AddScoped<...>
 builder.Services.AddScoped<IBioAttachmentService, BioAttachmentService>();
-
+builder.Services.AddScoped<IFreezerIoTService, FreezerIoTService>();
 
 //builder.Services.AddScoped<LotCleanupJob>();
 
@@ -116,6 +117,13 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 {
     options.MultipartBodyLengthLimit = 105_000_000;
 });
+
+// إعدادات MQTT
+builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection(MqttOptions.SectionName));
+
+// الـ Background Service
+builder.Services.AddHostedService<FreezerMqttBackgroundService>();
+
 
 var app = builder.Build();
 app.UseSession();

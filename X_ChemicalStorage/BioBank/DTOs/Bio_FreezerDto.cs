@@ -36,6 +36,13 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public long OccupiedCount { get; set; }
         public long AvailableCount { get; set; }
         public int OccupancyPercent { get; set; }
+
+        // أضف داخل Bio_FreezerDto
+        public decimal? CurrentTemperature { get; set; }
+        public DateTime? LastReadingAt { get; set; }
+        public bool HasActiveAlarm { get; set; }
+        public string? IoTCollectorCode { get; set; }
+        public string? IoTGatewaySerial { get; set; }
     }
 
     public class Bio_ShelfDto
@@ -180,5 +187,66 @@ namespace X_ChemicalStorage.BioBank.DTOs
         [MaxLength(200)]
         public string? SampleName { get; set; }
     }
+
+        public class Bio_IoTDeviceDto
+        {
+            public int Id { get; set; }
+            public string FreezerId { get; set; } = null!;
+            public string GatewaySerial { get; set; } = null!;
+            public string CollectorCode { get; set; } = null!;
+            public string? DeviceName { get; set; }
+            public bool IsActive { get; set; }
+        }
+
+        public class Bio_FreezerReadingDto
+        {
+            public long Id { get; set; }
+            public string FreezerId { get; set; } = null!;
+            public decimal Temperature { get; set; }
+            public string? DoorStatus { get; set; }
+            public string? PowerStatus { get; set; }
+            public bool IsOnline { get; set; }
+            public DateTime Timestamp { get; set; }
+        }
+
+        public class Bio_FreezerAlarmDto
+        {
+            public long Id { get; set; }
+            public string FreezerId { get; set; } = null!;
+            public string AlarmType { get; set; } = null!;
+            public int Level { get; set; }
+            public string Message { get; set; } = null!;
+            public DateTime TriggeredAt { get; set; }
+            public DateTime? AcknowledgedAt { get; set; }
+            public string? AcknowledgedBy { get; set; }
+            public bool IsCleared { get; set; }
+        }
+
+        public class LinkIoTDeviceDto
+        {
+            [Required, MaxLength(50)]
+            public string FreezerId { get; set; } = null!;
+
+            [Required, MaxLength(100)]
+            public string GatewaySerial { get; set; } = null!;
+
+            [Required, MaxLength(100)]
+            public string CollectorCode { get; set; } = null!;
+
+            [MaxLength(150)]
+            public string? DeviceName { get; set; }
+        }
+
+        public class IngestReadingDto
+        {
+            [Required, MaxLength(100)]
+            public string CollectorCode { get; set; } = null!;
+
+            public decimal Temperature { get; set; }
+            public bool IsOnline { get; set; } = true;
+            public string? DoorStatus { get; set; }
+            public string? PowerStatus { get; set; }
+            public string? RawPayload { get; set; }
+        }
 
 }

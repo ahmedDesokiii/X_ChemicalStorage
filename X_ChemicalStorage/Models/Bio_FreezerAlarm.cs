@@ -1,0 +1,34 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace X_ChemicalStorage.Models
+{
+    public class Bio_FreezerAlarm
+    {
+        [Key]
+        public long Id { get; set; }
+
+        [Required, MaxLength(50)]
+        public string FreezerId { get; set; } = null!;
+
+        [Required, MaxLength(50)]
+        public string AlarmType { get; set; } = null!;   // HighTemp, DoorOpen, PowerLoss, Offline...
+
+        public int Level { get; set; } = 1;               // 1 or 2
+
+        [Required, MaxLength(500)]
+        public string Message { get; set; } = null!;
+
+        public DateTime TriggeredAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? AcknowledgedAt { get; set; }
+
+        [MaxLength(100)]
+        public string? AcknowledgedBy { get; set; }
+
+        public bool IsCleared { get; set; }
+
+        [ForeignKey(nameof(FreezerId))]
+        public Bio_Freezer Freezer { get; set; } = null!;
+    }
+}

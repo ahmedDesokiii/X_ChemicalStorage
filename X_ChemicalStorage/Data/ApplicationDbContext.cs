@@ -279,6 +279,10 @@ namespace X_ChemicalStorage.Data
         {
             base.OnConfiguring(optionsBuilder);
         }
-        
+
+        public DbSet<Bio_IoTDevice> Bio_IoTDevices { get; set; }
+        public DbSet<Bio_FreezerReading> Bio_FreezerReadings { get; set; }
+        public DbSet<Bio_FreezerAlarm> Bio_FreezerAlarms { get; set; }
+
     }
 }

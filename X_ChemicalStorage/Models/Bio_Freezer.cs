@@ -30,6 +30,11 @@ namespace X_ChemicalStorage.Models
         // ===== Navigation Properties =====
         public ICollection<Bio_Shelf> Bio_Shelves { get; set; } = new List<Bio_Shelf>();
         public ICollection<Bio_Rack> Bio_Racks { get; set; } = new List<Bio_Rack>();
+
+
+        public decimal? CurrentTemperature { get; set; }
+        public DateTime? LastReadingAt { get; set; }
+
     }
 }
 

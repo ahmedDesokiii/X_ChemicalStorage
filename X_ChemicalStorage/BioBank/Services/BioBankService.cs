@@ -446,6 +446,14 @@ namespace X_ChemicalStorage.BioBank.Services
             var total = CalculateTotalCapacity(f);
             var occupied = await CountOccupiedTubesUnderFreezer(f.Id);
 
+            // NEW
+            var hasActiveAlarm = await _db.Bio_FreezerAlarms
+                .AnyAsync(a => a.FreezerId == f.Id && !a.IsCleared);
+
+            var iot = await _db.Bio_IoTDevices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.FreezerId == f.Id && d.IsActive);
+
             return new Bio_FreezerDto
             {
                 Id = f.Id,
@@ -461,7 +469,14 @@ namespace X_ChemicalStorage.BioBank.Services
                 TotalCapacity = total,
                 OccupiedCount = occupied,
                 AvailableCount = total - occupied,
-                OccupancyPercent = total == 0 ? 0 : (int)Math.Round(occupied * 100.0 / total)
+                OccupancyPercent = total == 0 ? 0 : (int)Math.Round(occupied * 100.0 / total),
+
+                // NEW
+                CurrentTemperature = f.CurrentTemperature,
+                LastReadingAt = f.LastReadingAt,
+                HasActiveAlarm = hasActiveAlarm,
+                IoTCollectorCode = iot?.CollectorCode,
+                IoTGatewaySerial = iot?.GatewaySerial
             };
         }
 

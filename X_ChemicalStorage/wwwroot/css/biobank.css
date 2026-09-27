@@ -2255,3 +2255,186 @@
         color: var(--bb-danger);
         background: rgba(239, 68, 68, 0.1);
     }
+
+/* ===== IoT Live Status ===== */
+.bb-status-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.bb-status-online {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.bb-status-offline {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.bb-status-alarm {
+    background: rgba(239, 68, 68, 0.18);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    animation: bbAlarmPulse 1.8s ease-in-out infinite;
+}
+
+.bb-status-maint {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+@keyframes bbAlarmPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.65;
+    }
+}
+
+.bb-temp-alarm {
+    color: #f87171 !important;
+    font-weight: 700;
+}
+
+.biobank-widget .bb-freezer.bb-freezer-alarm {
+    border-color: rgba(239, 68, 68, 0.55) !important;
+    box-shadow: inset 0 1px 0 rgba(252, 165, 165, 0.12), 0 0 0 1px rgba(239, 68, 68, 0.25), 0 12px 28px -10px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* ===== IoT Panel inside Freezer view ===== */
+.bb-iot-panel {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid var(--bb-border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+}
+
+.bb-iot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.bb-iot-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--bb-text);
+}
+
+.bb-iot-live {
+    font-size: 0.9rem;
+    color: var(--bb-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .bb-iot-live.alarm strong {
+        color: #f87171;
+    }
+
+.bb-iot-section {
+    margin-top: 14px;
+}
+
+.bb-iot-section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bb-text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.bb-alarm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.bb-alarm-type {
+    font-weight: 700;
+    color: #f87171;
+    font-size: 0.9rem;
+}
+
+.bb-alarm-level {
+    font-size: 0.7rem;
+    background: rgba(239, 68, 68, 0.2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+}
+
+.bb-alarm-msg {
+    font-size: 0.82rem;
+    color: var(--bb-text);
+    margin-top: 2px;
+}
+
+.bb-alarm-time {
+    font-size: 0.72rem;
+    color: var(--bb-text-muted);
+    margin-top: 2px;
+}
+
+.bb-btn-ack {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+    .bb-btn-ack:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: #f87171;
+        color: #fff;
+    }
+
+.bb-reading-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bb-border);
+    font-size: 0.85rem;
+}
+
+    .bb-reading-row:last-child {
+        border-bottom: none;
+    }
+
+.bb-reading-online.on {
+    color: #34d399;
+    font-size: 0.75rem;
+}
+
+.bb-reading-online.off {
+    color: #94a3b8;
+    font-size: 0.75rem;
+}

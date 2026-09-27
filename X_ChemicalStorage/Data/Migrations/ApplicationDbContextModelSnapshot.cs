@@ -313,8 +313,14 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("CurrentTemperature")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("DrawersPerRack")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastReadingAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("RacksPerShelf")
                         .HasColumnType("int");
@@ -344,6 +350,133 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.HasIndex("Barcode");
 
                     b.ToTable("Bio_Freezers");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_FreezerAlarm", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AcknowledgedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AlarmType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FreezerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsCleared")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("TriggeredAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreezerId");
+
+                    b.ToTable("Bio_FreezerAlarms");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_FreezerReading", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("DoorStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FreezerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PowerStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RawPayload")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<decimal>("Temperature")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreezerId");
+
+                    b.ToTable("Bio_FreezerReadings");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_IoTDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CollectorCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeviceName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("FreezerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("GatewaySerial")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreezerId");
+
+                    b.ToTable("Bio_IoTDevices");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Rack", b =>
@@ -1383,6 +1516,39 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Bio_Rack");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_FreezerAlarm", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Freezer")
+                        .WithMany()
+                        .HasForeignKey("FreezerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Freezer");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_FreezerReading", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Freezer")
+                        .WithMany()
+                        .HasForeignKey("FreezerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Freezer");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_IoTDevice", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Freezer")
+                        .WithMany()
+                        .HasForeignKey("FreezerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Freezer");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Rack", b =>

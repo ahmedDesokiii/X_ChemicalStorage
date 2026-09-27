@@ -35,6 +35,25 @@
     let freezersCache = [];
 
     // ===================== HELPERS =====================
+
+    function formatLiveTemp(fz) {
+        if (fz.currentTemperature == null) return null;
+        return Number(fz.currentTemperature).toFixed(1) + "°C";
+    }
+
+    function getStatusBadge(fz) {
+        if (fz.hasActiveAlarm) {
+            return `<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>`;
+        }
+        if (fz.status === 2 || fz.status === "Offline") {
+            return `<span class="bb-status-badge bb-status-offline">● Offline</span>`;
+        }
+        if (fz.status === 3 || fz.status === "Maintenance") {
+            return `<span class="bb-status-badge bb-status-maint">● Maintenance</span>`;
+        }
+        return `<span class="bb-status-badge bb-status-online">● Online</span>`;
+    }
+
     async function apiGet(url) {
         console.log("[BioBank] GET", url);
         const res = await fetch(url);
@@ -409,55 +428,93 @@
             const occColor = getOccupancyColor(fz.occupancyPercent);
             const is150 = fz.type === 2 || fz.type === "Minus150";
             const typeClass = is150 ? "type-150" : "type-80";
-            const temp = fz.temperature ?? (is150 ? -150 : -80);
+            const alarmClass = fz.hasActiveAlarm ? "bb-freezer-alarm" : "";
+
+            // Live temperature إن وُجدت، وإلا القيمة الافتراضية
+            const liveTemp = fz.currentTemperature != null
+                ? Number(fz.currentTemperature).toFixed(1)
+                : (fz.temperature ?? (is150 ? -150 : -80));
+
             const racksVal = is150
                 ? (fz.racksPerShelf ?? fz.racksCount ?? "-")
                 : ((fz.shelvesCount || 0) * (fz.racksPerShelf || 0)) || "-";
 
+            // Status badge
+            let statusHtml = "";
+            if (fz.hasActiveAlarm) {
+                statusHtml = `<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>`;
+            } else if (fz.status === 2 || fz.status === "Offline") {
+                statusHtml = `<span class="bb-status-badge bb-status-offline">● Offline</span>`;
+            } else if (fz.status === 3 || fz.status === "Maintenance") {
+                statusHtml = `<span class="bb-status-badge bb-status-maint">● Maintenance</span>`;
+            } else {
+                statusHtml = `<span class="bb-status-badge bb-status-online">● Online</span>`;
+            }
+
             const visual80 = `
-                <div class="bb-fz-visual-80">
-                    <div class="bb-fz-body-80">
-                        <div class="bb-fz-logo">Haier</div>
-                        <div class="bb-fz-panel"></div>
-                        <div class="bb-fz-handle-80"></div>
-                        <div class="bb-fz-base-80"></div>
-                    </div>
-                </div>`;
+        <div class="bb-fz-visual-80">
+            <div class="bb-fz-body-80">
+                <div class="bb-fz-logo">Haier</div>
+                <div class="bb-fz-panel"></div>
+                <div class="bb-fz-handle-80"></div>
+                <div class="bb-fz-base-80"></div>
+            </div>
+        </div>`;
 
             const visual150 = `
-                <div class="bb-fz-visual-150">
-                    <div class="bb-fz-body-150">
-                        <div class="bb-fz-lid"></div>
-                        <div class="bb-fz-side-panel"></div>
-                        <div class="bb-fz-latch"></div>
-                        <div class="bb-fz-logo-150">Haier</div>
-                    </div>
-                </div>`;
+        <div class="bb-fz-visual-150">
+            <div class="bb-fz-body-150">
+                <div class="bb-fz-lid"></div>
+                <div class="bb-fz-side-panel"></div>
+                <div class="bb-fz-latch"></div>
+                <div class="bb-fz-logo-150">Haier</div>
+            </div>
+        </div>`;
 
             const stats = `
-                <div class="bb-freezer-stats">
-                    <div class="bb-stat-row"><span class="bb-stat-label">Type</span><span class="bb-stat-value">${fz.typeDisplay || (is150 ? "-150°C" : "-80°C")}</span></div>
-                    <div class="bb-stat-row"><span class="bb-stat-label">${is150 ? "Racks" : "Shelves"}</span><span class="bb-stat-value">${is150 ? racksVal : (fz.shelvesCount || "-")}</span></div>
-                    ${!is150 ? `<div class="bb-stat-row"><span class="bb-stat-label">Racks</span><span class="bb-stat-value">${racksVal}</span></div>` : ""}
-                    <div class="bb-stat-row"><span class="bb-stat-label">Capacity</span><span class="bb-stat-value">${formatNumber(fz.totalCapacity)} tubes</span></div>
-                    <div class="bb-occupancy-bar">
-                        <div class="bb-occ-label"><span>Occupancy</span><span style="color:${occColor}">${fz.occupancyPercent}%</span></div>
-                        <div class="bb-occ-track"><div class="bb-occ-fill" style="width:${fz.occupancyPercent}%;background:linear-gradient(90deg,${occColor},var(--bb-accent))"></div></div>
-                    </div>
-                    <div class="bb-freezer-status"><span class="bb-status-dot"></span> ${fz.status || "ONLINE"}</div>
-                </div>`;
+        <div class="bb-freezer-stats">
+            <div class="bb-stat-row">
+                <span class="bb-stat-label">Type</span>
+                <span class="bb-stat-value">${fz.typeDisplay || (is150 ? "-150°C" : "-80°C")}</span>
+            </div>
+            <div class="bb-stat-row">
+                <span class="bb-stat-label">Live Temp</span>
+                <span class="bb-stat-value ${fz.hasActiveAlarm ? "bb-temp-alarm" : ""}">${liveTemp}°C</span>
+            </div>
+            <div class="bb-stat-row">
+                <span class="bb-stat-label">${is150 ? "Racks" : "Shelves"}</span>
+                <span class="bb-stat-value">${is150 ? racksVal : (fz.shelvesCount || "-")}</span>
+            </div>
+            ${!is150 ? `<div class="bb-stat-row"><span class="bb-stat-label">Racks</span><span class="bb-stat-value">${racksVal}</span></div>` : ""}
+            <div class="bb-stat-row">
+                <span class="bb-stat-label">Capacity</span>
+                <span class="bb-stat-value">${formatNumber(fz.totalCapacity)} tubes</span>
+            </div>
+            <div class="bb-occupancy-bar">
+                <div class="bb-occ-label">
+                    <span>Occupancy</span>
+                    <span style="color:${occColor}">${fz.occupancyPercent}%</span>
+                </div>
+                <div class="bb-occ-track">
+                    <div class="bb-occ-fill" style="width:${fz.occupancyPercent}%;background:linear-gradient(90deg,${occColor},var(--bb-accent))"></div>
+                </div>
+            </div>
+            <div class="bb-freezer-status">${statusHtml}</div>
+        </div>`;
 
             return `
-            <div class="bb-freezer ${typeClass}" data-nav="freezer" data-hover="freezer" data-freezer-id="${fz.id}">
-                <div class="bb-freezer-header">
-                    <div class="bb-freezer-id">${fz.id}</div>
-                    <div class="bb-temp-badge ${is150 ? "cold" : ""}">🌡️ ${temp}°C</div>
-                </div>
-                <div class="bb-freezer-body">
-                    ${is150 ? visual150 : visual80}
-                    ${stats}
-                </div>
-            </div>`;
+    <div class="bb-freezer ${typeClass} ${alarmClass}" data-nav="freezer" data-hover="freezer" data-freezer-id="${fz.id}">
+        <div class="bb-freezer-header">
+            <div class="bb-freezer-id">${fz.id}</div>
+            <div class="bb-temp-badge ${is150 ? "cold" : ""} ${fz.hasActiveAlarm ? "bb-temp-alarm" : ""}">
+                🌡️ ${liveTemp}°C
+            </div>
+        </div>
+        <div class="bb-freezer-body">
+            ${is150 ? visual150 : visual80}
+            ${stats}
+        </div>
+    </div>`;
         };
 
         let html = `<div class="bb-room bb-stagger">`;
@@ -486,35 +543,144 @@
         container.innerHTML = html;
     }
 
+    // ===================== IoT HELPERS =====================
+    async function loadFreezerIoT(freezerId) {
+        try {
+            const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const [alarms, readings] = await Promise.all([
+                apiGet(`/biobank/api/freezers/${encodeURIComponent(freezerId)}/alarms`),
+                apiGet(`/biobank/api/freezers/${encodeURIComponent(freezerId)}/readings?from=${encodeURIComponent(from)}`)
+            ]);
+            return { alarms: alarms || [], readings: readings || [] };
+        } catch (e) {
+            console.warn("[BioBank] IoT data load failed", e);
+            return { alarms: [], readings: [] };
+        }
+    }
+
+    async function acknowledgeAlarm(alarmId) {
+        const confirm = await Swal.fire({
+            title: "Acknowledge Alarm?",
+            text: "This will mark the alarm as cleared.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Acknowledge",
+            ...BB_SWAL_THEME
+        });
+        if (!confirm.isConfirmed) return false;
+
+        try {
+            await apiPost(`/biobank/api/alarms/${alarmId}/acknowledge`, {});
+            return true;
+        } catch (e) {
+            Swal.fire({ icon: "error", title: "Failed", text: e.message, ...BB_SWAL_THEME });
+            return false;
+        }
+    }
+
+    function buildIoTPanel(freezer, iot) {
+        const liveTemp = freezer.currentTemperature != null
+            ? Number(freezer.currentTemperature).toFixed(1) + "°C"
+            : (freezer.temperature ?? "-") + "°C";
+
+        let alarmsHtml = "";
+        if (!iot.alarms || iot.alarms.length === 0) {
+            alarmsHtml = `<div style="color:var(--bb-text-muted);font-size:0.85rem;">No active alarms</div>`;
+        } else {
+            alarmsHtml = iot.alarms.map(a => `
+            <div class="bb-alarm-row" data-alarm-id="${a.id}">
+                <div class="bb-alarm-info">
+                    <div class="bb-alarm-type">${a.alarmType} <span class="bb-alarm-level">L${a.level}</span></div>
+                    <div class="bb-alarm-msg">${a.message || ""}</div>
+                    <div class="bb-alarm-time">${new Date(a.triggeredAt).toLocaleString()}</div>
+                </div>
+                <button type="button" class="bb-btn-ack" data-ack-alarm="${a.id}">Acknowledge</button>
+            </div>
+        `).join("");
+        }
+
+        const recentReadings = (iot.readings || []).slice(-8).reverse();
+        let readingsHtml = recentReadings.length === 0
+            ? `<div style="color:var(--bb-text-muted);font-size:0.85rem;">No readings yet</div>`
+            : recentReadings.map(r => `
+            <div class="bb-reading-row">
+                <span>${Number(r.temperature).toFixed(1)}°C</span>
+                <span style="color:var(--bb-text-muted)">${new Date(r.timestamp).toLocaleString()}</span>
+                <span class="bb-reading-online ${r.isOnline ? "on" : "off"}">${r.isOnline ? "Online" : "Offline"}</span>
+            </div>
+        `).join("");
+
+        return `
+    <div class="bb-iot-panel">
+        <div class="bb-iot-header">
+            <div class="bb-iot-title">IoT Monitoring</div>
+            <div class="bb-iot-live ${freezer.hasActiveAlarm ? "alarm" : ""}">
+                Live: <strong>${liveTemp}</strong>
+                ${freezer.hasActiveAlarm ? '<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>' : ""}
+            </div>
+        </div>
+        <div class="bb-iot-section">
+            <div class="bb-iot-section-title">Active Alarms</div>
+            <div id="bbAlarmsList">${alarmsHtml}</div>
+        </div>
+        <div class="bb-iot-section">
+            <div class="bb-iot-section-title">Recent Readings</div>
+            <div class="bb-readings-list">${readingsHtml}</div>
+        </div>
+    </div>`;
+    }
+
+    function bindAlarmAckButtons(freezer) {
+        document.querySelectorAll("[data-ack-alarm]").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = btn.dataset.ackAlarm;
+                const ok = await acknowledgeAlarm(id);
+                if (ok) {
+                    let refreshed = freezersCache.find(f => f.id === freezer.id);
+                    if (!refreshed) {
+                        try { refreshed = await apiGet(API.freezer(freezer.id)); } catch { refreshed = freezer; }
+                    }
+                    await navigateTo("freezer", refreshed || freezer);
+                }
+            });
+        });
+    }
     // ===================== RENDER: FREEZER =====================
     async function renderFreezer(fz) {
         const is150 = fz.type === 2 || fz.type === "Minus150";
         const container = $("bbViewport");
         container.className = "bb-viewport bb-stage-enter";
 
+        // تحميل بيانات الـ IoT مرة واحدة
+        const iot = await loadFreezerIoT(fz.id);
+        const iotPanel = buildIoTPanel(fz, iot);
+
         if (is150) {
             const racks = await apiGet(API.racksByFreezer(fz.id));
             let interior = "";
             for (const r of racks) {
                 interior += `
-                <div class="bb-rack" data-nav="rack" data-hover="rack"
-                     data-rack-id="${r.id}" data-shelf-index="0" data-rack-index="${r.rackIndex}" data-occ="${r.occupancyPercent}">
-                    ${iconRack("bb-icon-md")}
-                    <div style="font-weight:700;font-size:0.82rem;margin-bottom:2px;">${r.displayName || r.id}</div>
-                    <div style="font-size:0.72rem;color:var(--bb-text-muted);">${r.boxesCount ?? "-"} Box · ${formatNumber(r.totalTubes || 0)} Tubes</div>
-                    <div style="margin-top:6px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${r.occupancyPercent || 0}%"></div></div></div>
-                </div>`;
+            <div class="bb-rack" data-nav="rack" data-hover="rack"
+                 data-rack-id="${r.id}" data-shelf-index="0" data-rack-index="${r.rackIndex}" data-occ="${r.occupancyPercent}">
+                ${iconRack("bb-icon-md")}
+                <div style="font-weight:700;font-size:0.82rem;margin-bottom:2px;">${r.displayName || r.id}</div>
+                <div style="font-size:0.72rem;color:var(--bb-text-muted);">${r.boxesCount ?? "-"} Box · ${formatNumber(r.totalTubes || 0)} Tubes</div>
+                <div style="margin-top:6px;"><div class="bb-occ-track"><div class="bb-occ-fill" style="width:${r.occupancyPercent || 0}%"></div></div></div>
+            </div>`;
             }
             container.innerHTML = `
-            <div class="bb-open-freezer-150">
-                <div class="bb-open-150-title">
-                    <span>❄️ ${fz.id}</span>
-                    <span class="bb-temp-badge cold">-150°C</span>
-                    <span style="font-size:0.85rem;color:var(--bb-text-muted);font-weight:500;">${racks.length} Racks</span>
-                </div>
-                <div class="bb-open-150-lid-bar" aria-hidden="true"></div>
-                <div class="bb-open-chest-body">${interior}</div>
-            </div>`;
+        <div class="bb-open-freezer-150">
+            <div class="bb-open-150-title">
+                <span>❄️ ${fz.id}</span>
+                <span class="bb-temp-badge cold">-150°C</span>
+                <span style="font-size:0.85rem;color:var(--bb-text-muted);font-weight:500;">${racks.length} Racks</span>
+            </div>
+            ${iotPanel}
+            <div class="bb-open-150-lid-bar" aria-hidden="true"></div>
+            <div class="bb-open-chest-body">${interior}</div>
+        </div>`;
         } else {
             const shelves = await apiGet(API.shelves(fz.id));
             let rows = "";
@@ -522,19 +688,23 @@
                 let slots = "";
                 for (let i = 0; i < (s.racksCount || 4); i++) slots += "<span></span>";
                 rows += `
-                <div class="bb-open-shelf-row" data-nav="shelf" data-hover="shelf"
-                     data-shelf-index="${s.shelfIndex}" data-shelf-id="${s.id}"
-                     data-racks="${s.racksCount}" data-drawers="${s.drawersCount}"
-                     data-boxes="${s.boxesCount}" data-tubes="${s.totalTubes}" data-occ="${s.occupancyPercent}">
-                    <span class="bb-open-shelf-icon">${ICONS.shelf}</span>
-                    <div class="bb-shelf-badge">S${String(s.shelfIndex + 1).padStart(2, "0")}</div>
-                    <div class="bb-open-shelf-slots">${slots}</div>
-                    <div class="bb-open-shelf-occ">${s.occupancyPercent}%</div>
-                </div>`;
+            <div class="bb-open-shelf-row" data-nav="shelf" data-hover="shelf"
+                 data-shelf-index="${s.shelfIndex}" data-shelf-id="${s.id}"
+                 data-racks="${s.racksCount}" data-drawers="${s.drawersCount}"
+                 data-boxes="${s.boxesCount}" data-tubes="${s.totalTubes}" data-occ="${s.occupancyPercent}">
+                <span class="bb-open-shelf-icon">${ICONS.shelf}</span>
+                <div class="bb-shelf-badge">S${String(s.shelfIndex + 1).padStart(2, "0")}</div>
+                <div class="bb-open-shelf-slots">${slots}</div>
+                <div class="bb-open-shelf-occ">${s.occupancyPercent}%</div>
+            </div>`;
             }
             container.innerHTML = `
-            <div class="bb-open-freezer-80">
-                <div style="font-weight:700;font-size:1.15rem;color:var(--bb-text);">${fz.id} · -80°C</div>
+        <div class="bb-open-freezer-80">
+            <div style="font-weight:700;font-size:1.15rem;color:var(--bb-text);">${fz.id} · -80°C</div>
+            <div class="d-flex w-100">
+                ${iotPanel}
+                <div class="col-2">
+                </div>
                 <div class="bb-open-door-frame">
                     <div class="bb-open-door">
                         <div class="bb-fz-logo" style="top:4%;font-size:0.55rem;">Haier</div>
@@ -543,9 +713,14 @@
                     </div>
                     <div class="bb-open-interior">${rows}</div>
                 </div>
-            </div>`;
+            </div>
+        </div>`;
         }
+
+        // ربط أزرار Acknowledge بعد ما يتحط الـ HTML
+        bindAlarmAckButtons(fz);
     }
+
 
     // ===================== RENDER: SHELF =====================
     async function renderShelf(fz, shelfIndex) {
