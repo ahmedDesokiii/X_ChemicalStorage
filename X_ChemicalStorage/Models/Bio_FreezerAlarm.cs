@@ -28,6 +28,15 @@ namespace X_ChemicalStorage.Models
 
         public bool IsCleared { get; set; }
 
+
+        // ===== جديد =====
+        [MaxLength(500)]
+        public string? AckNote { get; set; }        // سبب المشكلة (يكتبه المستخدم عند الاستلام)
+
+        public DateTime? ClearedAt { get; set; }    // وقت عودة الحالة للطبيعي (تلقائي)
+        public DateTime? EscalatedAt { get; set; }  // وقت التصعيد للمستوى 2
+        public decimal? PeakValue { get; set; }     // أسوأ قراءة أثناء الإنذار
+
         [ForeignKey(nameof(FreezerId))]
         public Bio_Freezer Freezer { get; set; } = null!;
     }

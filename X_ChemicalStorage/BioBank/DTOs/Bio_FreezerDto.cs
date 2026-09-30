@@ -220,9 +220,24 @@ namespace X_ChemicalStorage.BioBank.DTOs
             public DateTime? AcknowledgedAt { get; set; }
             public string? AcknowledgedBy { get; set; }
             public bool IsCleared { get; set; }
-        }
 
-        public class LinkIoTDeviceDto
+        // 2) أضف داخل Bio_FreezerAlarmDto:
+        public string? AckNote { get; set; }
+        public DateTime? ClearedAt { get; set; }
+        public DateTime? EscalatedAt { get; set; }
+        public decimal? PeakValue { get; set; }
+
+    }
+
+
+    // 3) كلاس جديد:
+    public class AckAlarmDto
+    {
+        [MaxLength(500)]
+        public string? Note { get; set; }
+    }
+
+    public class LinkIoTDeviceDto
         {
             [Required, MaxLength(50)]
             public string FreezerId { get; set; } = null!;
@@ -237,16 +252,26 @@ namespace X_ChemicalStorage.BioBank.DTOs
             public string? DeviceName { get; set; }
         }
 
-        public class IngestReadingDto
-        {
-            [Required, MaxLength(100)]
-            public string CollectorCode { get; set; } = null!;
+    // استبدل كلاس IngestReadingDto الموجود في Bio_FreezerDto.cs بالتالي:
+    public class IngestReadingDto
+    {
+        [Required, MaxLength(100)]
+        public string CollectorCode { get; set; } = null!;
 
-            public decimal Temperature { get; set; }
-            public bool IsOnline { get; set; } = true;
-            public string? DoorStatus { get; set; }
-            public string? PowerStatus { get; set; }
-            public string? RawPayload { get; set; }
-        }
+        public decimal? Temperature { get; set; }          // null = رسالة بدون حرارة صالحة
+        public bool IsOnline { get; set; } = true;
+        public string? DoorStatus { get; set; }            // "Open" | "Closed" | null
+        public string? PowerStatus { get; set; }           // "OK" | "Fail" | null
+        public string? RawPayload { get; set; }
 
+        public decimal? SetTemperature { get; set; }
+        public decimal? AmbientTemperature { get; set; }
+        public bool? HighCompressorRunning { get; set; }
+        public bool? CryoCompressorRunning { get; set; }
+
+
+        // 1) أضف داخل IngestReadingDto:
+        public bool TemperatureInvalid { get; set; }   // القراءة وصلت لكن خارج المدى المنطقي (Sensor error)
+
+    }
 }

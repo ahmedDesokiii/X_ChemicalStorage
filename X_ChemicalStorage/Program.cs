@@ -31,6 +31,8 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
     var connectionString = configuration.GetConnectionString(selectedConn);
 
     options.UseSqlServer(connectionString);
+    options.UseSqlServer(connectionString)
+       .AddInterceptors(new ReadingImmutabilityInterceptor());
 });
 
 
@@ -89,6 +91,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 #region Scoped Services
 
+// ===== في Program.cs (جنب باقي التسجيلات) =====
+builder.Services.AddScoped<IFreezerAlarmEngine, FreezerAlarmEngine>();
+
+builder.Services.AddHostedService<FreezerWatchdogService>();
+
 builder.Services.AddScoped<IServicesRepository<SubCategory>, ServicesSubCategory>();
 builder.Services.AddScoped<IServicesSubCategory, ServicesSubCategory>();
 builder.Services.AddScoped<IBioBankService, BioBankService>();
@@ -123,7 +130,15 @@ builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection(MqttOpt
 
 // الـ Background Service
 builder.Services.AddHostedService<FreezerMqttBackgroundService>();
-
+builder.Services.Configure<X_ChemicalStorage.BioBank.Options.NotificationOptions>(
+    builder.Configuration.GetSection("Notifications"));
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<INotificationChannel, SmsHttpChannel>();
+builder.Services.AddSingleton<INotificationChannel, EmailSmtpChannel>();
+builder.Services.AddSingleton<INotificationChannel, TelegramChannel>();
+builder.Services.AddSingleton<IAlarmNotifier, OutboxAlarmNotifier>();
+builder.Services.AddScoped<NotificationDispatcher>();
+builder.Services.AddHostedService<AlarmNotificationWorker>();
 
 var app = builder.Build();
 app.UseSession();

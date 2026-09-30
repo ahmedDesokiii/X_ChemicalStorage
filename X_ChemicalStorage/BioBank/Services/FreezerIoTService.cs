@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using X_ChemicalStorage.BioBank.DTOs;
 using X_ChemicalStorage.BioBank.Enums;
+using X_ChemicalStorage.BioBank.Options;
 using X_ChemicalStorage.Data;
 using X_ChemicalStorage.Models;
 
@@ -9,65 +12,89 @@ namespace X_ChemicalStorage.BioBank.Services
     public class FreezerIoTService : IFreezerIoTService
     {
         private readonly ApplicationDbContext _db;
+        private readonly MqttOptions _mqtt;
 
-        // حدود بسيطة (يمكن نقلها لجدول إعدادات لاحقًا)
+        // حدود مؤقتة: هتتستبدل بإعدادات كل فريزر في البند 3
         private const decimal HighTempThreshold80 = -70m;
         private const decimal HighTempThreshold150 = -140m;
 
-        public FreezerIoTService(ApplicationDbContext db)
+        // آخر قراءة اتخزنت لكل فريزر (لتطبيق فاصل التخزين)
+        private static readonly ConcurrentDictionary<string, (DateTime At, string? Door, string? Power)> _lastStored = new();
+
+        public FreezerIoTService(ApplicationDbContext db, IOptions<MqttOptions> mqtt)
         {
             _db = db;
+            _mqtt = mqtt.Value;
         }
 
-        public async Task ProcessIncomingReadingAsync(IngestReadingDto dto)
+        private bool ShouldStore(string freezerId, DateTime now, string? door, string? power)
+        {
+            if (!_lastStored.TryGetValue(freezerId, out var last)) return true;
+            if (!string.Equals(last.Door, door) || !string.Equals(last.Power, power)) return true; // تغيّر باب/كهرباء
+            return (now - last.At).TotalSeconds >= Math.Max(1, _mqtt.StoreIntervalSeconds);
+        }
+
+        public async Task<IngestResult> ProcessIncomingReadingAsync(IngestReadingDto dto)
         {
             var device = await _db.Bio_IoTDevices
                 .FirstOrDefaultAsync(d => d.CollectorCode == dto.CollectorCode && d.IsActive);
-
-            if (device == null)
-                return; // جهاز غير مسجل — نتجاهل بهدوء
+            if (device == null) return IngestResult.UnknownDevice;
 
             var freezer = await _db.Bio_Freezers.FirstOrDefaultAsync(f => f.Id == device.FreezerId);
-            if (freezer == null) return;
+            if (freezer == null) return IngestResult.UnknownDevice;
 
-            // حفظ القراءة
-            var reading = new Bio_FreezerReading
+            var now = DateTime.UtcNow;
+            freezer.LastReadingAt = now;                       // آخر مرة الجهاز كان فيها حي
+
+            var result = IngestResult.Heartbeat;
+            var store = false;
+
+            if (dto.Temperature.HasValue)
             {
-                FreezerId = freezer.Id,
-                Temperature = dto.Temperature,
-                DoorStatus = dto.DoorStatus,
-                PowerStatus = dto.PowerStatus,
-                IsOnline = dto.IsOnline,
-                Timestamp = DateTime.UtcNow,
-                RawPayload = dto.RawPayload
-            };
-            _db.Bio_FreezerReadings.Add(reading);
+                freezer.CurrentTemperature = dto.Temperature.Value;
 
-            // تحديث الحالة الحية على الفريزر
-            freezer.CurrentTemperature = dto.Temperature;
-            freezer.LastReadingAt = reading.Timestamp;
+                store = ShouldStore(freezer.Id, now, dto.DoorStatus, dto.PowerStatus);
+                result = store ? IngestResult.Stored : IngestResult.Live;
 
+                if (store)
+                {
+                    _db.Bio_FreezerReadings.Add(new Bio_FreezerReading
+                    {
+                        FreezerId = freezer.Id,
+                        Temperature = dto.Temperature.Value,
+                        SetTemperature = dto.SetTemperature,
+                        AmbientTemperature = dto.AmbientTemperature,
+                        HighCompressorRunning = dto.HighCompressorRunning,
+                        CryoCompressorRunning = dto.CryoCompressorRunning,
+                        DoorStatus = dto.DoorStatus,
+                        PowerStatus = dto.PowerStatus,
+                        IsOnline = dto.IsOnline,
+                        Timestamp = now,
+                        RawPayload = dto.RawPayload
+                    });
+                }
+            }
+
+            // ===== منطق الإنذارات القديم (بيتبدّل بالكامل في البند 3) =====
             if (!dto.IsOnline)
             {
                 freezer.Status = FreezerStatus.Offline;
                 await EnsureAlarmAsync(freezer.Id, "Offline", 1, "Gateway is offline");
             }
-            else
+            else if (dto.Temperature.HasValue)
             {
-                // فحص تجاوز الحرارة
                 decimal threshold = freezer.Type == FreezerType.Minus150
                     ? HighTempThreshold150
                     : HighTempThreshold80;
 
-                if (dto.Temperature > threshold)
+                if (dto.Temperature.Value > threshold)
                 {
                     freezer.Status = FreezerStatus.Alarm;
                     await EnsureAlarmAsync(freezer.Id, "HighTemp", 1,
-                        $"Temperature {dto.Temperature:F1}°C exceeded threshold {threshold}°C");
+                        $"Temperature {dto.Temperature.Value:F1}°C exceeded threshold {threshold}°C");
                 }
                 else if (freezer.Status == FreezerStatus.Alarm || freezer.Status == FreezerStatus.Offline)
                 {
-                    // لو مفيش إنذار نشط، نرجّع Online
                     var hasActive = await _db.Bio_FreezerAlarms
                         .AnyAsync(a => a.FreezerId == freezer.Id && !a.IsCleared);
                     if (!hasActive)
@@ -80,6 +107,11 @@ namespace X_ChemicalStorage.BioBank.Services
             }
 
             await _db.SaveChangesAsync();
+
+            if (store)
+                _lastStored[freezer.Id] = (now, dto.DoorStatus, dto.PowerStatus);
+
+            return result;
         }
 
         private async Task EnsureAlarmAsync(string freezerId, string type, int level, string message)
@@ -166,7 +198,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 .ToListAsync();
         }
 
-        public async Task AcknowledgeAlarmAsync(long alarmId, string performedBy)
+        public async Task AcknowledgeAlarmAsync(long alarmId, string performedBy, string? note = null)
         {
             var alarm = await _db.Bio_FreezerAlarms.FirstOrDefaultAsync(a => a.Id == alarmId)
                 ?? throw new InvalidOperationException("Alarm not found.");

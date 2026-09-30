@@ -1,6 +1,5 @@
 ﻿// Services/FreezerMqttBackgroundService.cs
 using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
@@ -15,7 +14,8 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly MqttOptions _options;
         private readonly ILogger<FreezerMqttBackgroundService> _logger;
-        private IMqttClient? _mqttClient;
+        private readonly HashSet<string> _unknownLogged = new();
+        private readonly string _clientId;
 
         public FreezerMqttBackgroundService(
             IServiceScopeFactory scopeFactory,
@@ -25,81 +25,82 @@ namespace X_ChemicalStorage.BioBank.Services
             _scopeFactory = scopeFactory;
             _options = options.Value;
             _logger = logger;
+            // ID واحد لكل تشغيل: يمنع تعارض لو فيه نسختين من التطبيق شغالين
+            _clientId = _options.ClientId + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation(
-                "Freezer MQTT Service starting... Broker={Host}:{Port} Topic={Topic}",
+            if (!_options.Enabled)
+            {
+                _logger.LogInformation("Freezer MQTT service is disabled (Mqtt:Enabled=false).");
+                return;
+            }
+
+            _logger.LogInformation("Freezer MQTT service starting. Broker={Host}:{Port} Topic={Topic}",
                 _options.Host, _options.Port, _options.Topic);
 
             var factory = new MqttFactory();
-            _mqttClient = factory.CreateMqttClient();
+            using var client = factory.CreateMqttClient();
+            client.ApplicationMessageReceivedAsync += OnMessageReceivedAsync;
 
-            _mqttClient.ApplicationMessageReceivedAsync += OnMessageReceivedAsync;
+            // حلقة واحدة مسؤولة عن الاتصال وإعادته (بدون Handlers متداخلة)
+            int attempt = 0;
+            bool wasConnected = false;
 
-            _mqttClient.ConnectedAsync += async e =>
-            {
-                _logger.LogInformation("MQTT connected to {Host}:{Port}", _options.Host, _options.Port);
-
-                var topicFilter = new MqttTopicFilterBuilder()
-                    .WithTopic(_options.Topic)
-                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                    .Build();
-
-                await _mqttClient.SubscribeAsync(topicFilter, stoppingToken);
-                _logger.LogInformation("Subscribed to topic: {Topic}", _options.Topic);
-            };
-
-            _mqttClient.DisconnectedAsync += async e =>
-            {
-                _logger.LogWarning("MQTT disconnected. Reason: {Reason}", e.Reason);
-                if (stoppingToken.IsCancellationRequested) return;
-
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-                    if (_mqttClient != null && !_mqttClient.IsConnected)
-                        await ConnectAsync(stoppingToken);
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "MQTT reconnect failed");
-                }
-            };
-
-            // محاولة الاتصال الأولى (مع إعادة محاولة لو الـ Broker مش شغال)
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    await ConnectAsync(stoppingToken);
+                    if (!client.IsConnected)
+                    {
+                        if (wasConnected)
+                        {
+                            _logger.LogWarning("MQTT connection lost. Reconnecting...");
+                            wasConnected = false;
+                        }
+
+                        await ConnectAndSubscribeAsync(client, stoppingToken);
+                        attempt = 0;
+                        wasConnected = true;
+                        _logger.LogInformation("MQTT connected to {Host}:{Port}, subscribed to {Topic}",
+                            _options.Host, _options.Port, _options.Topic);
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
                     break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "MQTT connect failed, retrying in 5s...");
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    attempt++;
+                    var delay = attempt <= 1 ? 5 : attempt == 2 ? 10 : 30;
+                    _logger.LogWarning("MQTT connect failed: {Reason}. Retrying in {Delay}s (attempt {Attempt})",
+                        ex.GetBaseException().Message, delay, attempt);
+
+                    try { await Task.Delay(TimeSpan.FromSeconds(delay), stoppingToken); }
+                    catch (OperationCanceledException) { break; }
                 }
             }
 
             try
             {
-                await Task.Delay(Timeout.Infinite, stoppingToken);
+                if (client.IsConnected)
+                    await client.DisconnectAsync();
             }
-            catch (OperationCanceledException) { }
+            catch { /* ignore */ }
         }
 
-        private async Task ConnectAsync(CancellationToken ct)
+        private async Task ConnectAndSubscribeAsync(IMqttClient client, CancellationToken ct)
         {
-            if (_mqttClient == null) return;
-
             var builder = new MqttClientOptionsBuilder()
-                .WithClientId(_options.ClientId + "-" + Guid.NewGuid().ToString("N").Substring(0, 8))
+                .WithClientId(_clientId)
                 .WithTcpServer(_options.Host, _options.Port)
                 .WithCleanSession()
-                .WithKeepAlivePeriod(TimeSpan.FromSeconds(30));
+                .WithKeepAlivePeriod(TimeSpan.FromSeconds(30))
+                .WithTimeout(TimeSpan.FromSeconds(10));
 
             if (!string.IsNullOrWhiteSpace(_options.Username))
                 builder.WithCredentials(_options.Username, _options.Password);
@@ -107,7 +108,14 @@ namespace X_ChemicalStorage.BioBank.Services
             if (_options.UseTls)
                 builder.WithTls();
 
-            await _mqttClient.ConnectAsync(builder.Build(), ct);
+            await client.ConnectAsync(builder.Build(), ct);
+
+            var topicFilter = new MqttTopicFilterBuilder()
+                .WithTopic(_options.Topic)
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                .Build();
+
+            await client.SubscribeAsync(topicFilter, ct);
         }
 
         private async Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs e)
@@ -116,123 +124,52 @@ namespace X_ChemicalStorage.BioBank.Services
             {
                 var topic = e.ApplicationMessage.Topic ?? "";
 
-                // تحويل الـ Payload بطريقة متوافقة مع كل الإصدارات
                 string payload;
                 try
                 {
-                    // MQTTnet 4.x
                     payload = e.ApplicationMessage.ConvertPayloadToString() ?? "{}";
                 }
                 catch
                 {
-                    // fallback
                     var bytes = e.ApplicationMessage.Payload;
-                    payload = (bytes == null || bytes.Length == 0)
-                        ? "{}"
-                        : Encoding.UTF8.GetString(bytes);
+                    payload = (bytes == null || bytes.Length == 0) ? "{}" : Encoding.UTF8.GetString(bytes);
                 }
 
-                _logger.LogDebug("MQTT message on {Topic}: {Payload}", topic, payload);
+                _logger.LogDebug("MQTT {Topic}: {Payload}", topic, payload);
 
-                string? collectorFromTopic = null;
-                var parts = topic.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length >= 2)
-                    collectorFromTopic = parts[1];
-
-                using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(payload) ? "{}" : payload);
-                var root = doc.RootElement;
-
-                var dto = new IngestReadingDto
+                var dto = FreezerPayloadParser.Parse(topic, payload, _options, out var error, out var warnings);
+                if (dto == null)
                 {
-                    CollectorCode = GetString(root, "collectorCode")
-                                   ?? GetString(root, "collector")
-                                   ?? GetString(root, "deviceId")
-                                   ?? collectorFromTopic
-                                   ?? "",
-                    Temperature = GetDecimal(root, "temperature")
-                                  ?? GetDecimal(root, "temp")
-                                  ?? 0m,
-                    IsOnline = GetBool(root, "isOnline")
-                               ?? GetBool(root, "online")
-                               ?? true,
-                    DoorStatus = GetString(root, "doorStatus") ?? GetString(root, "door"),
-                    PowerStatus = GetString(root, "powerStatus") ?? GetString(root, "power"),
-                    RawPayload = payload
-                };
-
-                if (string.IsNullOrWhiteSpace(dto.CollectorCode))
-                {
-                    _logger.LogWarning("MQTT message ignored — no CollectorCode. Topic={Topic}", topic);
+                    _logger.LogWarning("MQTT message ignored: {Error}. Topic={Topic}", error, topic);
                     return;
                 }
 
-                using var scope = _scopeFactory.CreateScope();
-                var iotService = scope.ServiceProvider.GetRequiredService<IFreezerIoTService>();
-                await iotService.ProcessIncomingReadingAsync(dto);
+                foreach (var w in warnings)
+                    _logger.LogWarning("MQTT {Collector}: {Warning}", dto.CollectorCode, w);
 
-                _logger.LogInformation(
-                    "Ingested reading from {Collector}: {Temp}°C Online={Online}",
-                    dto.CollectorCode, dto.Temperature, dto.IsOnline);
+                using var scope = _scopeFactory.CreateScope();
+                var iot = scope.ServiceProvider.GetRequiredService<IFreezerIoTService>();
+                var result = await iot.ProcessIncomingReadingAsync(dto);
+
+                switch (result)
+                {
+                    case IngestResult.UnknownDevice:
+                        if (_unknownLogged.Add(dto.CollectorCode))
+                            _logger.LogWarning(
+                                "Data received from unregistered collector {Collector}. Link it to a freezer (api/iot/link).",
+                                dto.CollectorCode);
+                        break;
+
+                    default:
+                        _logger.LogDebug("Ingested {Collector}: {Temp}°C Result={Result}",
+                            dto.CollectorCode, dto.Temperature, result);
+                        break;
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing MQTT message");
             }
-        }
-
-        public override async Task StopAsync(CancellationToken cancellationToken)
-        {
-            if (_mqttClient != null)
-            {
-                try
-                {
-                    if (_mqttClient.IsConnected)
-                        await _mqttClient.DisconnectAsync();
-                }
-                catch { /* ignore */ }
-                _mqttClient.Dispose();
-            }
-            await base.StopAsync(cancellationToken);
-        }
-
-        private static string? GetString(JsonElement root, string name)
-        {
-            if (root.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String)
-                return p.GetString();
-            foreach (var prop in root.EnumerateObject())
-            {
-                if (string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase)
-                    && prop.Value.ValueKind == JsonValueKind.String)
-                    return prop.Value.GetString();
-            }
-            return null;
-        }
-
-        private static decimal? GetDecimal(JsonElement root, string name)
-        {
-            if (root.TryGetProperty(name, out var p))
-            {
-                if (p.ValueKind == JsonValueKind.Number && p.TryGetDecimal(out var d)) return d;
-                if (p.ValueKind == JsonValueKind.String && decimal.TryParse(p.GetString(), out var ds)) return ds;
-            }
-            foreach (var prop in root.EnumerateObject())
-            {
-                if (!string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase)) continue;
-                if (prop.Value.ValueKind == JsonValueKind.Number && prop.Value.TryGetDecimal(out var d)) return d;
-                if (prop.Value.ValueKind == JsonValueKind.String && decimal.TryParse(prop.Value.GetString(), out var ds)) return ds;
-            }
-            return null;
-        }
-
-        private static bool? GetBool(JsonElement root, string name)
-        {
-            if (root.TryGetProperty(name, out var p))
-            {
-                if (p.ValueKind == JsonValueKind.True) return true;
-                if (p.ValueKind == JsonValueKind.False) return false;
-                if (p.ValueKind == JsonValueKind.String && bool.TryParse(p.GetString(), out var b)) return b;
-            }
-            return null;
         }
     }
 }

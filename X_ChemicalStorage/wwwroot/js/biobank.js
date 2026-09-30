@@ -613,12 +613,18 @@
         return `
     <div class="bb-iot-panel">
         <div class="bb-iot-header">
-            <div class="bb-iot-title">IoT Monitoring</div>
-            <div class="bb-iot-live ${freezer.hasActiveAlarm ? "alarm" : ""}">
-                Live: <strong>${liveTemp}</strong>
-                ${freezer.hasActiveAlarm ? '<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>' : ""}
-            </div>
+    <div class="bb-iot-title">IoT Monitoring</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="bb-iot-live ${freezer.hasActiveAlarm ? "alarm" : ""}">
+            Live: <strong>${liveTemp}</strong>
+            ${freezer.hasActiveAlarm ? '<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>' : ""}
         </div>
+        <button type="button" class="bb-btn-add" style="padding:6px 12px;font-size:0.8rem;"
+                data-action="link-iot" data-freezer-id="${freezer.id}">
+            🔗 Link Device
+        </button>
+    </div>
+</div>
         <div class="bb-iot-section">
             <div class="bb-iot-section-title">Active Alarms</div>
             <div id="bbAlarmsList">${alarmsHtml}</div>
@@ -627,8 +633,178 @@
             <div class="bb-iot-section-title">Recent Readings</div>
             <div class="bb-readings-list">${readingsHtml}</div>
         </div>
+        <div class="bb-iot-section">
+            <div class="bb-iot-section-title">Temperature History (7 days)</div>
+            <div class="bb-chart-wrap">
+                <canvas id="bbTempChart" height="120"></canvas>
+            </div>
+        </div>
     </div>`;
     }
+
+    function renderTempChart(readings) {
+        const canvas = document.getElementById("bbTempChart");
+        if (!canvas || typeof Chart === "undefined") return;
+
+        // تدمير أي جراف قديم
+        if (window.__bbTempChart) {
+            window.__bbTempChart.destroy();
+            window.__bbTempChart = null;
+        }
+
+        if (!readings || readings.length === 0) {
+            canvas.parentElement.innerHTML = `<div style="color:var(--bb-text-muted);font-size:0.85rem;padding:12px 0;">No readings yet</div>`;
+            return;
+        }
+
+        // ترتيب تصاعدي حسب الوقت
+        const sorted = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        const labels = sorted.map(r => {
+            const d = new Date(r.timestamp);
+            return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        });
+        const temps = sorted.map(r => Number(r.temperature));
+
+        window.__bbTempChart = new Chart(canvas, {
+            type: "line",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Temperature °C",
+                    data: temps,
+                    borderColor: "#22d3ee",
+                    backgroundColor: "rgba(34, 211, 238, 0.12)",
+                    borderWidth: 2,
+                    pointRadius: sorted.length > 40 ? 0 : 3,
+                    pointHoverRadius: 5,
+                    tension: 0.25,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "#1a2332",
+                        titleColor: "#f1f5f9",
+                        bodyColor: "#22d3ee",
+                        borderColor: "rgba(148,163,184,0.2)",
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: "#94a3b8", maxTicksLimit: 8, font: { size: 10 } },
+                        grid: { color: "rgba(148,163,184,0.08)" }
+                    },
+                    y: {
+                        ticks: { color: "#94a3b8", font: { size: 10 }, callback: v => v + "°" },
+                        grid: { color: "rgba(148,163,184,0.08)" }
+                    }
+                }
+            }
+        });
+    }
+    function openLinkIoTModal(freezerId) {
+        setModalWidth(false);
+        $("modalTitle").textContent = "Link IoT Device";
+        $("modalIcon").textContent = "🔗";
+
+        const body = $("modalBody");
+        body.innerHTML = `
+        <form id="bbLinkIoTForm" class="bb-form" style="text-align:left;">
+            <div class="bb-form-row">
+                <label>Freezer ID</label>
+                <input type="text" id="iotFreezerId" value="${freezerId || ""}" readonly
+                       style="opacity:0.85;cursor:not-allowed;">
+            </div>
+            <div class="bb-form-row">
+                <label>Collector Code *</label>
+                <input type="text" id="iotCollector" placeholder="e.g. GF5022315032881" required maxlength="100">
+            </div>
+            <div class="bb-form-row">
+                <label>Gateway Serial *</label>
+                <input type="text" id="iotSerial" placeholder="e.g. GF50222308030161" required maxlength="100">
+            </div>
+            <div class="bb-form-row">
+                <label>Device Name</label>
+                <input type="text" id="iotDeviceName" placeholder="Optional" maxlength="150">
+            </div>
+            <div id="bbLinkIoTError" class="bb-form-error" style="display:none;"></div>
+        </form>
+    `;
+
+        const actions = $("modalActions");
+        actions.innerHTML = `
+        <button type="button" class="bb-btn-cancel" id="bbLinkIoTCancel">Cancel</button>
+        <button type="button" class="bb-modal-btn" id="bbLinkIoTSubmit">Link Device</button>
+    `;
+
+        $("bbModal").classList.add("show");
+
+        $("bbLinkIoTCancel").onclick = () => $("bbModal").classList.remove("show");
+        $("bbLinkIoTSubmit").onclick = () => submitLinkIoT();
+    }
+
+    async function submitLinkIoT() {
+        const errorEl = $("bbLinkIoTError");
+        const btn = $("bbLinkIoTSubmit");
+        if (errorEl) errorEl.style.display = "none";
+
+        const payload = {
+            freezerId: ($("iotFreezerId")?.value || "").trim(),
+            collectorCode: ($("iotCollector")?.value || "").trim(),
+            gatewaySerial: ($("iotSerial")?.value || "").trim(),
+            deviceName: ($("iotDeviceName")?.value || "").trim() || null
+        };
+
+        if (!payload.freezerId || !payload.collectorCode || !payload.gatewaySerial) {
+            if (errorEl) {
+                errorEl.textContent = "Freezer ID, Collector Code and Gateway Serial are required.";
+                errorEl.style.display = "block";
+            }
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = "Linking...";
+        }
+
+        try {
+            await apiPost("/biobank/api/iot/link", payload);
+            $("bbModal").classList.remove("show");
+
+            await Swal.fire({
+                icon: "success",
+                title: "Device Linked",
+                text: `Collector ${payload.collectorCode} linked to ${payload.freezerId}`,
+                ...BB_SWAL_THEME
+            });
+
+            // أعد تحميل صفحة الفريزر
+            let fz = freezersCache.find(f => f.id === payload.freezerId);
+            if (!fz) {
+                try { fz = await apiGet(API.freezer(payload.freezerId)); } catch { fz = { id: payload.freezerId }; }
+            }
+            await navigateTo("freezer", fz);
+        } catch (e) {
+            if (errorEl) {
+                errorEl.textContent = e.message || "Link failed";
+                errorEl.style.display = "block";
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Link Device";
+            }
+        }
+    }
+
+
 
     function bindAlarmAckButtons(freezer) {
         document.querySelectorAll("[data-ack-alarm]").forEach(btn => {
@@ -677,9 +853,13 @@
                 <span class="bb-temp-badge cold">-150°C</span>
                 <span style="font-size:0.85rem;color:var(--bb-text-muted);font-weight:500;">${racks.length} Racks</span>
             </div>
-            ${iotPanel}
-            <div class="bb-open-150-lid-bar" aria-hidden="true"></div>
-            <div class="bb-open-chest-body">${interior}</div>
+            <div class="bb-150-row">
+                <div class="bb-150-iot">${iotPanel}</div>
+                <div class="bb-150-main">
+                    <div class="bb-open-150-lid-bar" aria-hidden="true"></div>
+                    <div class="bb-open-chest-body">${interior}</div>
+                </div>
+            </div>
         </div>`;
         } else {
             const shelves = await apiGet(API.shelves(fz.id));
@@ -719,6 +899,8 @@
 
         // ربط أزرار Acknowledge بعد ما يتحط الـ HTML
         bindAlarmAckButtons(fz);
+        // رسم الجراف بعد ما الـ DOM يتحط
+        renderTempChart(iot.readings);
     }
 
 
@@ -1919,6 +2101,14 @@
     function attachEvents() {
         // Document-level so breadcrumb (outside #biobankApp) works
         document.addEventListener("click", async (e) => {
+            const linkBtn = e.target.closest("[data-action='link-iot']");
+            if (linkBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const freezerId = linkBtn.dataset.freezerId;
+                if (freezerId) openLinkIoTModal(freezerId);
+                return;
+            }
             const actionEl = e.target.closest("[data-action='open-modal']");
             if (actionEl) {
                 openModal(actionEl);

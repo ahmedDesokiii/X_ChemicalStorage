@@ -26,6 +26,12 @@ namespace X_ChemicalStorage.Models
         [MaxLength(4000)]
         public string? RawPayload { get; set; }
 
+        // ===== جديد =====
+        public decimal? SetTemperature { get; set; }        // الحرارة المضبوطة
+        public decimal? AmbientTemperature { get; set; }    // حرارة الغرفة
+        public bool? HighCompressorRunning { get; set; }    // High Temperature Compressor
+        public bool? CryoCompressorRunning { get; set; }    // Cryogenic Compressor
+
         [ForeignKey(nameof(FreezerId))]
         public Bio_Freezer Freezer { get; set; } = null!;
     }

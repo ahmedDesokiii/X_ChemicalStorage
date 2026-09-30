@@ -244,6 +244,132 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("ERP_WebUsers", (string)null);
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_AlarmContact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FreezerId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("TelegramChatId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive", "Tier");
+
+                    b.ToTable("AlarmContacts");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_AlarmNotification", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AlarmId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("ContactId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContactName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("FreezerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("NextAttemptAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Recipient")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlarmId");
+
+                    b.HasIndex("FreezerId", "CreatedAt");
+
+                    b.HasIndex("Status", "NextAttemptAt");
+
+                    b.ToTable("AlarmNotifications");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
                 {
                     b.Property<string>("Id")
@@ -314,7 +440,8 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("CurrentTemperature")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
 
                     b.Property<int>("DrawersPerRack")
                         .HasColumnType("int");
@@ -360,6 +487,10 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("AckNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<DateTime?>("AcknowledgedAt")
                         .HasColumnType("datetime2");
 
@@ -371,6 +502,12 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ClearedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EscalatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FreezerId")
                         .IsRequired()
@@ -388,12 +525,16 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<decimal?>("PeakValue")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
                     b.Property<DateTime>("TriggeredAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FreezerId");
+                    b.HasIndex("FreezerId", "IsCleared");
 
                     b.ToTable("Bio_FreezerAlarms");
                 });
@@ -406,6 +547,13 @@ namespace X_ChemicalStorage.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<decimal?>("AmbientTemperature")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<bool?>("CryoCompressorRunning")
+                        .HasColumnType("bit");
+
                     b.Property<string>("DoorStatus")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -414,6 +562,9 @@ namespace X_ChemicalStorage.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool?>("HighCompressorRunning")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsOnline")
                         .HasColumnType("bit");
@@ -426,17 +577,66 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<decimal?>("SetTemperature")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
                     b.Property<decimal>("Temperature")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FreezerId");
+                    b.HasIndex("FreezerId", "Timestamp");
 
                     b.ToTable("Bio_FreezerReadings");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_FreezerSettings", b =>
+                {
+                    b.Property<string>("FreezerId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CommissioningEndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DoorOpenMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EscalationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("HighTempLimit")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<bool>("IsCommissioning")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LowTempLimit")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<int>("OfflineAfterMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TempAlarmDelayMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("FreezerId");
+
+                    b.ToTable("Bio_FreezerSettings");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_IoTDevice", b =>
@@ -473,6 +673,9 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CollectorCode")
+                        .IsUnique();
 
                     b.HasIndex("FreezerId");
 
@@ -1523,7 +1726,7 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Freezer")
                         .WithMany()
                         .HasForeignKey("FreezerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Freezer");
@@ -1534,6 +1737,17 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Freezer")
                         .WithMany()
                         .HasForeignKey("FreezerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Freezer");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Bio_FreezerSettings", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Bio_Freezer", "Freezer")
+                        .WithOne()
+                        .HasForeignKey("X_ChemicalStorage.Models.Bio_FreezerSettings", "FreezerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

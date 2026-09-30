@@ -242,6 +242,9 @@ namespace X_ChemicalStorage.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            builder.ConfigureBioIoT();
+            builder.ConfigureBioNotifications();
+
         }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<StorageUnitType> StorageUnitTypes { get; set; }
@@ -283,6 +286,10 @@ namespace X_ChemicalStorage.Data
         public DbSet<Bio_IoTDevice> Bio_IoTDevices { get; set; }
         public DbSet<Bio_FreezerReading> Bio_FreezerReadings { get; set; }
         public DbSet<Bio_FreezerAlarm> Bio_FreezerAlarms { get; set; }
+        public DbSet<Bio_FreezerSettings> Bio_FreezerSettings { get; set; }
+
+        public DbSet<Bio_AlarmContact> AlarmContacts { get; set; }
+        public DbSet<Bio_AlarmNotification> AlarmNotifications { get; set; }
 
     }
 }

@@ -732,13 +732,15 @@ namespace X_ChemicalStorage.Controllers
             return Ok(list);
         }
 
+
+        // ===== في BioBankController.cs: استبدل أكشن AcknowledgeAlarm =====
         [HttpPost("api/alarms/{id}/acknowledge")]
-        public async Task<IActionResult> AcknowledgeAlarm(long id)
+        public async Task<IActionResult> AcknowledgeAlarm(long id, [FromBody] AckAlarmDto? dto)
         {
             var user = ResolvePerformedBy(null);
             try
             {
-                await _ioTService.AcknowledgeAlarmAsync(id, user);
+                await _ioTService.AcknowledgeAlarmAsync(id, user, dto?.Note);
                 return Ok(new { message = "Acknowledged" });
             }
             catch (InvalidOperationException ex)
@@ -762,7 +764,7 @@ namespace X_ChemicalStorage.Controllers
             [FromQuery] decimal temp = -78.5m,
             [FromQuery] bool online = true)
         {
-            await _ioTService.ProcessIncomingReadingAsync(new IngestReadingDto
+            var result = await _ioTService.ProcessIncomingReadingAsync(new IngestReadingDto
             {
                 CollectorCode = collector,
                 Temperature = temp,
@@ -771,12 +773,26 @@ namespace X_ChemicalStorage.Controllers
                 PowerStatus = "OK"
             });
 
+            if (result == IngestResult.UnknownDevice)
+                return NotFound(new { message = $"Collector '{collector}' is not linked to any active freezer." });
+
+            return Ok(new { message = "Reading ingested", result = result.ToString(), collector, temperature = temp, isOnline = online });
+
+           
+        }
+
+        [HttpGet("api/iot/db-info")]
+        public async Task<IActionResult> DbInfo([FromServices] ApplicationDbContext db)
+        {
+            var c = db.Database.GetDbConnection();
             return Ok(new
             {
-                message = "Reading ingested successfully",
-                collector,
-                temperature = temp,
-                isOnline = online
+                server = c.DataSource,
+                database = c.Database,
+                devices = await db.Bio_IoTDevices
+                    .Select(d => new { d.Id, d.FreezerId, d.CollectorCode, d.IsActive }).ToListAsync(),
+                freezers = await db.Bio_Freezers
+                    .Select(f => new { f.Id, f.Status, f.CurrentTemperature, f.LastReadingAt }).ToListAsync()
             });
         }
 
