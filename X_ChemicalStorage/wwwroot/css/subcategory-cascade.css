@@ -1,0 +1,171 @@
+﻿/* ===== SubCategory cascade — states, shimmer, glow, breadcrumb pill ===== */
+
+.subcat-field {
+    position: relative;
+    transition: opacity .25s ease;
+}
+
+    .subcat-field select {
+        transition: box-shadow .3s ease, background-color .3s ease, border-color .3s ease;
+    }
+
+    /* idle / empty / error */
+    .subcat-field[data-state="idle"] select,
+    .subcat-field[data-state="empty"] select {
+        background-color: #f1f3f5;
+        color: #868e96;
+    }
+
+    .subcat-field[data-state="error"] select {
+        background-color: #fff5f5;
+        color: #c92a2a;
+        border-color: #ffa8a8;
+    }
+
+    /* loading shimmer */
+    .subcat-field[data-state="loading"] select {
+        color: #868e96;
+        background: linear-gradient(90deg, #f1f3f5 25%, #dbe4ea 37%, #f1f3f5 63%);
+        background-size: 400% 100%;
+        animation: subcat-shimmer 1.2s ease-in-out infinite;
+    }
+
+@keyframes subcat-shimmer {
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+/* ready — soft glow pulse each time the list refreshes or a value is picked */
+.subcat-field[data-state="ready"] select {
+    background-color: #fff;
+    border-color: #198754;
+}
+
+.subcat-field.subcat-pop select {
+    animation: subcat-glow .9s ease-out;
+}
+
+@keyframes subcat-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(25,135,84,.55);
+        transform: scale(.985);
+    }
+
+    40% {
+        transform: scale(1.01);
+    }
+
+    100% {
+        box-shadow: 0 0 0 14px rgba(25,135,84,0);
+        transform: scale(1);
+    }
+}
+
+/* breadcrumb pill below the field */
+.subcat-hint {
+    min-height: 0;
+    text-align: center;
+}
+
+.subcat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .5rem;
+    padding: .25rem .9rem;
+    font-size: .8rem;
+    font-weight: 600;
+    color: #032b42;
+    background: linear-gradient(135deg, #e3f2fd, #d3f9d8);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(3,43,66,.12);
+    animation: subcat-slide .45s cubic-bezier(.2,.9,.3,1.3) both;
+}
+
+.subcat-pill-sub {
+    color: #0b7a43;
+    animation: subcat-slide .4s .08s ease both;
+}
+
+.subcat-pill-arrow {
+    font-size: .7rem;
+    opacity: .6;
+}
+
+.subcat-pill-count {
+    color: #495057;
+    font-weight: 500;
+}
+
+@keyframes subcat-slide {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== SubCategory badges in Categories/Index ===== */
+.subcat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .7rem;
+    margin: .15rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #5c7c8a, #758A93);
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 600;
+    animation: subcat-slide .4s ease both;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .subcat-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(3,43,66,.25);
+    }
+
+    .subcat-badge a {
+        color: #fff;
+        opacity: .75;
+        transition: opacity .15s, transform .15s;
+    }
+
+        .subcat-badge a:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+/* modal entrance for the SubCategory modal */
+#subCategoryModal.fade .modal-dialog {
+    transform: translateY(30px) scale(.96);
+    transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s;
+}
+
+#subCategoryModal.show .modal-dialog {
+    transform: none;
+}
+
+.subcat-parent-chip {
+    background: #e7f5ff;
+    color: #032b42;
+    font-weight: 700;
+    border: 1px dashed #74c0fc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .subcat-field *, .subcat-pill, .subcat-badge, #subCategoryModal .modal-dialog {
+        animation: none !important;
+        transition: none !important;
+    }
+}

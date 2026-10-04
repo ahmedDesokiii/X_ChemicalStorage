@@ -99,28 +99,28 @@
                                                 {
                                                     foreach (var sc in subCats)
                                                     {
-                                                        <span class="badge bg-secondary m-1">
+                                                        <span class="subcat-badge">
                                                             @sc.Name
-                                                            <a href="#" class="text-white" title="Edit"
-                                                               onclick="EditSubCategory('@sc.Id','@sc.Name','@sc.Details','@cat.Id')"
+                                                            <a href="#" title="Edit"
+                                                               data-subcat-edit
+                                                               data-id="@sc.Id" data-name="@sc.Name" data-details="@sc.Details"
+                                                               data-cat-id="@cat.Id" data-cat-name="@cat.Name"
                                                                data-bs-toggle="modal" data-bs-target="#subCategoryModal">
                                                                 <i class="bi bi-pencil-fill"></i>
                                                             </a>
-                                                            <a href="#" class="text-white" title="Delete" onclick="DeleteSubCategory('@sc.Id')">
-                                                                <i class="bi bi-x-lg"></i>
-                                                            </a>
+                                                            <a href="#" title="Delete" data-subcat-delete data-id="@sc.Id"><i class="bi bi-x-lg"></i></a>
                                                         </span>
                                                     }
                                                 }
                                                 else
                                                 {
+
                                                     <span class="text-muted small">No subcategories</span>
                                                 }
                                             </td>
                                             <td class="py-1">
-                                                <a class="btn fw-bold btn-outline-primary bg-transparent border-0 p-0 mx-1 fs-4"
-                                                   title="Add SubCategory"
-                                                   onclick="ResetSubCategory('@cat.Id')"
+                                                <a class="btn fw-bold btn-outline-primary bg-transparent border-0 p-0 mx-1 fs-4" title="Add SubCategory"
+                                                   data-subcat-add data-cat-id="@cat.Id" data-cat-name="@cat.Name"
                                                    data-bs-toggle="modal" data-bs-target="#subCategoryModal">
                                                     <i class="bi bi-diagram-3-fill"></i>
                                                 </a>

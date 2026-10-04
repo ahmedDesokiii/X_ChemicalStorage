@@ -56,20 +56,17 @@
                     </div>
 
                     <!-- SubCategory -->
-                    <div class="input-group mt-2 row mx-auto">
-                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4"
-                              id="inputGroup-sizing-subcategory">
+                    <div class="input-group mt-2 row mx-auto subcat-field" id="subCatField" data-state="idle">
+                        <span class="input-group-text bg-info-subtle fw-bold rounded-end-3 col-md-4 col-4">
                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SubCategory
                         </span>
-                        <select id="itemSubCategory" required class="form-select text-center col-md-8 col-8"
-                                asp-items="@Model.ListSubCategories" asp-for="NewItem.SubCategoryId"
-                                style="border-top-right-radius : 20px ;" disabled>
-                            <option value="" selected disabled>Choose Category first</option>
+                        <select id="itemSubCategory" class="form-select text-center col-md-8 col-8"
+                                asp-for="NewItem.SubCategoryId" style="border-top-right-radius:20px;">
+                            <option value="">Choose Category first</option>
                         </select>
                     </div>
-                    <span asp-validation-for="@Model.NewItem.SubCategoryId" class="text-danger"></span>
-
-
+                    <div id="subCatHint" class="subcat-hint"></div>
+                    <span asp-validation-for="NewItem.SubCategoryId" class="text-danger"></span>
 
                     <span asp-validation-for="@Model.NewItem.CategoryId" class="text-danger"></span>
                     <!-- ItemQuantity -->
@@ -148,3 +145,5 @@
         </div>
     </div>
 </div>
+<link rel="stylesheet" href="~/css/subcategory-cascade.css" asp-append-version="true" />
+<script src="~/js/subcategory-cascade.js" asp-append-version="true"></script>

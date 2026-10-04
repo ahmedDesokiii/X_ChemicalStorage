@@ -84,6 +84,10 @@
                         <span class="info-value">@Model?.NewItem?.Category?.Name</span>
                     </div>
                     <div class="info-row">
+                        <span class="info-label"><i class="bi bi-diagram-3-fill"></i> SubCategory</span>
+                        <span class="info-value">@(Model?.NewItem?.SubCategory?.Name ?? "—")</span>
+                    </div>
+                    <div class="info-row">
                         <span class="info-label"><i class="bi bi-boxes"></i> Available Qty</span>
                         <span class="info-value">@Model?.NewItem?.AvilableQuantity</span>
                     </div>

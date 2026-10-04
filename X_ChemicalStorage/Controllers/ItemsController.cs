@@ -324,5 +324,20 @@ namespace X_ChemicalStorage.Controllers
             return View();
         }
         #endregion
+
+        #region SubCategories by Category (cascade dropdown)
+        [HttpGet]
+        public IActionResult GetSubCategoriesByCategory(int categoryId)
+        {
+            var list = _context.SubCategories
+                .AsNoTracking()
+                .Where(sc => sc.CategoryId == categoryId && sc.CurrentState > 0)
+                .OrderBy(sc => sc.Name)
+                .Select(sc => new { id = sc.Id, name = sc.Name })
+                .ToList();
+
+            return Json(list);
+        }
+        #endregion
     }
 }

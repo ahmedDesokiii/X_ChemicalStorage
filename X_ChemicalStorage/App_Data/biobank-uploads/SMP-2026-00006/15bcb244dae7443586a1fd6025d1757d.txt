@@ -4009,6 +4009,8 @@ EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId , unitId , 
     } else {
         document.getElementById("sdsNo").checked = true;
     }
+
+    ItemSubCat.edit(categoryId, subCategoryId);
 }
 ResetItem = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;
@@ -4025,6 +4027,8 @@ ResetItem = () => {
     document.getElementById("itemLocation").selectedIndex = 0;
     document.getElementById("sdsYes").checked = false;
     document.getElementById("sdsNo").checked = false;
+
+    ItemSubCat.reset();
 }
 DeleteItem = (id) => {
     Swal.fire({
