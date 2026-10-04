@@ -16,6 +16,9 @@ namespace X_ChemicalStorage.BioBank.Services
             else if (s.StartsWith("0") && s.Length == 11) s = "+20" + s.Substring(1); // 010xxxxxxxx
             else return null;
 
+            // صفر الشبكة الزايد بعد كود مصر (+2001xxxxxxxxx => +201xxxxxxxxx)
+            if (s.StartsWith("+200")) s = "+20" + s.Substring(4);
+
             return Regex.IsMatch(s, @"^\+\d{8,15}$") ? s : null;
         }
     }

@@ -517,6 +517,9 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<bool>("IsCleared")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("LastNotifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
@@ -528,6 +531,9 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<decimal?>("PeakValue")
                         .HasPrecision(6, 2)
                         .HasColumnType("decimal(6,2)");
+
+                    b.Property<int>("ReminderCount")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("TriggeredAt")
                         .HasColumnType("datetime2");

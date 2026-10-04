@@ -5,14 +5,24 @@
         public const string SectionName = "Notifications";
 
         public bool NotifyOnCleared { get; set; } = true;
-        public int MaxAttempts { get; set; } = 5;
+        public int MaxAttempts { get; set; } = 20;     // حوالي 3 ساعات محاولات (يغطي انقطاع النت)
         public int WorkerIntervalSeconds { get; set; } = 5;
         public int ExpireAfterHours { get; set; } = 12;     // إشعار متأخر أكتر من كده يتلغي
         public string TimeZoneId { get; set; } = "Egypt Standard Time";
 
+        public ReminderOptions Reminder { get; set; } = new();
+
         public SmsHttpOptions Sms { get; set; } = new();
         public EmailOptions Email { get; set; } = new();
         public TelegramOptions Telegram { get; set; } = new();
+    }
+
+    /// تذكير متكرر لحد ما حد يستلم الإنذار (أو الحالة ترجع طبيعية).
+    public class ReminderOptions
+    {
+        public bool Enabled { get; set; } = true;
+        public int IntervalMinutes { get; set; } = 15;   // الفاصل بين التذكيرات
+        public int MaxReminders { get; set; } = 20;      // 0 = بدون حد (مش مُستحسن: تكلفة SMS)
     }
 
     /// أي مزوّد SMS بيقبل HTTP. المتغيرات المتاحة في القوالب: {to} و {message}

@@ -14,7 +14,7 @@
         };
 
         /// رسالة قصيرة بحروف GSM العادية (بدون ° عشان الـ SMS ما يتحولش لـ Unicode ويبقى 70 حرف بدل 160).
-        public static (string Subject, string Body) Build(AlarmNotification n, DateTime localTime)
+        public static (string Subject, string Body) Build(AlarmNotification n, DateTime localTime, DateTime? localTriggered = null)
         {
             var t = localTime.ToString("dd/MM HH:mm");
             var msg = (n.Message ?? "").Replace("°C", "C").Replace("°", "");
@@ -25,6 +25,12 @@
                 case AlarmEventKind.Escalated:
                     subject = $"[BioBank] ESCALATED {n.FreezerId}: {Friendly(n.AlarmType)}";
                     body = $"[BioBank] ESCALATED L{n.Level} {n.FreezerId} {Friendly(n.AlarmType)} - not acknowledged. {msg} ({t})";
+                    break;
+                case AlarmEventKind.Reminder:
+                    var mins = localTriggered.HasValue ? Math.Max(0, (int)(localTime - localTriggered.Value).TotalMinutes) : 0;
+                    var since = localTriggered.HasValue ? localTriggered.Value.ToString("HH:mm") : "?";
+                    subject = $"[BioBank] REMINDER #{n.Sequence} {n.FreezerId}: {Friendly(n.AlarmType)}";
+                    body = $"[BioBank] REMINDER #{n.Sequence} L{n.Level} {n.FreezerId} {Friendly(n.AlarmType)} - NOT acknowledged for {mins} min (since {since}). {msg} Acknowledge in BioBank to stop reminders.";
                     break;
                 case AlarmEventKind.Cleared:
                     subject = $"[BioBank] Cleared {n.FreezerId}: {Friendly(n.AlarmType)}";

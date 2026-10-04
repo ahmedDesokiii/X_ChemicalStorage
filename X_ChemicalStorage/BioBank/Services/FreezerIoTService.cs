@@ -13,18 +13,16 @@ namespace X_ChemicalStorage.BioBank.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly MqttOptions _mqtt;
-
-        // حدود مؤقتة: هتتستبدل بإعدادات كل فريزر في البند 3
-        private const decimal HighTempThreshold80 = -70m;
-        private const decimal HighTempThreshold150 = -140m;
+        private readonly IFreezerAlarmEngine _alarms;
 
         // آخر قراءة اتخزنت لكل فريزر (لتطبيق فاصل التخزين)
         private static readonly ConcurrentDictionary<string, (DateTime At, string? Door, string? Power)> _lastStored = new();
 
-        public FreezerIoTService(ApplicationDbContext db, IOptions<MqttOptions> mqtt)
+        public FreezerIoTService(ApplicationDbContext db, IOptions<MqttOptions> mqtt, IFreezerAlarmEngine alarms)
         {
             _db = db;
             _mqtt = mqtt.Value;
+            _alarms = alarms;
         }
 
         private bool ShouldStore(string freezerId, DateTime now, string? door, string? power)
@@ -75,60 +73,16 @@ namespace X_ChemicalStorage.BioBank.Services
                 }
             }
 
-            // ===== منطق الإنذارات القديم (بيتبدّل بالكامل في البند 3) =====
-            if (!dto.IsOnline)
-            {
-                freezer.Status = FreezerStatus.Offline;
-                await EnsureAlarmAsync(freezer.Id, "Offline", 1, "Gateway is offline");
-            }
-            else if (dto.Temperature.HasValue)
-            {
-                decimal threshold = freezer.Type == FreezerType.Minus150
-                    ? HighTempThreshold150
-                    : HighTempThreshold80;
-
-                if (dto.Temperature.Value > threshold)
-                {
-                    freezer.Status = FreezerStatus.Alarm;
-                    await EnsureAlarmAsync(freezer.Id, "HighTemp", 1,
-                        $"Temperature {dto.Temperature.Value:F1}°C exceeded threshold {threshold}°C");
-                }
-                else if (freezer.Status == FreezerStatus.Alarm || freezer.Status == FreezerStatus.Offline)
-                {
-                    var hasActive = await _db.Bio_FreezerAlarms
-                        .AnyAsync(a => a.FreezerId == freezer.Id && !a.IsCleared);
-                    if (!hasActive)
-                        freezer.Status = FreezerStatus.Online;
-                }
-                else
-                {
-                    freezer.Status = FreezerStatus.Online;
-                }
-            }
+            // ===== محرك الإنذارات =====
+            await _alarms.EvaluateReadingAsync(freezer, dto, now);
 
             await _db.SaveChangesAsync();
 
             if (store)
                 _lastStored[freezer.Id] = (now, dto.DoorStatus, dto.PowerStatus);
 
+            await _alarms.FlushNotificationsAsync();
             return result;
-        }
-
-        private async Task EnsureAlarmAsync(string freezerId, string type, int level, string message)
-        {
-            var exists = await _db.Bio_FreezerAlarms
-                .AnyAsync(a => a.FreezerId == freezerId && a.AlarmType == type && !a.IsCleared);
-
-            if (exists) return;
-
-            _db.Bio_FreezerAlarms.Add(new Bio_FreezerAlarm
-            {
-                FreezerId = freezerId,
-                AlarmType = type,
-                Level = level,
-                Message = message,
-                TriggeredAt = DateTime.UtcNow
-            });
         }
 
         public async Task<Bio_IoTDeviceDto> LinkDeviceAsync(LinkIoTDeviceDto dto)
@@ -177,7 +131,8 @@ namespace X_ChemicalStorage.BioBank.Services
 
         public async Task<List<Bio_FreezerAlarmDto>> GetActiveAlarmsAsync(string? freezerId = null)
         {
-            var query = _db.Bio_FreezerAlarms.AsNoTracking().Where(a => !a.IsCleared);
+            // مفتوح = الحالة لسه شغالة، أو اتقفلت ومحدش استلمها
+            var query = _db.Bio_FreezerAlarms.AsNoTracking().Where(a => !a.IsCleared || a.AcknowledgedAt == null);
             if (!string.IsNullOrWhiteSpace(freezerId))
                 query = query.Where(a => a.FreezerId == freezerId);
 
@@ -193,32 +148,27 @@ namespace X_ChemicalStorage.BioBank.Services
                     TriggeredAt = a.TriggeredAt,
                     AcknowledgedAt = a.AcknowledgedAt,
                     AcknowledgedBy = a.AcknowledgedBy,
+                    AckNote = a.AckNote,
+                    ClearedAt = a.ClearedAt,
+                    EscalatedAt = a.EscalatedAt,
+                    PeakValue = a.PeakValue,
                     IsCleared = a.IsCleared
                 })
                 .ToListAsync();
         }
 
+        /// الاستلام لا يغلق الإنذار: الإغلاق تلقائي لما الحالة ترجع طبيعية.
         public async Task AcknowledgeAlarmAsync(long alarmId, string performedBy, string? note = null)
         {
             var alarm = await _db.Bio_FreezerAlarms.FirstOrDefaultAsync(a => a.Id == alarmId)
                 ?? throw new InvalidOperationException("Alarm not found.");
 
-            if (alarm.IsCleared) return;
+            if (alarm.AcknowledgedAt != null) return;
 
-            alarm.IsCleared = true;
             alarm.AcknowledgedAt = DateTime.UtcNow;
             alarm.AcknowledgedBy = performedBy;
-
-            // لو مفيش إنذارات تانية نشطة → نرجّع الحالة Online
-            var stillActive = await _db.Bio_FreezerAlarms
-                .AnyAsync(a => a.FreezerId == alarm.FreezerId && !a.IsCleared && a.Id != alarmId);
-
-            if (!stillActive)
-            {
-                var freezer = await _db.Bio_Freezers.FirstOrDefaultAsync(f => f.Id == alarm.FreezerId);
-                if (freezer != null && freezer.Status == FreezerStatus.Alarm)
-                    freezer.Status = FreezerStatus.Online;
-            }
+            var n = note?.Trim();
+            alarm.AckNote = string.IsNullOrEmpty(n) ? null : (n.Length <= 500 ? n : n.Substring(0, 500));
 
             await _db.SaveChangesAsync();
         }

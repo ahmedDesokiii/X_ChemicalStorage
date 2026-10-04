@@ -2,7 +2,7 @@
 
 namespace X_ChemicalStorage.BioBank.Services
 {
-    public enum AlarmEventKind { Raised, Escalated, Cleared }
+    public enum AlarmEventKind { Raised, Escalated, Cleared, Reminder }
 
     public record AlarmNotification(
         AlarmEventKind Kind,
@@ -11,7 +11,8 @@ namespace X_ChemicalStorage.BioBank.Services
         string AlarmType,
         int Level,
         string Message,
-        DateTime TriggeredAt);
+        DateTime TriggeredAt,
+        int Sequence = 0);        // رقم التذكير (للتذكيرات فقط)
 
     /// نقطة توصيل الإشعارات (SMS / صوت محلي / ...). الفشل هنا ما بيوقفش استقبال القراءات.
     public interface IAlarmNotifier

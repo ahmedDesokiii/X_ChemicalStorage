@@ -734,6 +734,7 @@ namespace X_ChemicalStorage.Controllers
 
 
         // ===== في BioBankController.cs: استبدل أكشن AcknowledgeAlarm =====
+
         [HttpPost("api/alarms/{id}/acknowledge")]
         public async Task<IActionResult> AcknowledgeAlarm(long id, [FromBody] AckAlarmDto? dto)
         {
@@ -750,38 +751,37 @@ namespace X_ChemicalStorage.Controllers
         }
 
 
-
         //////////// Test 
         ///
         /// <summary>
         /// تجربة سريعة من البراوزر — امسح بعد الاختبار
-        /// مثال: /biobank/api/iot/test-ingest?collector=GF5022315032881&temp=-65
-        /// </summary>
 
         [HttpGet("api/iot/test-ingest")]
         public async Task<IActionResult> TestIngest(
             [FromQuery] string collector = "GF5022315032881",
-            [FromQuery] decimal temp = -78.5m,
-            [FromQuery] bool online = true)
+            [FromQuery] decimal? temp = null,
+            [FromQuery] bool online = true,
+            [FromQuery] string door = "Closed",
+            [FromQuery] string power = "OK")
         {
             var result = await _ioTService.ProcessIncomingReadingAsync(new IngestReadingDto
             {
                 CollectorCode = collector,
                 Temperature = temp,
                 IsOnline = online,
-                DoorStatus = "Closed",
-                PowerStatus = "OK"
+                DoorStatus = door,
+                PowerStatus = power
             });
 
             if (result == IngestResult.UnknownDevice)
                 return NotFound(new { message = $"Collector '{collector}' is not linked to any active freezer." });
 
-            return Ok(new { message = "Reading ingested", result = result.ToString(), collector, temperature = temp, isOnline = online });
-
-           
+            return Ok(new { message = "Reading ingested", result = result.ToString(), collector, temperature = temp, door, power });
         }
 
+
         [HttpGet("api/iot/db-info")]
+
         public async Task<IActionResult> DbInfo([FromServices] ApplicationDbContext db)
         {
             var c = db.Database.GetDbConnection();

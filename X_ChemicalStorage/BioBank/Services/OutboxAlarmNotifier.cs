@@ -46,10 +46,14 @@ namespace X_ChemicalStorage.BioBank.Services
                     var t2 = contacts.Where(c => c.Tier == 2).ToList();
                     recipients = t2.Count > 0 ? t2 : contacts.Where(c => c.Tier == 1).ToList();
                     break;
+                case AlarmEventKind.Reminder:
+                    // التذكير للمسؤولين حالياً: مستوى 1 دايماً، ولو الإنذار اتصعّد يتضاف مستوى 2
+                    recipients = contacts.Where(c => c.Tier == 1 || (n.Level >= 2 && c.Tier == 2)).ToList();
+                    break;
                 case AlarmEventKind.Cleared:
                     var notified = await db.AlarmNotifications
                         .Where(x => x.AlarmId == n.AlarmId && x.ContactId != null
-                                    && (x.Kind == "Raised" || x.Kind == "Escalated")
+                                    && (x.Kind == "Raised" || x.Kind == "Escalated" || x.Kind == "Reminder")
                                     && x.Status != Bio_NotificationStatus.Skipped)
                         .Select(x => x.ContactId!.Value).ToListAsync(ct);
                     recipients = contacts.Where(c => notified.Contains(c.Id)).ToList();
@@ -60,7 +64,7 @@ namespace X_ChemicalStorage.BioBank.Services
             }
 
             var local = ToLocal(now);
-            var (subject, body) = AlarmMessageBuilder.Build(n, local);
+            var (subject, body) = AlarmMessageBuilder.Build(n, local, ToLocal(n.TriggeredAt));
             var kind = n.Kind.ToString();
             int created = 0, duplicates = 0;
 
@@ -70,9 +74,13 @@ namespace X_ChemicalStorage.BioBank.Services
                     var ch = _channels.FirstOrDefault(x => x.Name == channelName);
                     if (ch == null || !ch.IsEnabled) continue;
 
-                    var exists = await db.AlarmNotifications.AnyAsync(x =>
-                        x.AlarmId == n.AlarmId && x.ContactId == c.Id && x.Channel == channelName && x.Kind == kind, ct);
-                    if (exists) { duplicates++; continue; }
+                    // التذكيرات بتتكرر بطبيعتها، فمفيش فحص تكرار ليها
+                    if (n.Kind != AlarmEventKind.Reminder)
+                    {
+                        var exists = await db.AlarmNotifications.AnyAsync(x =>
+                            x.AlarmId == n.AlarmId && x.ContactId == c.Id && x.Channel == channelName && x.Kind == kind, ct);
+                        if (exists) { duplicates++; continue; }
+                    }
 
                     db.AlarmNotifications.Add(new Bio_AlarmNotification
                     {
@@ -92,7 +100,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     created++;
                 }
 
-            if (created == 0 && duplicates == 0 && n.Kind != AlarmEventKind.Cleared)
+            if (created == 0 && duplicates == 0 && n.Kind != AlarmEventKind.Cleared && n.Kind != AlarmEventKind.Reminder)
             {
                 // عشان يبان في السجل ليه محدش اتبلّغ
                 var reason = recipients.Count == 0

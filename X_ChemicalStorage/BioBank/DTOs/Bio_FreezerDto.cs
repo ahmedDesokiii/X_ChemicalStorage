@@ -43,6 +43,7 @@ namespace X_ChemicalStorage.BioBank.DTOs
         public bool HasActiveAlarm { get; set; }
         public string? IoTCollectorCode { get; set; }
         public string? IoTGatewaySerial { get; set; }
+        public class AckAlarmDto { [MaxLength(500)] public string? Note { get; set; } }
     }
 
     public class Bio_ShelfDto

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using X_ChemicalStorage.BioBank.DTOs;
+using Microsoft.Extensions.Options;
 using X_ChemicalStorage.BioBank.Enums;
+using X_ChemicalStorage.BioBank.Options;
 using X_ChemicalStorage.Data;
 using X_ChemicalStorage.Models;
 
@@ -24,13 +26,16 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly ApplicationDbContext _db;
         private readonly IAlarmNotifier _notifier;
         private readonly ILogger<FreezerAlarmEngine> _logger;
+        private readonly ReminderOptions _reminder;
         private readonly List<(AlarmEventKind Kind, Bio_FreezerAlarm Alarm)> _pending = new();
 
-        public FreezerAlarmEngine(ApplicationDbContext db, IAlarmNotifier notifier, ILogger<FreezerAlarmEngine> logger)
+        public FreezerAlarmEngine(ApplicationDbContext db, IAlarmNotifier notifier, ILogger<FreezerAlarmEngine> logger,
+            IOptions<NotificationOptions> options)
         {
             _db = db;
             _notifier = notifier;
             _logger = logger;
+            _reminder = options.Value.Reminder;
         }
 
         // ============================================================ قراءة واردة
@@ -70,7 +75,7 @@ namespace X_ChemicalStorage.BioBank.Services
             {
                 if (!maintenance)
                 {
-                    Raise(freezer, open, Bio_AlarmTypes.Offline, 1, "Gateway reported offline", null, now);
+                    Raise(freezer, open, Bio_AlarmTypes.Offline, 1, "Gateway reported offline. Check freezer power, gateway and network.", null, now);
                     freezer.Status = FreezerStatus.Offline;
                 }
                 return;
@@ -145,10 +150,12 @@ namespace X_ChemicalStorage.BioBank.Services
         {
             var devices = await _db.Bio_IoTDevices.Where(d => d.IsActive).ToListAsync(ct);
 
-            foreach (var device in devices)
+            // فريزر واحد قد يكون عليه أكتر من جهاز نشط (تجريبي + حقيقي): نعالجه مرة واحدة بس
+            foreach (var group in devices.GroupBy(d => d.FreezerId))
             {
-                var freezer = await _db.Bio_Freezers.FirstOrDefaultAsync(f => f.Id == device.FreezerId, ct);
+                var freezer = await _db.Bio_Freezers.FirstOrDefaultAsync(f => f.Id == group.Key, ct);
                 if (freezer == null) continue;
+                var firstLinkedAt = group.Min(d => d.CreatedAt);
 
                 var s = await GetSettingsAsync(freezer, now);
                 var open = await OpenAlarmsAsync(freezer.Id);
@@ -156,7 +163,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 bool manualMaintenance = !s.IsCommissioning && freezer.Status == FreezerStatus.Maintenance;
 
                 // ----- انقطاع الاتصال -----
-                var last = freezer.LastReadingAt ?? device.CreatedAt;
+                var last = freezer.LastReadingAt ?? firstLinkedAt;
                 bool stale = (now - last).TotalMinutes >= s.OfflineAfterMinutes;
 
                 if (stale && !manualMaintenance)
@@ -165,7 +172,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     ClearTimers(freezer.Id);   // بيانات قديمة: مهل التأخير تبدأ من جديد عند الرجوع
                     if (!s.IsCommissioning)
                         Raise(freezer, open, Bio_AlarmTypes.Offline, 1,
-                            $"No data received for {s.OfflineAfterMinutes}+ min (last: {last:u})", null, now);
+                            $"No data received for {s.OfflineAfterMinutes}+ min (last: {last:u}). Check freezer power, gateway and network.", null, now);
                 }
 
                 // ----- التصعيد -----
@@ -174,7 +181,24 @@ namespace X_ChemicalStorage.BioBank.Services
                 {
                     a.Level = 2;
                     a.EscalatedAt = now;
+                    a.LastNotifiedAt = now;
                     _pending.Add((AlarmEventKind.Escalated, a));
+                }
+
+                // ----- التذكير المتكرر: لحد ما حد يستلم (أو الحالة ترجع طبيعية) -----
+                if (_reminder.Enabled && !s.IsCommissioning && !manualMaintenance)
+                {
+                    var interval = Math.Max(1, _reminder.IntervalMinutes);
+                    foreach (var a in open.Where(a => !a.IsCleared && a.AcknowledgedAt == null))
+                    {
+                        if (_reminder.MaxReminders > 0 && a.ReminderCount >= _reminder.MaxReminders) continue;
+                        var lastSent = a.LastNotifiedAt ?? a.TriggeredAt;
+                        if ((now - lastSent).TotalMinutes < interval) continue;
+
+                        a.ReminderCount++;
+                        a.LastNotifiedAt = now;
+                        _pending.Add((AlarmEventKind.Reminder, a));
+                    }
                 }
             }
 
@@ -194,7 +218,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 try
                 {
                     await _notifier.NotifyAsync(new AlarmNotification(
-                        kind, a.Id, a.FreezerId, a.AlarmType, a.Level, a.Message, a.TriggeredAt), ct);
+                        kind, a.Id, a.FreezerId, a.AlarmType, a.Level, a.Message, a.TriggeredAt, a.ReminderCount), ct);
                 }
                 catch (Exception ex)
                 {
@@ -260,6 +284,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 Level = level,
                 Message = Trunc(message, 500)!,
                 TriggeredAt = now,
+                LastNotifiedAt = now,
                 PeakValue = value
             };
             _db.Bio_FreezerAlarms.Add(alarm);

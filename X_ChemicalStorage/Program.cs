@@ -116,9 +116,16 @@ builder.Services.AddScoped<IFreezerIoTService, FreezerIoTService>();
 
 //builder.Services.AddScoped<LotCleanupJob>();
 
+builder.Services.AddScoped<IFreezerAlarmEngine, FreezerAlarmEngine>();
+builder.Services.AddHostedService<FreezerWatchdogService>();
+builder.Services.AddSingleton<IAlarmNotifier, OutboxAlarmNotifier>();
 
-
+//builder.Services.AddScoped<IIoTDashboardService, IoTDashboardService>();
 #endregion
+
+
+
+
 // عشان الـ multipart form data يقبل لحد 100MB
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
