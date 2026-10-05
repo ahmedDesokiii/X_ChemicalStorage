@@ -2,9 +2,12 @@
 using X_ChemicalStorage.BioBank.DTOs;
 using X_ChemicalStorage.BioBank.Enums;
 using X_ChemicalStorage.BioBank.Services;
+using Microsoft.AspNetCore.Authorization;
+using X_ChemicalStorage.BioBank.Security;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     [Route("biobank")]
     public class BioBankController : Controller
     {
@@ -694,6 +697,8 @@ namespace X_ChemicalStorage.Controllers
         // ==================== IoT ====================
 
         [HttpPost("api/iot/ingest")]
+        [AllowAnonymous]                            
+        [IngestApiKey]
         public async Task<IActionResult> IngestReading([FromBody] IngestReadingDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -757,6 +762,7 @@ namespace X_ChemicalStorage.Controllers
         /// تجربة سريعة من البراوزر — امسح بعد الاختبار
 
         [HttpGet("api/iot/test-ingest")]
+        [TestModeOnly]
         public async Task<IActionResult> TestIngest(
             [FromQuery] string collector = "GF5022315032881",
             [FromQuery] decimal? temp = null,

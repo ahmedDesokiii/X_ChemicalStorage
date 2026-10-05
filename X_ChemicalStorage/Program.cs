@@ -1,6 +1,7 @@
 ﻿using X_ChemicalStorage.BioBank.Options;
 using X_ChemicalStorage.BioBank.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.AddHangfire(config =>
@@ -120,7 +121,14 @@ builder.Services.AddScoped<IFreezerAlarmEngine, FreezerAlarmEngine>();
 builder.Services.AddHostedService<FreezerWatchdogService>();
 builder.Services.AddSingleton<IAlarmNotifier, OutboxAlarmNotifier>();
 
-//builder.Services.AddScoped<IIoTDashboardService, IoTDashboardService>();
+builder.Services.AddScoped<IIoTDashboardService, IoTDashboardService>();
+
+builder.Services.Configure<X_ChemicalStorage.BioBank.Options.BackupOptions>(builder.Configuration.GetSection("Backup"));
+builder.Services.AddScoped<IBackupExecutor, SqlServerBackupExecutor>();
+builder.Services.AddScoped<SystemNoticeService>();
+builder.Services.AddScoped<IBackupService, BackupService>();
+builder.Services.AddHostedService<DailyBackupWorker>();
+
 #endregion
 
 
@@ -139,7 +147,13 @@ builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection(MqttOpt
 builder.Services.AddHostedService<FreezerMqttBackgroundService>();
 builder.Services.Configure<X_ChemicalStorage.BioBank.Options.NotificationOptions>(
     builder.Configuration.GetSection("Notifications"));
-builder.Services.AddHttpClient();
+
+
+builder.Services.AddSingleton<IoTHealth>();
+builder.Services.Configure<MonitoringOptions>(builder.Configuration.GetSection("Monitoring"));
+builder.Services.AddHttpClient();                       
+builder.Services.AddHostedService<HeartbeatService>();
+
 builder.Services.AddSingleton<INotificationChannel, SmsHttpChannel>();
 builder.Services.AddSingleton<INotificationChannel, EmailSmtpChannel>();
 builder.Services.AddSingleton<INotificationChannel, TelegramChannel>();
@@ -208,7 +222,7 @@ app.MapRazorPages();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    //db.Database.Migrate();
 }
 //app.Urls.Add("http://localhost:5000");
 

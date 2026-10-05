@@ -90,13 +90,15 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly IServiceScopeFactory _scopes;
         private readonly NotificationOptions _opt;
         private readonly ILogger<AlarmNotificationWorker> _log;
+        private readonly IoTHealth _health;
 
         public AlarmNotificationWorker(IServiceScopeFactory scopes, IOptions<NotificationOptions> opt,
-            ILogger<AlarmNotificationWorker> log)
+            ILogger<AlarmNotificationWorker> log, IoTHealth health)
         {
             _scopes = scopes;
             _opt = opt.Value;
             _log = log;
+            _health = health;
         }
 
         protected override async Task ExecuteAsync(CancellationToken ct)
@@ -110,6 +112,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     using var scope = _scopes.CreateScope();
                     var d = scope.ServiceProvider.GetRequiredService<NotificationDispatcher>();
                     await d.ProcessPendingAsync(DateTime.UtcNow, ct);
+                    _health.NotificationWorkerRan(DateTime.UtcNow);
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (Exception ex) { _log.LogError(ex, "Notification worker cycle failed"); }

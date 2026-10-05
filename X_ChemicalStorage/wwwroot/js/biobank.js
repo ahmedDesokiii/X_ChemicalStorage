@@ -2328,6 +2328,100 @@
         document.body.style.overflow = "";
     }
 
+
+    const BACKUP_API = { status: "/biobank/api/backup/status", run: "/biobank/api/backup/run" };
+
+    function bkToDate(s) {
+        if (!s) return null;
+        return new Date(/(Z|[+-]\d\d:\d\d)$/.test(s) ? s : s + "Z");   // السيرفر بيبعت UTC
+    }
+    function bkFmt(s) {
+        const d = bkToDate(s);
+        return d ? d.toLocaleString("en-GB", { hour12: false }) : "-";
+    }
+
+    function bindBackupUI() {
+        const addBtn = document.getElementById("bbBtnAddFreezer");
+        if (!addBtn) { console.warn("[BioBank] Add Freezer button not found - backup button not added"); return; }
+        if (document.getElementById("bbBtnBackup")) return;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.id = "bbBtnBackup";
+        // نفس شكل وحجم زر Add Freezer، بس باللون الأخضر (من الـ CSS)
+        btn.className = ((addBtn.className || "")
+            .replace(/\bbtn-(?:outline-)?(?:primary|secondary|success|danger|warning|info|light|dark|link)\b/g, "")
+            .replace(/\s+/g, " ").trim() + " bb-backup-btn").trim();
+        btn.innerHTML = '<span aria-hidden="true">&#128190;</span><span>Backup</span>';
+        btn.title = "Take a database backup now";
+        addBtn.insertAdjacentElement("afterend", btn);
+
+        btn.addEventListener("click", onBackupClick);
+        refreshBackupButton();
+        setInterval(refreshBackupButton, 5 * 60 * 1000);
+    }
+
+    async function refreshBackupButton() {
+        const btn = document.getElementById("bbBtnBackup");
+        if (!btn) return;
+        try {
+            const st = await apiGet(BACKUP_API.status);
+            let tip = st.lastSuccessAt ? `Last successful backup: ${bkFmt(st.lastSuccessAt)}` : "No successful backup yet";
+            if (st.nextRunLocal) tip += `\nNext automatic backup: ${String(st.nextRunLocal).replace("T", " ").slice(0, 16)}`;
+            if (st.warning) tip += `\n\u26A0 ${st.warning}`;
+            btn.title = tip;
+            btn.classList.toggle("bb-backup-warn", !!st.warning);
+        } catch (e) { /* مش مهم لو الحالة مش متاحة */ }
+    }
+
+    async function onBackupClick() {
+        const btn = document.getElementById("bbBtnBackup");
+        if (!btn || btn.disabled) return;
+
+        let st = null;
+        try { st = await apiGet(BACKUP_API.status); } catch (e) { /* نكمّل حتى لو الحالة مش متاحة */ }
+        const where = st && st.directory ? st.directory : "the configured backup folder";
+        const remote = st && st.isLocalServer === false ? " (a folder on the database server, not on this computer)" : "";
+
+        const confirmed = await Swal.fire({
+            title: "Backup the database now?",
+            text: `A full backup will be saved to ${where}${remote}.`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Start backup",
+            ...BB_SWAL_THEME
+        });
+        if (!confirmed.isConfirmed) return;
+
+        btn.disabled = true;
+        Swal.fire({
+            title: "Backing up\u2026",
+            text: "Please wait, don't close this page.",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading(),
+            ...BB_SWAL_THEME
+        });
+
+        try {
+            const r = await apiPost(BACKUP_API.run, {});
+            const parts = [r.fileName];
+            if (r.sizeBytes != null) parts.push(formatFileSize(r.sizeBytes));
+            parts.push(`${r.durationSeconds}s`);
+            if (r.verified) parts.push("verified");
+            if (r.attachmentsFileName) parts.push("attachments archived");
+            if (r.copiedToSecondary) parts.push("copied to the secondary folder");
+            await Swal.fire({ icon: "success", title: "Backup completed", text: parts.join("  |  "), ...BB_SWAL_THEME });
+        } catch (e) {
+            await Swal.fire({ icon: "error", title: "Backup failed", text: e.message, ...BB_SWAL_THEME });
+        } finally {
+            btn.disabled = false;
+            refreshBackupButton();
+        }
+    }
+
+
     // ===================== INIT =====================
     function init() {
         console.log("[BioBank] Init started");
@@ -2338,6 +2432,7 @@
             // Still try to bind Add Freezer even if other events failed
             try { bindAddFreezerUI(); } catch (e2) { console.error(e2); }
         }
+        try { bindBackupUI(); } catch (e) { console.error("[BioBank] bindBackupUI failed:", e); }
         navigateTo("room");
     }
 

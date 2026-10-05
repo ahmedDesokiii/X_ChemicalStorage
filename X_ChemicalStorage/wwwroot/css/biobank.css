@@ -2500,3 +2500,31 @@
         width: 100%;
     }
 }
+
+/* ===== Backup button (next to Add Freezer): نفس شكل .bb-btn-add بس أخضر ===== */
+.bb-backup-btn {
+    background: linear-gradient(135deg, #16a34a, #059669) !important;
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .bb-backup-btn:hover {
+        box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4) !important;
+    }
+
+    .bb-backup-btn:disabled {
+        opacity: 0.6;
+        cursor: wait;
+        transform: none !important;
+    }
+
+    /* تحذير: مفيش نسخة ناجحة من فترة أو آخر محاولة فشلت */
+    .bb-backup-btn.bb-backup-warn {
+        background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+    }
+
+        .bb-backup-btn.bb-backup-warn:hover {
+            box-shadow: 0 8px 20px rgba(234, 88, 12, 0.45) !important;
+        }

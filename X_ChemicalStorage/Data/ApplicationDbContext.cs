@@ -291,5 +291,8 @@ namespace X_ChemicalStorage.Data
         public DbSet<Bio_AlarmContact> AlarmContacts { get; set; }
         public DbSet<Bio_AlarmNotification> AlarmNotifications { get; set; }
 
+        public DbSet<Bio_FreezerSettingsAudit> FreezerSettingsAudit { get; set; }
+        public DbSet<Bio_BackupLog> BackupLogs { get; set; }
+
     }
 }

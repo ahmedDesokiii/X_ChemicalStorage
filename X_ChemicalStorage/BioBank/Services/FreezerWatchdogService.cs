@@ -7,11 +7,13 @@ namespace X_ChemicalStorage.BioBank.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<FreezerWatchdogService> _logger;
+        private readonly IoTHealth _health;
 
-        public FreezerWatchdogService(IServiceScopeFactory scopeFactory, ILogger<FreezerWatchdogService> logger)
+        public FreezerWatchdogService(IServiceScopeFactory scopeFactory, ILogger<FreezerWatchdogService> logger, IoTHealth health)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _health = health;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,6 +29,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     using var scope = _scopeFactory.CreateScope();
                     var engine = scope.ServiceProvider.GetRequiredService<IFreezerAlarmEngine>();
                     await engine.RunPeriodicChecksAsync(DateTime.UtcNow, stoppingToken);
+                    _health.WatchdogRan(DateTime.UtcNow);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                 catch (Exception ex)

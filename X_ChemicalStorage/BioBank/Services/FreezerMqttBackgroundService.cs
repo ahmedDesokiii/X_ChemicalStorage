@@ -16,12 +16,15 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly ILogger<FreezerMqttBackgroundService> _logger;
         private readonly HashSet<string> _unknownLogged = new();
         private readonly string _clientId;
+        private readonly IoTHealth _health;
 
         public FreezerMqttBackgroundService(
             IServiceScopeFactory scopeFactory,
             IOptions<MqttOptions> options,
-            ILogger<FreezerMqttBackgroundService> logger)
+            ILogger<FreezerMqttBackgroundService> logger,
+            IoTHealth health)
         {
+            _health = health;
             _scopeFactory = scopeFactory;
             _options = options.Value;
             _logger = logger;
@@ -31,6 +34,7 @@ namespace X_ChemicalStorage.BioBank.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _health.MqttEnabled = _options.Enabled;
             if (!_options.Enabled)
             {
                 _logger.LogInformation("Freezer MQTT service is disabled (Mqtt:Enabled=false).");
@@ -52,6 +56,7 @@ namespace X_ChemicalStorage.BioBank.Services
             {
                 try
                 {
+                    _health.MqttConnected = client.IsConnected;
                     if (!client.IsConnected)
                     {
                         if (wasConnected)
@@ -63,6 +68,7 @@ namespace X_ChemicalStorage.BioBank.Services
                         await ConnectAndSubscribeAsync(client, stoppingToken);
                         attempt = 0;
                         wasConnected = true;
+                        _health.MqttConnected = true;
                         _logger.LogInformation("MQTT connected to {Host}:{Port}, subscribed to {Topic}",
                             _options.Host, _options.Port, _options.Topic);
                     }
@@ -75,6 +81,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 }
                 catch (Exception ex)
                 {
+                    _health.MqttConnected = false;
                     attempt++;
                     var delay = attempt <= 1 ? 5 : attempt == 2 ? 10 : 30;
                     _logger.LogWarning("MQTT connect failed: {Reason}. Retrying in {Delay}s (attempt {Attempt})",
@@ -135,6 +142,7 @@ namespace X_ChemicalStorage.BioBank.Services
                     payload = (bytes == null || bytes.Length == 0) ? "{}" : Encoding.UTF8.GetString(bytes);
                 }
 
+                _health.MqttMessageReceived(DateTime.UtcNow);
                 _logger.LogDebug("MQTT {Topic}: {Payload}", topic, payload);
 
                 var dto = FreezerPayloadParser.Parse(topic, payload, _options, out var error, out var warnings);
