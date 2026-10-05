@@ -92,17 +92,25 @@
     function fill(list, selectedId) {
         setState('ready');
         list.forEach(function (x) {
-            // tolerate both camelCase and PascalCase JSON
-            const id = x.id ?? x.Id;
-            const name = x.name ?? x.Name;
-            sub.add(new Option(name, id, false, selectedId != null && selectedId !== '' && String(id) === String(selectedId)));
+            // يقبل: id/name  أو  Id/Name  أو  value/text  أو  Value/Text
+            const id = x.id ?? x.Id ?? x.value ?? x.Value;
+            const name = x.name ?? x.Name ?? x.text ?? x.Text;
+
+            if (id == null || name == null) return;   // تجاهل العناصر الفاضية
+
+            sub.add(new Option(name, id, false,
+                selectedId != null && selectedId !== '' && String(id) === String(selectedId)));
         });
-        if (selectedId == null || selectedId === '' || !sub.value) sub.selectedIndex = 0;
-        sub.options[0].disabled = true;
+
+        if (selectedId == null || selectedId === '' || !sub.value) {
+            sub.selectedIndex = 0;
+        }
+        if (sub.options.length > 0) {
+            sub.options[0].disabled = true;
+        }
         pop();
         renderHint(list.length);
     }
-
     async function load(categoryId, selectedId) {
         if (!els()) return;
         const myId = ++requestId;

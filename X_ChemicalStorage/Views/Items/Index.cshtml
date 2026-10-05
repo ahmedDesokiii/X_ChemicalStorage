@@ -211,7 +211,20 @@
 
                                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
                                         {
-                                            <a class="icon-btn" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageUnitTypeId','@item.CategoryId','@item.UnitId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
+                                            <a class="icon-btn" title="Edit" 
+                                            onclick="EditItem(
+                                            '@item.Id',
+                                            '@item.Code',
+                                            '@item.Name',
+                                            '@item.AvilableQuantity',
+                                            '@item.Limit',
+                                            '@item.SDS',
+                                            '@item.StorageUnitTypeId',
+                                            '@item.CategoryId',
+                                            '@item.UnitId',
+                                            '@item.SubCategoryId'
+                                            )"
+                                            data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
                                         }
 
                                         @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
@@ -321,7 +334,20 @@
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
                                                     {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.TotalQuantity','@item.Limit','@item.SDS','@item.StorageUnitTypeId','@item.CategoryId','@item.UnitId')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" 
+                                                            onclick="EditItem(
+                                                            '@item.Id',
+                                                            '@item.Code',
+                                                            '@item.Name',
+                                                            '@item.AvilableQuantity',
+                                                            '@item.Limit',
+                                                            '@item.SDS',
+                                                            '@item.StorageUnitTypeId',
+                                                            '@item.CategoryId',
+                                                            '@item.UnitId',
+                                                            '@item.SubCategoryId'
+                                                            )"
+                                                            data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                     }
                                                     @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
                                                     {

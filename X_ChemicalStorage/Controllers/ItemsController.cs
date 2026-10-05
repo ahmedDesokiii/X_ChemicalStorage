@@ -78,6 +78,7 @@ namespace X_ChemicalStorage.Controllers
                                     Value = l.Id.ToString(),
                                     Text = l.Name
                                 }).ToList();
+            
 
             return View(Items);
         }
@@ -326,6 +327,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region SubCategories by Category (cascade dropdown)
+
         [HttpGet]
         public IActionResult GetSubCategoriesByCategory(int categoryId)
         {
@@ -333,11 +335,29 @@ namespace X_ChemicalStorage.Controllers
                 .AsNoTracking()
                 .Where(sc => sc.CategoryId == categoryId && sc.CurrentState > 0)
                 .OrderBy(sc => sc.Name)
-                .Select(sc => new { id = sc.Id, name = sc.Name })
+                .Select(sc => new
+                {
+                    id = sc.Id,
+                    name = sc.Name
+                })
                 .ToList();
 
             return Json(list);
         }
+        //[HttpGet]
+        //public IActionResult GetSubCategoriesByCategory(int categoryId)
+        //{
+        //    var list = _context.SubCategories
+        //        .Where(sc => sc.CategoryId == categoryId && sc.CurrentState > 0)
+        //        .OrderBy(sc => sc.Name)
+        //        .Select(sc => new SelectListItem
+        //        {
+        //            Value = sc.Id.ToString(),
+        //            Text = sc.Name
+        //        }).ToList();
+
+        //    return Json(list);
+        //}
         #endregion
     }
 }

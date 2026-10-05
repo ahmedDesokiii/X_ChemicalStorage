@@ -224,10 +224,10 @@ DeleteUnit = (id) => {
     })
 }
 
-//Item Methods
-EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId , unitId , locationId) => {
+EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId, unitId, subCategoryId) => {
     document.getElementById("title").innerHTML = lbTitleEdit;
     document.getElementById("btnSave").value = lbEdit;
+
     document.getElementById("itemId").value = id;
     document.getElementById("itemCode").value = code;
     document.getElementById("itemCode").readOnly = true;
@@ -235,34 +235,89 @@ EditItem = (id, code, name, qnty, limit, sds, storagecon, categoryId , unitId , 
     document.getElementById("itemQnty").value = qnty;
     document.getElementById("itemQnty").readOnly = true;
     document.getElementById("itemLimit").value = limit;
-    document.getElementById("itemSDS").value = sds;
     document.getElementById("itemStorageCondition").value = storagecon;
-    document.getElementById("itemCategory").value = categoryId;
     document.getElementById("itemUnit").value = unitId;
-    document.getElementById("itemLocation").value = locationId;
 
-    if (sds == 'True') {
-        document.getElementById("sdsYes").checked = true;
+    // SDS
+    const isSdsValid = (sds === true || sds === 'True' || sds === 'true' || sds === 1 || sds === '1');
+    document.getElementById("itemSDS").value = isSdsValid ? 'True' : 'False';
+    document.getElementById("sdsYes").checked = isSdsValid;
+    document.getElementById("sdsNo").checked = !isSdsValid;
+
+    // Category + SubCategory عن طريق الـ cascade الرسمي
+    if (window.ItemSubCat) {
+        ItemSubCat.edit(categoryId, subCategoryId);
     } else {
-        document.getElementById("sdsNo").checked = true;
+        // fallback احتياطي
+        document.getElementById("itemCategory").value = categoryId;
     }
-}
+};
+
 ResetItem = () => {
     document.getElementById("title").innerHTML = lbAddNewRole;
     document.getElementById("btnSave").value = lbbtnSave;
-    //document.getElementById("itemCode").value = "generation in progress automatic ... !";
+
+    document.getElementById("itemId").value = 0;
     document.getElementById("itemCode").readOnly = false;
     document.getElementById("itemName").value = "";
-    document.getElementById("itemSDS").value = "1";
     document.getElementById("itemQnty").value = "0";
     document.getElementById("itemQnty").readOnly = false;
-    document.getElementById("itemStorageCondition").selectedIndex = 0;
-    document.getElementById("itemCategory").selectedIndex = 0;
-    document.getElementById("itemUnit").selectedIndex = 0;
-    document.getElementById("itemLocation").selectedIndex = 0;
+    document.getElementById("itemLimit").value = "1";
+
+    document.getElementById("itemSDS").value = "";
     document.getElementById("sdsYes").checked = false;
     document.getElementById("sdsNo").checked = false;
+
+    document.getElementById("itemStorageCondition").selectedIndex = 0;
+    document.getElementById("itemUnit").selectedIndex = 0;
+
+    // Reset cascade
+    if (window.ItemSubCat) {
+        ItemSubCat.reset();
+    }
+};
+// دالة مساعدة لتحميل SubCategories في وضع الـ Edit
+function loadSubCategoriesForEdit(categoryId, selectedSubCategoryId) {
+    const subSelect = document.getElementById("itemSubCategory");
+    if (!subSelect || !categoryId) {
+        if (subSelect) {
+            subSelect.innerHTML = '<option value="" selected disabled>Choose Category first</option>';
+            subSelect.disabled = true;
+        }
+        return;
+    }
+
+    // لو عندك الـ cascade جاهز استخدمه، وإلا استخدم الـ AJAX ده
+    fetch(`/Items/GetSubCategoriesByCategory?categoryId=${categoryId}`)
+        .then(res => res.json())
+        .then(data => {
+            subSelect.innerHTML = '<option value="" disabled>Choose SubCategory</option>';
+            subSelect.disabled = false;
+
+            data.forEach(item => {
+                const value = item.value || item.Value;
+                const text = item.text || item.Text;
+                const option = document.createElement('option');
+                option.value = value;
+                option.text = text;
+                if (selectedSubCategoryId && value == selectedSubCategoryId) {
+                    option.selected = true;
+                }
+                subSelect.appendChild(option);
+            });
+
+            // تأكيد الاختيار
+            if (selectedSubCategoryId) {
+                subSelect.value = selectedSubCategoryId;
+            }
+        })
+        .catch(err => {
+            console.error('Error loading SubCategories:', err);
+            subSelect.innerHTML = '<option value="" selected disabled>Error loading</option>';
+            subSelect.disabled = true;
+        });
 }
+
 DeleteItem = (id) => {
     Swal.fire({
         title: lbTitleMsgDelete,
