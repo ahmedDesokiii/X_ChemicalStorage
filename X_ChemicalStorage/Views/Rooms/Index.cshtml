@@ -580,6 +580,48 @@
             padding: 6px 10px;
         }
 
+    /* ===== Row action buttons (Unit / Shelf / Box) ===== */
+    .item-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+    }
+
+        .item-actions form {
+            margin: 0;
+        }
+
+    .btn-icon-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+        .btn-icon-sm.edit {
+            color: var(--accent);
+        }
+
+            .btn-icon-sm.edit:hover {
+                background: #e3f2fd;
+            }
+
+        .btn-icon-sm.delete {
+            color: var(--danger);
+        }
+
+            .btn-icon-sm.delete:hover {
+                background: #ffebee;
+            }
+
     /* ===== Footer Stats ===== */
     .room-footer {
         background: linear-gradient(180deg, #eef3f6 0%, #e8eef2 100%);
@@ -934,6 +976,23 @@
                                             </span>
                                             <span class="unit-name">@unit.Name</span>
                                             <span class="unit-status @unitStatusClass">
+                                                <span class="item-actions" onclick="event.stopPropagation()">
+                                                    <button type="button" class="btn-icon-sm edit" title="Edit Unit"
+                                                            data-id="@unit.Id"
+                                                            data-name="@unit.Name"
+                                                            data-type="@unit.StorageUnitTypeId"
+                                                            data-haz="@unit.IsHazardous.ToString().ToLower()"
+                                                            onclick="editUnit(this)">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </button>
+                                                    <form asp-action="DeleteStorageUnit" method="post"
+                                                          onsubmit="return confirm('Delete this storage unit with all its shelves and boxes?');">
+                                                        <input type="hidden" name="id" value="@unit.Id" />
+                                                        <button type="submit" class="btn-icon-sm delete" title="Delete Unit">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                </span>
                                                 <i class="bi @(unit.IsHazardous ? "bi-exclamation-triangle" : "bi-shield-check") me-1"></i>
                                                 @unitStatusText
                                             </span>
@@ -950,6 +1009,19 @@
                                                         <span class="shelf-count">
                                                             @(shelf.Boxes?.Count ?? 0) Boxes
                                                         </span>
+                                                        <span class="item-actions" onclick="event.stopPropagation()">
+                                                            <button type="button" class="btn-icon-sm edit" title="Edit Shelf"
+                                                                    data-id="@shelf.Id" data-name="@shelf.Name" onclick="editShelf(this)">
+                                                                <i class="bi bi-pencil-fill"></i>
+                                                            </button>
+                                                            <form asp-action="DeleteShelf" method="post"
+                                                                  onsubmit="return confirm('Delete this shelf with all its boxes?');">
+                                                                <input type="hidden" name="id" value="@shelf.Id" />
+                                                                <button type="submit" class="btn-icon-sm delete" title="Delete Shelf">
+                                                                    <i class="bi bi-trash3-fill"></i>
+                                                                </button>
+                                                            </form>
+                                                        </span>
                                                     </div>
                                                     <!-- NEW: Boxes List -->
                                                     <div class="box-list" style="display:none;">
@@ -962,6 +1034,21 @@
                                                                     <span class="box-name">@box.Name</span>
                                                                     <span class="box-dims">
                                                                         @box.RowsCount × @box.ColumnsCount
+                                                                    </span>
+                                                                    <span class="item-actions">
+                                                                        <button type="button" class="btn-icon-sm edit" title="Edit Box"
+                                                                                data-id="@box.Id" data-name="@box.Name"
+                                                                                data-rows="@box.RowsCount" data-cols="@box.ColumnsCount"
+                                                                                onclick="editBox(this)">
+                                                                            <i class="bi bi-pencil-fill"></i>
+                                                                        </button>
+                                                                        <form asp-action="DeleteBox" method="post"
+                                                                              onsubmit="return confirm('Delete this box?');">
+                                                                            <input type="hidden" name="id" value="@box.Id" />
+                                                                            <button type="submit" class="btn-icon-sm delete" title="Delete Box">
+                                                                                <i class="bi bi-trash3-fill"></i>
+                                                                            </button>
+                                                                        </form>
                                                                     </span>
                                                                 </div>
                                                             }
@@ -1030,7 +1117,7 @@
                                 <input type="hidden" name="roomId" value="@room.Id" />
                                 <div class="input-group input-group-sm">
                                     <select name="storageUnitTypeId" class="form-select" required style="max-width: 120px;">
-                                        <option value="" disabled selected>Type</option>
+                                        @* <option value="" disabled selected>Type</option> *@
                                         @foreach (var type in Model.ListStorageUnitTypes)
                                         {
                                             <option value="@type.Value">@type.Text</option>
@@ -1129,6 +1216,102 @@
     </div>
 </div>
 
+<!-- Edit Storage Unit Modal -->
+<div class="modal fade" id="editUnitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Edit Storage Unit</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditStorageUnit" method="post">
+                <div class="modal-body modal-body-custom">
+                    <input type="hidden" name="id" id="editUnitId" />
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom">Unit Name</label>
+                        <input type="text" name="name" id="editUnitName" required class="form-control form-control-custom" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom">Type</label>
+                        <select name="storageUnitTypeId" id="editUnitType" required class="form-select form-control-custom">
+                            @foreach (var type in Model.ListStorageUnitTypes)
+                            {
+                                <option value="@type.Value">@type.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="isHazardous" value="true" id="editUnitHaz" />
+                        <label class="form-check-label text-danger fw-bold" for="editUnitHaz">Hazardous material</label>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-action btn-primary-custom"><i class="bi bi-check-circle-fill me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Shelf Modal -->
+<div class="modal fade" id="editShelfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title"><i class="bi bi-layers me-2"></i>Edit Shelf</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditShelf" method="post">
+                <div class="modal-body modal-body-custom">
+                    <input type="hidden" name="id" id="editShelfId" />
+                    <label class="form-label form-label-custom">Shelf Name</label>
+                    <input type="text" name="name" id="editShelfName" required class="form-control form-control-custom" />
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-action btn-primary-custom"><i class="bi bi-check-circle-fill me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Box Modal -->
+<div class="modal fade" id="editBoxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title"><i class="bi bi-grid-3x3 me-2"></i>Edit Box</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditBox" method="post">
+                <div class="modal-body modal-body-custom">
+                    <input type="hidden" name="id" id="editBoxId" />
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom">Box Name</label>
+                        <input type="text" name="name" id="editBoxName" required class="form-control form-control-custom" />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label form-label-custom">Rows</label>
+                            <input type="number" name="rowsCount" id="editBoxRows" min="1" required class="form-control form-control-custom" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label form-label-custom">Columns</label>
+                            <input type="number" name="columnsCount" id="editBoxCols" min="1" required class="form-control form-control-custom" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-action btn-primary-custom"><i class="bi bi-check-circle-fill me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Toggle shelves expand/collapse
@@ -1175,6 +1358,28 @@
             document.getElementById('modalTitle').textContent = 'Edit Room';
             var modal = new bootstrap.Modal(document.getElementById('addRoomModal'));
             modal.show();
+        }
+
+        function editUnit(btn) {
+            document.getElementById('editUnitId').value = btn.dataset.id;
+            document.getElementById('editUnitName').value = btn.dataset.name;
+            document.getElementById('editUnitType').value = btn.dataset.type;
+            document.getElementById('editUnitHaz').checked = btn.dataset.haz === 'true';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editUnitModal')).show();
+        }
+
+        function editShelf(btn) {
+            document.getElementById('editShelfId').value = btn.dataset.id;
+            document.getElementById('editShelfName').value = btn.dataset.name;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editShelfModal')).show();
+        }
+
+        function editBox(btn) {
+            document.getElementById('editBoxId').value = btn.dataset.id;
+            document.getElementById('editBoxName').value = btn.dataset.name;
+            document.getElementById('editBoxRows').value = btn.dataset.rows;
+            document.getElementById('editBoxCols').value = btn.dataset.cols;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editBoxModal')).show();
         }
 
         // Reset modal on close

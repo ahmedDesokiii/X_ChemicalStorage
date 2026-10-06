@@ -26,7 +26,7 @@ namespace X_ChemicalStorage.Controllers
         {
             return await _context.StorageUnitTypes
                 .AsNoTracking()
-                .OrderBy(s => s.Name)
+                .OrderByDescending(s => s.Id)
                 .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToListAsync();
         }
@@ -447,6 +447,160 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
 
+        #region Edit Operations
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditStorageUnit(int id, int storageUnitTypeId, string name, bool isHazardous)
+        {
+            if (id <= 0 || storageUnitTypeId <= 0 || string.IsNullOrWhiteSpace(name))
+            {
+                TempData["Error"] = "Please provide valid storage unit details.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var unit = await _context.StorageUnits.FindAsync(id);
+                if (unit == null)
+                {
+                    TempData["Error"] = "Storage unit not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (!await _context.StorageUnitTypes.AnyAsync(t => t.Id == storageUnitTypeId))
+                {
+                    TempData["Error"] = "Selected storage unit type does not exist.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Items depend on the storage condition (type) -> don't change it while samples are stored
+                if (unit.StorageUnitTypeId != storageUnitTypeId && await StorageUnitHasLotsAsync(id))
+                {
+                    TempData["Error"] = "Cannot change the type of a storage unit that contains stored samples.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var newName = name.Trim();
+                if (await _context.StorageUnits.AnyAsync(u =>
+                        u.RoomId == unit.RoomId && u.Id != id && u.Name.ToLower() == newName.ToLower()))
+                {
+                    TempData["Error"] = "Another storage unit in this room already has this name.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                unit.Name = newName;
+                unit.StorageUnitTypeId = storageUnitTypeId;
+                unit.IsHazardous = isHazardous;
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Storage unit '{unit.Name}' has been updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error editing storage unit {UnitId}", id);
+                TempData["Error"] = "An error occurred while updating the storage unit.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditShelf(int id, string name)
+        {
+            if (id <= 0 || string.IsNullOrWhiteSpace(name))
+            {
+                TempData["Error"] = "Please provide a valid shelf name.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var shelf = await _context.Shelves.FindAsync(id);
+                if (shelf == null)
+                {
+                    TempData["Error"] = "Shelf not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var newName = name.Trim();
+                if (await _context.Shelves.AnyAsync(s =>
+                        s.StorageUnitId == shelf.StorageUnitId && s.Id != id && s.Name.ToLower() == newName.ToLower()))
+                {
+                    TempData["Error"] = "Another shelf in this unit already has this name.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                shelf.Name = newName;
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Shelf '{shelf.Name}' has been updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error editing shelf {ShelfId}", id);
+                TempData["Error"] = "An error occurred while updating the shelf.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditBox(int id, string name, int rowsCount, int columnsCount)
+        {
+            if (id <= 0 || string.IsNullOrWhiteSpace(name) || rowsCount < 1 || columnsCount < 1)
+            {
+                TempData["Error"] = "Please provide valid box details.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var box = await _context.Boxes.FindAsync(id);
+                if (box == null)
+                {
+                    TempData["Error"] = "Box not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // If the grid is shrinking, make sure no stored lot would fall outside the new grid
+                if (rowsCount < box.RowsCount || columnsCount < box.ColumnsCount)
+                {
+                    bool lotsOutside = await _context.Lots.AsNoTracking()
+                        .AnyAsync(l => l.BoxId == id && (l.RowIndex > rowsCount || l.ColumnIndex > columnsCount));
+                    if (lotsOutside)
+                    {
+                        TempData["Error"] = "Cannot shrink this box: some stored samples are located outside the new grid size.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
+                var newName = name.Trim();
+                if (await _context.Boxes.AnyAsync(b =>
+                        b.ShelfId == box.ShelfId && b.Id != id && b.Name.ToLower() == newName.ToLower()))
+                {
+                    TempData["Error"] = "Another box on this shelf already has this name.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                box.Name = newName;
+                box.RowsCount = rowsCount;
+                box.ColumnsCount = columnsCount;
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Box '{box.Name}' has been updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error editing box {BoxId}", id);
+                TempData["Error"] = "An error occurred while updating the box.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+        #endregion
+
         #region Delete Operations
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -460,13 +614,18 @@ namespace X_ChemicalStorage.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var unit = await _context.StorageUnits.FindAsync(id);
+                var unit = await _context.StorageUnits
+                    .Include(u => u.Shelves).ThenInclude(s => s.Boxes)
+                    .FirstOrDefaultAsync(u => u.Id == id);
                 if (unit == null)
                 {
                     TempData["Error"] = "Storage unit not found.";
                     return RedirectToAction(nameof(Index));
                 }
 
+                foreach (var shelf in unit.Shelves)
+                    _context.Boxes.RemoveRange(shelf.Boxes);
+                _context.Shelves.RemoveRange(unit.Shelves);
                 _context.StorageUnits.Remove(unit);
                 await _context.SaveChangesAsync();
 
@@ -493,13 +652,16 @@ namespace X_ChemicalStorage.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var shelf = await _context.Shelves.FindAsync(id);
+                var shelf = await _context.Shelves
+                    .Include(s => s.Boxes)
+                    .FirstOrDefaultAsync(s => s.Id == id);
                 if (shelf == null)
                 {
                     TempData["Error"] = "Shelf not found.";
                     return RedirectToAction(nameof(Index));
                 }
 
+                _context.Boxes.RemoveRange(shelf.Boxes);
                 _context.Shelves.Remove(shelf);
                 await _context.SaveChangesAsync();
 
@@ -547,7 +709,6 @@ namespace X_ChemicalStorage.Controllers
             }
         }
         #endregion
-
         #region Cascading AJAX Endpoints
         [HttpGet]
         public async Task<JsonResult> GetStorageUnitsByRoom(int roomId)
