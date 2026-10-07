@@ -1189,8 +1189,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header modal-header-custom">
-                <h5 class="modal-title"><i class="bi bi-door-open-fill me-2"></i><span id="modalTitle">Add Room</span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">
+                    <span id="modalTitle">Add Room</span>
+                    <i class="bi bi-door-open-fill me-2"></i>
+                </h5>
             </div>
             <form asp-action="SaveRoom" method="post">
                 @Html.AntiForgeryToken()

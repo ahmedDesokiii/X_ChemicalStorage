@@ -69,7 +69,9 @@ namespace X_ChemicalStorage.Controllers
                                 {
                                     Value = s.Id.ToString(),
                                     Text = s.Name
-                                }).ToList();
+                                })
+                                .OrderByDescending(x=>x.Value)
+                                .ToList();
             Items.ListUnits = _context.Units
                                 .Where(l => l.CurrentState > 0)
                                 .Include(l => l.Items)
