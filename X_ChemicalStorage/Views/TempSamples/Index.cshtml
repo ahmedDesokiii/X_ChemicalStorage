@@ -1,0 +1,143 @@
+@using X_ChemicalStorage.Models.TempSamples
+@model X_ChemicalStorage.ViewModels.TempSamples.TempSampleIndexViewModel
+@{
+    ViewData["Title"] = "Temporary Samples";
+    var newId = TempData["NewSampleId"] as int?;
+    var newCode = TempData["NewSampleCode"] as string;
+    var newQr = TempData["NewSampleQr"] as string;
+    int i = 0;
+    string F(TempSampleStatus? s) => Model.Filter == s ? "on" : "";
+}
+<link rel="stylesheet" href="~/css/inventory.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/temp-samples.css" asp-append-version="true" />
+
+<div class="ts-hero" dir="ltr">
+    <div class="ts-hero-orb"></div>
+    <div class="container-fluid position-relative d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+            <nav class="ts-crumbs">
+                <a asp-controller="Rooms" asp-action="Index"><i class="bi bi-building"></i> Storage</a>
+                <i class="bi bi-chevron-right"></i><span>Temporary Samples</span>
+            </nav>
+            <h1 class="ts-hero-title">Custody Register</h1>
+            <p class="ts-hero-sub">Samples held on behalf of others — received, placed, and released with a sealed history.</p>
+        </div>
+        <a asp-action="Receive" class="ts-cta"><i class="bi bi-box-arrow-in-down"></i> Receive Sample</a>
+    </div>
+</div>
+
+<div class="container-fluid ts-wrap" dir="ltr">
+    <!-- KPI tiles (click = filter) -->
+    <div class="ts-stats">
+        <a class="ts-stat @(Model.Filter == null ? "active" : "")" asp-action="Index">
+            <i class="bi bi-safe2"></i><b data-count="@Model.Stats.InCustody">0</b><small>In custody</small>
+        </a>
+        <a class="ts-stat warn @(Model.Filter == TempSampleStatus.Received ? "active" : "")" asp-action="Index" asp-route-status="Received">
+            <i class="bi bi-hourglass-top"></i><b data-count="@Model.Stats.AwaitingPlacement">0</b><small>Awaiting placement</small>
+        </a>
+        <div class="ts-stat warn"><i class="bi bi-calendar-week"></i><b data-count="@Model.Stats.DueThisWeek">0</b><small>Due this week</small></div>
+        <div class="ts-stat @(Model.Stats.Overdue > 0 ? "danger" : "")"><i class="bi bi-alarm"></i><b data-count="@Model.Stats.Overdue">0</b><small>Overdue withdrawal</small></div>
+        <a class="ts-stat @(Model.Filter == TempSampleStatus.Withdrawn ? "active" : "")" asp-action="Index" asp-route-status="Withdrawn">
+            <i class="bi bi-box-arrow-up-right"></i><b data-count="@Model.Stats.WithdrawnThisMonth">0</b><small>Withdrawn this month</small>
+        </a>
+    </div>
+
+    <!-- Search / filters -->
+    <form method="get" class="ts-toolbar">
+        <div class="ts-search">
+            <i class="bi bi-search"></i>
+            <input name="q" value="@Model.Search" class="form-control" placeholder="Scan QR / search code, type, reference, sender…" autofocus />
+        </div>
+        @if (Model.Filter != null) { <input type="hidden" name="status" value="@Model.Filter" /> }
+        <div class="ts-filter">
+            <a asp-route-q="@Model.Search" class="@F(null)">All</a>
+            <a asp-route-status="Stored" asp-route-q="@Model.Search" class="@F(TempSampleStatus.Stored)">Stored</a>
+            <a asp-route-status="Received" asp-route-q="@Model.Search" class="@F(TempSampleStatus.Received)">Unplaced</a>
+            <a asp-route-status="CheckedOut" asp-route-q="@Model.Search" class="@F(TempSampleStatus.CheckedOut)">Checked-out</a>
+            <a asp-route-status="Withdrawn" asp-route-q="@Model.Search" class="@F(TempSampleStatus.Withdrawn)">Withdrawn</a>
+        </div>
+    </form>
+
+    @if (!Model.Rows.Any())
+    {
+        <div class="ts-empty">
+            <i class="bi bi-inboxes"></i>
+            <h5>No samples here yet</h5>
+            <p>Receive your first temporary sample to start its chain of custody.</p>
+            <a asp-action="Receive" class="ts-cta mt-2"><i class="bi bi-plus-lg"></i> Receive Sample</a>
+        </div>
+    }
+    else
+    {
+        <div class="ts-cards">
+            @foreach (var r in Model.Rows)
+            {
+                var d = r.DaysToWithdrawal;
+                var dueCls = d == null ? "" : d < 0 ? "over" : d <= 7 ? "soon" : "ok";
+                var dueTxt = d == null ? "No planned date" : d < 0 ? $"Overdue {-d}d" : d == 0 ? "Due today" : $"In {d}d";
+                <div class="ts-row ts-row-link @(r.Id == newId ? "new" : "")" data-status="@r.Status" style="animation-delay:@(Math.Min(i++, 12) * 40)ms"
+                     onclick="if(!event.target.closest('a')) location.href='@Url.Action("Details", new { id = r.Id })'">
+                    <img src="@r.QrImagePath" alt="QR" loading="lazy" />
+                    <div>
+                        <div class="ts-code">@r.SampleCode</div>
+                        <div class="fw-bold">@r.SampleType <span class="ts-sub">· @r.CurrentQuantity.ToString("0.###") @r.UnitName</span></div>
+                        <div class="ts-sub">@(r.DeliveringOrganization ?? "—") @(r.RequestReferenceNumber is null ? "" : "· Ref " + r.RequestReferenceNumber)</div>
+                    </div>
+                    <div class="hide-md">
+                        <span class="ts-pill @r.Status">@(r.Status == TempSampleStatus.Received ? "Awaiting placement" : r.Status.ToString())</span>
+                        @if (r.ArrivedOutOfRange) { <span class="ts-pill temp" title="Arrived outside transport range"><i class="bi bi-thermometer-high"></i> Temp</span> }
+                        <div class="ts-sub mt-1"><i class="bi bi-link-45deg"></i> @r.EventsCount custody events</div>
+                    </div>
+                    <div class="hide-md ts-sub"><i class="bi bi-geo-alt"></i> @(r.LocationPath ?? "Not placed")</div>
+                    <div class="hide-md">
+                        <div class="ts-sub">Received @r.ReceptionDateTime.ToString("dd MMM yyyy HH:mm")</div>
+                        <div class="ts-due @dueCls">@dueTxt</div>
+                    </div>
+                    <div class="ts-actions d-flex gap-1">
+                        <a asp-action="PrintLabel" asp-route-id="@r.Id" target="_blank" title="Print label"><i class="bi bi-printer"></i></a>
+                        <a href="#" onclick="verifyChain(@r.Id, '@r.SampleCode');return false;" title="Verify custody chain"><i class="bi bi-shield-check"></i></a>
+                        <a asp-action="Details" asp-route-id="@r.Id" title="Open dossier"><i class="bi bi-arrow-right-circle-fill"></i></a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    // count-up KPIs
+    document.querySelectorAll('[data-count]').forEach(el => {
+        const end = +el.dataset.count; if (!end) return;
+        const t0 = performance.now(), dur = 900;
+        const tick = t => { const p = Math.min(1, (t - t0) / dur); el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+    });
+
+    async function verifyChain(id, code) {
+        Swal.fire({ title: 'Verifying chain…', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        const r = await (await fetch('@Url.Action("VerifyChain")?id=' + id)).json();
+        Swal.fire(r.intact
+            ? { icon: 'success', title: 'Chain intact', html: `Every custody event of <b>${code}</b> matches its SHA-256 seal.` }
+            : { icon: 'error', title: 'Tampering detected', html: `The chain of <b>${code}</b> breaks at event <b>#${r.brokenAt}</b>.` });
+    }
+</script>
+@if (newId != null)
+{
+<script>
+    Swal.fire({
+        title: '@newCode',
+        footer: '<a href="@Url.Action("Details", new { id = newId })">Open sample dossier →</a>',
+        html: '<p class="mb-1">Sample received & custody chain sealed.</p><small class="text-muted">Stick this label on every container.</small>',
+        imageUrl: '@newQr', imageWidth: 160, imageHeight: 160,
+        confirmButtonText: '<i class="bi bi-printer"></i> Print label',
+        showCancelButton: true, cancelButtonText: 'Later',
+        confirmButtonColor: '#0f3d3e'
+    }).then(r => { if (r.isConfirmed) window.open('@Url.Action("PrintLabel", new { id = newId })', '_blank'); });
+</script>
+}
+@if (TempData["Error"] != null)
+{
+    <script>Swal.fire({ icon: 'error', title: 'Error', text: '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(TempData["Error"]!.ToString()!))' });</script>
+}
+}

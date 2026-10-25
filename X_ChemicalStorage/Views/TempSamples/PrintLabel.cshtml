@@ -1,0 +1,40 @@
+@model X_ChemicalStorage.Models.TempSamples.TempSample
+@{
+    Layout = null;
+    var copies = Math.Max(1, Model.ContainersCount);
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.SampleCode</title>
+    <style>
+        @@page { size: 50mm 30mm; margin: 0; }
+        body { margin: 0; font-family: Arial, sans-serif; }
+        .label { width: 50mm; height: 30mm; box-sizing: border-box; padding: 1.5mm 2mm; display: flex; gap: 2mm; align-items: center; page-break-after: always; }
+        .label img { width: 24mm; height: 24mm; }
+        .info { flex: 1; min-width: 0; font-size: 6.5pt; line-height: 1.25; }
+        .code { font-family: Consolas, monospace; font-weight: 700; font-size: 8pt; }
+        .tag { display: inline-block; border: .3mm solid #000; padding: 0 1mm; font-weight: 700; font-size: 5.5pt; margin-bottom: .5mm; }
+        .trunc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+</head>
+<body>
+    @for (int c = 1; c <= copies; c++)
+    {
+        <div class="label">
+            <img src="@Model.QrImagePath" alt="QR" />
+            <div class="info">
+                <span class="tag">TEMP CUSTODY</span>
+                <div class="code">@Model.SampleCode</div>
+                <div class="trunc"><b>@Model.SampleType</b></div>
+                <div class="trunc">Ref: @(Model.RequestReferenceNumber ?? "—")</div>
+                <div>Rcv: @Model.ReceptionDateTime.ToString("dd/MM/yy HH:mm")</div>
+                @if (Model.PlannedWithdrawalDate.HasValue) { <div>Out by: @Model.PlannedWithdrawalDate.Value.ToString("dd/MM/yy")</div> }
+                <div>Cont. @c/@copies</div>
+            </div>
+        </div>
+    }
+    <script>window.onload = () => window.print();</script>
+</body>
+</html>

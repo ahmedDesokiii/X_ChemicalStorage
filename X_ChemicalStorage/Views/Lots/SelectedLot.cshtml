@@ -1,311 +1,216 @@
-﻿@inject IAuthorizationService AuthorizationService
-@inject UserManager<ApplicationUser> userManager
+@inject IAuthorizationService AuthorizationService
 @model LotViewModel
 @{
-    ViewData["Title"] = "Lot: " + Model?.NewLot?.LotNumber;
-    int tNo = 0;
+    var lot = Model?.NewLot;
+    ViewData["Title"] = "Lot " + lot?.LotNumber;
+
+    var today = DateTime.Today;
+    var total = Convert.ToDouble(lot?.TotalQuantity ?? 0);
+    var avail = Convert.ToDouble(lot?.AvilableQuantity ?? 0);
+    var stockPct = total <= 0 ? 0 : (int)Math.Round(avail * 100 / total);
+
+    int? daysLeft = lot?.ExpiryDate == null ? null : (lot.ExpiryDate.Value.Date - today).Days;
+    var lifeDays = (lot?.ExpiryDate != null && lot?.ManufactureDate != null) ? Math.Max(1, (lot.ExpiryDate.Value - lot.ManufactureDate.Value).Days) : 365;
+    var lifePct = daysLeft == null ? 0 : Math.Clamp((int)Math.Round(daysLeft.Value * 100.0 / lifeDays), 0, 100);
+    var expCls = daysLeft == null ? "muted" : daysLeft <= 0 ? "bad" : daysLeft <= 30 ? "warn" : "ok";
+    var expColor = expCls == "bad" ? "var(--iv-bad)" : expCls == "warn" ? "var(--iv-warn)" : "var(--iv-ok)";
+    var expText = daysLeft == null ? "No expiry" : daysLeft <= 0 ? "Expired" : daysLeft <= 30 ? "Near expiry" : "Valid";
+
+    var box = lot?.Box;
+    var cold = lot?.Item?.StorageUnitType?.TemperatureValue < 0;
+    int n = 0;
 }
+<link rel="stylesheet" href="~/css/inventory.css" asp-append-version="true" />
 
-<!-- Hero Header -->
-<div class="lot-hero" dir="ltr">
+<!-- ═════════ HERO ═════════ -->
+<div class="iv-hero" dir="ltr">
+    <div class="iv-hero-orb"></div>
     <div class="container-fluid">
-        <!--  Modern Pill (Recommended) -->
-        <nav aria-label="breadcrumb" class="breadcrumb-nav-pill mx-auto text-center justify-content-center" dir="ltr">
-            <ol class="breadcrumb-list">
-                <li class="breadcrumb-step completed">
-                    <a asp-controller="Lots" asp-action="Index" class="step-link">
-                        <span class="step-icon"><i class="bi bi-archive-fill"></i></span>
-                        <span class="step-label">Lots</span>
-                    </a>
-                    <span class="step-arrow"><i class="bi bi-chevron-right"></i></span>
-                </li>
-                <li class="breadcrumb-step active">
-                    <span class="step-icon"><i class="bi bi-upc-scan"></i></span>
-                    <span class="step-label">@Model?.NewLot?.LotNumber</span>
-                </li>
-            </ol>
+        <nav class="iv-crumbs">
+            <a asp-controller="Lots" asp-action="Index"><i class="bi bi-archive-fill"></i> Lots</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>@lot?.LotNumber</span>
         </nav>
-
-        @* <h1 class="lot-title">@ViewData["Title"]</h1>
-        <div class="lot-badge">
-            <i class="bi bi-box-seam"></i>
-            @(Model?.NewLot?.Item?.Name ?? "Unknown Item")
-        </div> *@
+        <div class="iv-hero-row">
+            <div class="iv-hero-id">
+                <div class="iv-hero-icon"><i class="bi bi-upc-scan"></i></div>
+                <div>
+                    <h1 class="iv-hero-title">@lot?.Item?.Name</h1>
+                    <p class="iv-hero-sub">
+                        Lot <b style="font-family:ui-monospace,Consolas,monospace">@lot?.LotNumber</b>
+                        · <span class="iv-pill @expCls @(expCls == "bad" ? "live" : "")">@expText</span>
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
+                {
+                    <a class="iv-btn iv-btn-light" target="_blank" asp-controller="Lots" asp-action="PrintLot" asp-route-id="@lot?.Id">
+                        <i class="bi bi-printer-fill"></i> Print label
+                    </a>
+                }
+                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded && avail > 0)
+                {
+                    <a class="iv-btn iv-btn-light" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@lot?.ItemId">
+                        <i class="bi bi-cart-dash-fill"></i> Exchange
+                    </a>
+                }
+                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
+                {
+                    <a class="iv-btn iv-btn-gold" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@lot?.ItemId">
+                        <i class="bi bi-cart-plus-fill"></i> New lot of this item
+                    </a>
+                }
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="container-fluid" dir="ltr">
-    <!-- Action Buttons -->
-    <div class="action-bar">
-        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode).Result.Succeeded)
-        {
-            <a class="btn btn-lot-action btn-barcode"
-               asp-controller="Lots" asp-action="PrintLotBarcode"
-               asp-route-barcodeFile="@Model.NewLot.BarcodeImage"
-               asp-route-ItemName="@Model.NewLot.Item.Name"
-               asp-route-LotNumber="@Model.NewLot.LotNumber"
-               asp-route-ExpiryDate="@Model.NewLot.ExpiryDate">
-                <i class="bi bi-upc-scan fs-5"></i>
-                <span>Print Barcode</span>
-            </a>
-        }
-        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
-        {
-            <a class="btn btn-lot-action btn-new-lot ms-auto justify-content-between"
-               asp-controller="Items" asp-action="CreateLot"
-               asp-route-Id="@Model.NewLot.ItemId">
-                <i class="bi bi-cart-plus-fill fs-5"></i>
-                <span>Create New Lot</span>
-            </a>
-        }
-    </div>
-
+<div class="container-fluid pb-4" dir="ltr">
     <div class="row g-4">
-        <!-- Left: Lot Details -->
-        <div class="col-lg-3">
-            <div class="lot-card">
-                <div class="card-header-lot" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
-                    <div class="header-icon" style="background: var(--primary-mid);">
-                        <i class="bi bi-clipboard-data-fill" style="color: #fff;"></i>
-                    </div>
-                    <span class="header-title" style="color: var(--primary-dark);">Lot Details</span>
+        <!-- ═════════ LEFT: identity + gauges ═════════ -->
+        <div class="col-xl-4">
+            <div class="iv-panel">
+                <div class="iv-panel-head">
+                    <div class="ph-icon"><i class="bi bi-clipboard-data-fill"></i></div>
+                    <div><h5>Lot details</h5><small>Identity, dates & compliance</small></div>
                 </div>
-                <div class="card-body-lot">
-                    <!-- Lot Barcode -->
-                    <div class="barcode-display mb-3">
-                        <img src="@Model?.NewLot?.BarcodeImage" alt="Lot Barcode" />
-                        <div class="mt-2 text-muted small fw-bold">@Model?.NewLot?.LotNumber</div>
+                <div class="iv-panel-body">
+                    <div class="iv-barcode-big">
+                        <img src="@lot?.BarcodeImage" alt="Lot barcode" />
+                        <b>@lot?.LotNumber</b>
                     </div>
 
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-hash"></i> Lot Number</span>
-                        <span class="info-value">@Model?.NewLot?.LotNumber</span>
+                    <div class="row g-3 text-center mb-3">
+                        <div class="col-6">
+                            <div class="iv-ring" style="--c:var(--iv-teal)" data-ring="@stockPct">
+                                <b>@avail</b><small>of @total left</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="iv-ring" style="--c:@expColor" data-ring="@lifePct">
+                                <b>@(daysLeft == null ? "—" : Math.Abs(daysLeft.Value).ToString())</b>
+                                <small>@(daysLeft == null ? "no expiry" : daysLeft <= 0 ? "days expired" : "days left")</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-calendar-x-fill text-danger"></i> Expiry Date</span>
-                        <span class="info-value">@Model?.NewLot?.ExpiryDate?.ToString("yyyy-MM-dd")</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-calendar-check-fill text-success"></i> Manufacture</span>
-                        <span class="info-value">@Model?.NewLot?.ManufactureDate?.ToString("yyyy-MM-dd")</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-calendar-plus-fill text-primary"></i> Received</span>
-                        <span class="info-value">@Model?.NewLot?.ReceivedDate?.ToString("yyyy-MM-dd")</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-boxes"></i> Quantity</span>
-                        <span class="info-value">@Model?.NewLot?.TotalQuantity?.ToString("N2")</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-shield-fill-check"></i> SDS Status</span>
-                        @if (Model?.NewLot?.SDS == true)
-                        {
-                            <span class="info-value text-success"><i class="bi bi-check-circle-fill me-1"></i>Valid</span>
-                        }
-                        else
-                        {
-                            <span class="info-value text-danger"><i class="bi bi-x-circle-fill me-1"></i>Invalid</span>
-                        }
-                    </div>
+
+                    <dl class="iv-dl">
+                        <dt><i class="bi bi-calendar-x-fill"></i> Expiry</dt><dd>@lot?.ExpiryDate?.ToString("dd MMM yyyy")</dd>
+                        <dt><i class="bi bi-calendar-check-fill"></i> Manufactured</dt><dd>@lot?.ManufactureDate?.ToString("dd MMM yyyy")</dd>
+                        <dt><i class="bi bi-calendar-plus-fill"></i> Received</dt><dd>@lot?.ReceivedDate?.ToString("dd MMM yyyy")</dd>
+                        <dt><i class="bi bi-boxes"></i> Received qty</dt><dd>@lot?.TotalQuantity?.ToString("N2")</dd>
+                        <dt><i class="bi bi-shield-fill-check"></i> SDS</dt>
+                        <dd><span class="iv-pill @(lot?.SDS == true ? "ok" : "bad")">@(lot?.SDS == true ? "Valid" : "Invalid")</span></dd>
+                    </dl>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-3">
-            <!-- Item Info Card -->
-            <div class="lot-card">
-                <div class="card-header-lot" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);">
-                    <div class="header-icon" style="background: var(--danger);">
-                        <i class="bi bi-box-seam" style="color: #fff;"></i>
-                    </div>
-                    <span class="header-title" style="color: #c62828;">Item Information</span>
+
+            <div class="iv-panel">
+                <div class="iv-panel-head gold">
+                    <div class="ph-icon"><i class="bi bi-box-seam"></i></div>
+                    <div><h5>Item</h5><small>Master data of this lot</small></div>
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
+                    {
+                        <div class="ph-end"><a class="iv-icon-btn" data-tip="Open item" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@lot?.ItemId"><i class="bi bi-box-arrow-up-right"></i></a></div>
+                    }
                 </div>
-                <div class="card-body-lot">
-                    <div class="barcode-display mb-3">
-                        <img src="@Model?.NewLot?.Item?.BarcodeImage" alt="Item Barcode" />
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-upc"></i> Item Code</span>
-                        <span class="info-value">@Model?.NewLot?.Item?.Code</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="bi bi-tag-fill"></i> Item Name</span>
-                        <span class="info-value">@Model?.NewLot?.Item?.Name</span>
+                <div class="iv-panel-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="iv-code"><img src="@lot?.Item?.BarcodeImage" alt="" /><span>@lot?.Item?.Code</span></span>
+                        <div>
+                            <div class="iv-name fs-6">@lot?.Item?.Name</div>
+                            <span class="iv-temp @(cold ? "cold" : "room")"><i class="bi bi-thermometer-half"></i>@lot?.Item?.StorageUnitType?.Name</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Storage Location Visual -->
-        <div class="col-lg-6">
-            <div class="lot-card">
-                <div class="card-header-lot" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
-                    <div class="header-icon" style="background: var(--success);">
-                        <i class="bi bi-geo-alt-fill" style="color: #fff;"></i>
-                    </div>
-                    <span class="header-title" style="color: #2e7d32;">Storage Location</span>
+        <!-- ═════════ RIGHT: location ═════════ -->
+        <div class="col-xl-8">
+            <div class="iv-panel">
+                <div class="iv-panel-head teal">
+                    <div class="ph-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div><h5>Storage location</h5><small>Where to find it physically</small></div>
+                    @if (box != null)
+                    {
+                        <div class="ph-end"><span class="iv-pill gold"><i class="bi bi-geo-fill"></i> R@(lot?.RowIndex) · C@(lot?.ColumnIndex)</span></div>
+                    }
                 </div>
-                <div class="card-body-lot d-flex gap-3">
-                    <div class="storage-visual col-6">
-                        <div class="storage-path">
-                            <!-- Building / Room -->
-                            <div class="storage-node">
-                                <div class="node-icon building">
-                                    <i class="bi bi-building"></i>
-                                </div>
-                                <div class="node-content">
-                                    <div class="node-label">Room</div>
-                                    <div class="node-value">@(Model?.NewLot?.Box?.Shelf?.StorageUnit?.Room?.Name ?? "N/A")</div>
-                                </div>
-                            </div>
-                            <div class="node-arrow"><i class="bi bi-chevron-down"></i></div>
-
-                            <!-- Storage Unit -->
-                            <div class="storage-node">
-                                <div class="node-icon unit">
-                                    <i class="bi bi-box-seam"></i>
-                                </div>
-                                <div class="node-content">
-                                    <div class="node-label">Storage Unit</div>
-                                    <div class="node-value">@(Model?.NewLot?.Box?.Shelf?.StorageUnit?.Name ?? "N/A")</div>
+                <div class="iv-panel-body">
+                    @if (box == null)
+                    {
+                        <div class="iv-empty"><i class="bi bi-question-diamond"></i><h5>No location assigned</h5><p>This lot was received without a slot.</p></div>
+                    }
+                    else
+                    {
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-5">
+                                <div class="iv-path">
+                                    <div class="iv-path-node"><i class="bi bi-building"></i><div><small>Room</small><b>@(box.Shelf?.StorageUnit?.Room?.Name ?? "—")</b></div></div>
+                                    <div class="iv-path-link"></div>
+                                    <div class="iv-path-node"><i class="bi bi-box-seam"></i><div><small>Storage unit</small><b>@(box.Shelf?.StorageUnit?.Name ?? "—")</b></div></div>
+                                    <div class="iv-path-link"></div>
+                                    <div class="iv-path-node"><i class="bi bi-layers"></i><div><small>Shelf</small><b>@(box.Shelf?.Name ?? "—")</b></div></div>
+                                    <div class="iv-path-link"></div>
+                                    <div class="iv-path-node"><i class="bi bi-grid-3x3"></i><div><small>Box</small><b>@box.Name</b> <span class="iv-sub">@box.RowsCount × @box.ColumnsCount</span></div></div>
+                                    <div class="iv-path-link"></div>
+                                    <div class="iv-path-node"><i class="bi bi-geo-fill"></i><div><small>Slot</small><b>Row @lot?.RowIndex · Column @lot?.ColumnIndex</b></div></div>
                                 </div>
                             </div>
-                            <div class="node-arrow"><i class="bi bi-chevron-down"></i></div>
-
-                            <!-- Shelf -->
-                            <div class="storage-node">
-                                <div class="node-icon shelf">
-                                    <i class="bi bi-layers"></i>
-                                </div>
-                                <div class="node-content">
-                                    <div class="node-label">Shelf</div>
-                                    <div class="node-value">@(Model?.NewLot?.Box?.Shelf?.Name ?? "N/A")</div>
-                                </div>
-                            </div>
-                            <div class="node-arrow"><i class="bi bi-chevron-down"></i></div>
-
-                            <!-- Box -->
-                            <div class="storage-node">
-                                <div class="node-icon box">
-                                    <i class="bi bi-grid-3x3"></i>
-                                </div>
-                                <div class="node-content">
-                                    <div class="node-label">Box</div>
-                                    <div class="node-value">@(Model?.NewLot?.Box?.Name ?? "N/A")</div>
-                                    <div class="text-muted small">@Model?.NewLot?.Box?.RowsCount × @Model?.NewLot?.Box?.ColumnsCount grid</div>
-                                </div>
-                            </div>
-                            <div class="node-arrow"><i class="bi bi-chevron-down"></i></div>
-
-                            <!-- Slot Position -->
-                            <div class="storage-node">
-                                <div class="node-icon slot">
-                                    <i class="bi bi-geo-fill"></i>
-                                </div>
-                                <div class="node-content">
-                                    <div class="node-label">Slot Position</div>
-                                    <div class="node-value">Row @Model?.NewLot?.RowIndex, Column @Model?.NewLot?.ColumnIndex</div>
-                                </div>
-                            </div>
-                        </div> 
-                    </div>
-                    <div class="storage-visual col-6">
-                        <!-- Slot Grid Visual -->
-                        @if (Model?.NewLot?.Box != null)
-                        {
-                            <div class="mt-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold text-muted small"><i class="bi bi-grid-3x3 me-1"></i>Box Grid View</span>
-                                    <span class="badge bg-primary-subtle text-primary small">
-                                        <i class="bi bi-geo-fill me-1"></i>Current Position
-                                    </span>
-                                </div>
-                                <div class="slot-grid-visual" style="grid-template-columns: repeat(@Model.NewLot.Box.ColumnsCount, 1fr);">
-                                    @for (int r = 1; r <= Model.NewLot.Box.RowsCount; r++)
+                            <div class="col-md-7 text-center">
+                                <div class="iv-grid-legend"><span><i class="here"></i>This lot</span><span><i class="free"></i>Other slots</span></div>
+                                <div class="iv-grid" style="grid-template-columns:repeat(@box.ColumnsCount, minmax(24px,1fr))">
+                                    @for (int r = 1; r <= box.RowsCount; r++)
                                     {
-                                        @for (int c = 1; c <= Model.NewLot.Box.ColumnsCount; c++)
+                                        for (int c = 1; c <= box.ColumnsCount; c++)
                                         {
-                                            var isCurrent = (r == Model.NewLot.RowIndex && c == Model.NewLot.ColumnIndex);
-                                            var cellClass = isCurrent ? "current" : "empty";
-                                            <div class="slot-cell @cellClass" title="Row @(r), Col @(c)">
-                                                @if (isCurrent)
-                                                {
-                                                    <i class="bi bi-geo-fill"></i>
-                                                }
-                                                else
-                                                {
-                                                    <span>@(r),@(c)</span>
-                                                }
-                                            </div>
+                                            var here = r == lot?.RowIndex && c == lot?.ColumnIndex;
+                                            <span class="iv-cell @(here ? "here" : "other")" style="animation-delay:@((r + c) * 15)ms" title="Row @r, Col @c">
+                                                @if (here) { <i class="bi bi-geo-fill"></i> }
+                                            </span>
                                         }
                                     }
                                 </div>
                             </div>
-                        }
-
-                    </div>
+                        </div>
+                    }
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Transactions Section -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="lot-card">
-                <div class="card-header-lot" style="background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);">
-                    <div class="header-icon" style="background:#37474f;">
-                        <i class="bi bi-arrow-left-right" style="color: #fff;"></i>
-                    </div>
-                    <span class="header-title" style="color:#37474f;">Lot Transactions</span>
+            <!-- ═════════ TRANSACTIONS ═════════ -->
+            <div class="iv-panel">
+                <div class="iv-panel-head">
+                    <div class="ph-icon"><i class="bi bi-arrow-left-right"></i></div>
+                    <div><h5>Lot transactions</h5><small>Every receipt and exchange, in order</small></div>
+                    <div class="ph-end"><span class="iv-pill muted">@Model.LotTransactionsList.Count moves</span></div>
                 </div>
-                <div class="card-body-lot">
+                <div class="iv-panel-body flush">
                     @if (!Model.LotTransactionsList.Any())
                     {
-                        <div class="tx-empty">
-                            <i class="bi bi-inbox"></i>
-                            <h5>No Transactions Yet</h5>
-                            <p class="text-muted small mb-0">This lot has no transaction history.</p>
-                        </div>
+                        <div class="iv-empty"><i class="bi bi-inbox"></i><h5>No transactions yet</h5></div>
                     }
                     else
                     {
                         <div class="table-responsive">
-                            <table class="tx-table">
+                            <table class="iv-tx">
                                 <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Date</th>
-                                        <th>Statement</th>
-                                        <th>Created By</th>
-                                        <th>Device</th>
-                                        <th>Qty</th>
-                                        <th>Available</th>
-                                        <th>Recipient</th>
-                                    </tr>
+                                    <tr><th>#</th><th>Date</th><th>Statement</th><th>By</th><th>Device</th><th>Qty</th><th>Balance</th><th>Recipient</th></tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var trans in Model.LotTransactionsList)
+                                    @foreach (var t in Model.LotTransactionsList)
                                     {
-                                        tNo++;
-                                        <tr>
-                                            <td class="fw-bold text-muted">@trans.Move_Num</td>
-                                            <td>@Convert.ToDateTime(trans.Move_Date).ToString("yyyy-MM-dd")</td>
-                                            <td>@trans.Move_Statement</td>
-                                            <td><i class="bi bi-person-circle me-1 text-muted"></i>@trans.CreatedBy</td>
-                                            <td><i class="bi bi-laptop me-1 text-muted"></i>@trans.DeviceUsing</td>
-                                            <td>
-                                                @if (trans.Move_State == true)
-                                                {
-                                                    <span class="tx-badge in"><i class="bi bi-arrow-up-circle-fill"></i>+@trans.Move_Quantity</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="tx-badge out"><i class="bi bi-arrow-down-circle-fill"></i>-@trans.Move_Quantity</span>
-                                                }
-                                            </td>
-                                            <td class="fw-bold text-primary">@trans.Total_Quantity</td>
-                                            <td>@trans.Recipient</td>
+                                        var isIn = t.Move_State == true;
+                                        <tr style="animation-delay:@(Math.Min(n++, 15) * 35)ms">
+                                            <td><span class="num @(isIn ? "in" : "out")">@t.Move_Num</span></td>
+                                            <td class="fw-bold">@Convert.ToDateTime(t.Move_Date).ToString("dd MMM yyyy")</td>
+                                            <td>@t.Move_Statement</td>
+                                            <td><i class="bi bi-person-circle text-muted me-1"></i>@t.CreatedBy</td>
+                                            <td class="iv-sub"><i class="bi bi-laptop me-1"></i>@t.DeviceUsing</td>
+                                            <td><span class="iv-pill @(isIn ? "ok" : "bad")"><i class="bi @(isIn ? "bi-arrow-down-left" : "bi-arrow-up-right")"></i>@(isIn ? "+" : "−")@t.Move_Quantity</span></td>
+                                            <td><span class="iv-qty">@t.Total_Quantity</span></td>
+                                            <td>@t.Recipient</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -317,3 +222,11 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/inventory.js" asp-append-version="true"></script>
+    <script>
+        // animate rings from 0 → value
+        requestAnimationFrame(() => document.querySelectorAll('[data-ring]').forEach(r => r.style.setProperty('--p', r.dataset.ring)));
+    </script>
+}

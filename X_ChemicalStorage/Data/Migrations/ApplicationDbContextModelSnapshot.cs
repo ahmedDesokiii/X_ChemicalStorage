@@ -1579,6 +1579,13 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Property<int>("StorageUnitTypeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Zone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Inventory");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RoomId");
@@ -1724,6 +1731,284 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.HasIndex("LotId");
 
                     b.ToTable("SupplierLots");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSample", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("ArrivalTemperatureC")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<bool>("ArrivedOutOfRange")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("BoxId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ColumnIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comments")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("ContainersCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentQuantity")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("DeliveredByName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("DeliveringOrganization")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("DeliveryDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ExternalBarcode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("PlannedWithdrawalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("QrImagePath")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("QuantityReceived")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("ReceivedByName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("ReceivedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReceivingOrganization")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("ReceptionDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RequestedAnalysis")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("RowIndex")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SampleCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("SampleType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TransportCondition")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalBarcode");
+
+                    b.HasIndex("PlannedWithdrawalDate");
+
+                    b.HasIndex("RequestReferenceNumber");
+
+                    b.HasIndex("SampleCode")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("BoxId", "RowIndex", "ColumnIndex")
+                        .IsUnique()
+                        .HasFilter("[BoxId] IS NOT NULL");
+
+                    b.ToTable("TS_Samples");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("RelativePath")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TempSampleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UploadedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UploadedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TempSampleId");
+
+                    b.ToTable("TS_Attachments");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleCustodyEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ClientInfo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Counterparty")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("DataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("FromLocation")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PerformedByName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("PerformedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PreviousHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<decimal?>("QuantityAfter")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal?>("QuantityDelta")
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StatusAfter")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("TempSampleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ToLocation")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAtUtc");
+
+                    b.HasIndex("TempSampleId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("TS_CustodyEvents");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>
@@ -2078,6 +2363,45 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSample", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Box", "Box")
+                        .WithMany()
+                        .HasForeignKey("BoxId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("X_ChemicalStorage.Models.Unit", "Unit")
+                        .WithMany()
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Box");
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleAttachment", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.TempSample", "TempSample")
+                        .WithMany("Attachments")
+                        .HasForeignKey("TempSampleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TempSample");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleCustodyEvent", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.TempSample", "TempSample")
+                        .WithMany("CustodyEvents")
+                        .HasForeignKey("TempSampleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TempSample");
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
                 {
                     b.Navigation("Bio_Tubes");
@@ -2166,6 +2490,13 @@ namespace X_ChemicalStorage.Data.Migrations
             modelBuilder.Entity("X_ChemicalStorage.Models.SubCategory", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSample", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("CustodyEvents");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Unit", b =>

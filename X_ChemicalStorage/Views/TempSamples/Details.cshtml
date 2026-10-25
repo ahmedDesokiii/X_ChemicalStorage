@@ -1,0 +1,585 @@
+@using System.Text.Json
+@using X_ChemicalStorage.Models.TempSamples
+@using X_ChemicalStorage.Services
+@model X_ChemicalStorage.ViewModels.TempSamples.TempSampleDossierViewModel
+@{
+    var s = Model.Sample;
+    ViewData["Title"] = s.SampleCode;
+    var st = s.Status;
+    var final = Model.IsFinal;
+    var today = DateTime.Today;
+
+    // retention ring
+    int? daysToOut = s.PlannedWithdrawalDate.HasValue ? (s.PlannedWithdrawalDate.Value.Date - today).Days : null;
+    var heldDays = Math.Max(0, (today - s.ReceptionDateTime.Date).Days);
+    var plannedSpan = s.PlannedWithdrawalDate.HasValue ? Math.Max(1, (s.PlannedWithdrawalDate.Value.Date - s.ReceptionDateTime.Date).Days) : 0;
+    var retPct = plannedSpan == 0 ? 0 : Math.Clamp(heldDays * 100 / plannedSpan, 0, 100);
+    var retColor = daysToOut == null ? "#94a3b8" : daysToOut < 0 ? "#e5484d" : daysToOut <= 7 ? "#d99a17" : "#1f8a8c";
+
+    var qtyPct = s.QuantityReceived <= 0 ? 0 : (int)Math.Round(s.CurrentQuantity * 100 / s.QuantityReceived);
+    var range = TempSampleService.RangeFor(s.TransportCondition);
+
+    (string Icon, string Label) Ev(CustodyEventType t) => t switch
+    {
+        CustodyEventType.Received => ("bi-box-arrow-in-down", "Received"),
+        CustodyEventType.Stored => ("bi-grid-3x3-gap-fill", "Stored"),
+        CustodyEventType.Placed => ("bi-grid-3x3-gap-fill", "Placed in storage"),
+        CustodyEventType.Relocated => ("bi-arrow-left-right", "Relocated"),
+        CustodyEventType.MetadataUpdated => ("bi-pencil-square", "Metadata corrected"),
+        CustodyEventType.AttachmentAdded => ("bi-paperclip", "Document attached"),
+        CustodyEventType.CheckedOut => ("bi-box-arrow-up-right", "Checked out"),
+        CustodyEventType.Returned => ("bi-box-arrow-in-left", "Returned"),
+        CustodyEventType.PartialWithdrawal => ("bi-droplet-half", "Partial withdrawal"),
+        CustodyEventType.Withdrawn => ("bi-box-arrow-right", "Withdrawn"),
+        CustodyEventType.Disposed => ("bi-trash3-fill", "Disposed"),
+        CustodyEventType.TemperatureExcursion => ("bi-thermometer-high", "Temperature excursion"),
+        _ => ("bi-chat-left-text-fill", "Note")
+    };
+
+    string Rail(int step)
+    {
+        // 1 Received · 2 Stored · 3 Out (optional) · 4 Closed
+        int now = st switch { TempSampleStatus.Received => 1, TempSampleStatus.Stored => 2, TempSampleStatus.CheckedOut => 3, _ => 4 };
+        if (step < now) return "done";
+        if (step == now) return final ? (st == TempSampleStatus.Disposed ? "done end-bad" : "done") : "now";
+        return "";
+    }
+
+    string KindIcon(AttachmentKind k) => k switch
+    {
+        AttachmentKind.Photo => "bi-image",
+        AttachmentKind.Signature => "bi-pen-fill",
+        AttachmentKind.TemperatureLog => "bi-thermometer-half",
+        AttachmentKind.RequestForm => "bi-clipboard-check",
+        AttachmentKind.ChainOfCustodyForm => "bi-link-45deg",
+        AttachmentKind.DisposalCertificate => "bi-patch-check",
+        _ => "bi-file-earmark-text"
+    };
+    int n = 0;
+}
+<link rel="stylesheet" href="~/css/inventory.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/temp-samples.css" asp-append-version="true" />
+
+<!-- ═════════════════ HERO ═════════════════ -->
+<div class="ts-hero ts-dossier-hero" dir="ltr">
+    <div class="ts-hero-orb"></div>
+    <div class="container-fluid position-relative">
+        <nav class="ts-crumbs">
+            <a asp-controller="Rooms" asp-action="Index"><i class="bi bi-building"></i> Storage</a>
+            <i class="bi bi-chevron-right"></i>
+            <a asp-action="Index"><i class="bi bi-hourglass-split"></i> Temporary Samples</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>@s.SampleCode</span>
+        </nav>
+
+        <div class="d-flex flex-wrap gap-4 align-items-center mt-2">
+            <div class="ts-hero-qr"><img src="@s.QrImagePath" alt="QR" /></div>
+            <div class="flex-grow-1">
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <h1 class="ts-hero-title m-0">@s.SampleCode</h1>
+                    <span class="ts-status @st"><span class="dot"></span>@(st == TempSampleStatus.Received ? "Awaiting placement" : st.ToString())</span>
+                    @if (s.ArrivedOutOfRange) { <span class="ts-status Disposed"><i class="bi bi-thermometer-high"></i> Arrived out of range</span> }
+                </div>
+                <p class="ts-hero-sub mb-0 mt-1">
+                    <b>@s.SampleType</b> · @s.CurrentQuantity.ToString("0.###") @s.Unit?.Name of @s.QuantityReceived.ToString("0.###")
+                    · from @(s.DeliveringOrganization ?? s.DeliveredByName)
+                    @if (s.RequestReferenceNumber != null) { <span>· Ref <b>@s.RequestReferenceNumber</b></span> }
+                </p>
+
+                <div class="ts-rail">
+                    <div class="ts-rail-step @Rail(1)"><i>1</i>Received</div>
+                    <div class="ts-rail-line @(Rail(2).Contains("done") || Rail(2) == "now" ? "done" : "")"></div>
+                    <div class="ts-rail-step @Rail(2)"><i>2</i>Stored</div>
+                    <div class="ts-rail-line @(Rail(3).Contains("done") || Rail(3) == "now" ? "done" : "")"></div>
+                    <div class="ts-rail-step @Rail(3)"><i>3</i>In use</div>
+                    <div class="ts-rail-line @(final ? "done" : "")"></div>
+                    <div class="ts-rail-step @Rail(4)"><i>@(st == TempSampleStatus.Disposed ? "✕" : "4")</i>@(st == TempSampleStatus.Disposed ? "Disposed" : "Withdrawn")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action dock -->
+        <div class="ts-dock">
+            @if (st == TempSampleStatus.Received)
+            {
+                <a class="ts-act primary" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-grid-3x3-gap-fill"></i> Place in storage</a>
+            }
+            @if (st == TempSampleStatus.Stored)
+            {
+                <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-arrow-left-right"></i> Relocate</a>
+                <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mCheckOut"><i class="bi bi-box-arrow-up-right"></i> Check out</a>
+            }
+            @if (st == TempSampleStatus.CheckedOut)
+            {
+                <a class="ts-act primary" data-bs-toggle="modal" data-bs-target="#mReturn"><i class="bi bi-box-arrow-in-left"></i> Return to storage</a>
+            }
+            @if (!final)
+            {
+                <a class="ts-act @(st == TempSampleStatus.Stored ? "primary" : "")" data-bs-toggle="modal" data-bs-target="#mWithdraw"><i class="bi bi-box-arrow-right"></i> Withdraw</a>
+                <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mEdit"><i class="bi bi-pencil-square"></i> Edit</a>
+            }
+            <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mNote"><i class="bi bi-chat-left-text"></i> Note</a>
+            <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mUpload"><i class="bi bi-paperclip"></i> Attach</a>
+            <a class="ts-act" target="_blank" asp-action="PrintLabel" asp-route-id="@s.Id"><i class="bi bi-printer"></i> Label</a>
+            <a class="ts-act" target="_blank" asp-action="CustodyReport" asp-route-id="@s.Id"><i class="bi bi-file-earmark-text"></i> Custody report</a>
+            @if (!final)
+            {
+                <a class="ts-act danger" data-bs-toggle="modal" data-bs-target="#mDispose"><i class="bi bi-trash3"></i> Dispose</a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid ts-wrap" dir="ltr">
+    <div class="row g-4">
+        <!-- ═════════════════ LEFT: passport ═════════════════ -->
+        <div class="col-xl-4">
+            <div class="iv-panel">
+                <div class="iv-panel-head teal">
+                    <div class="ph-icon"><i class="bi bi-person-vcard"></i></div>
+                    <div><h5>Sample passport</h5><small>Reception record</small></div>
+                </div>
+                <div class="iv-panel-body">
+                    <div class="row g-2 text-center mb-3">
+                        <div class="col-6">
+                            <div class="ts-ring" style="--c:#1f8a8c" data-ring="@Math.Clamp(qtyPct, 0, 100)">
+                                <b>@s.CurrentQuantity.ToString("0.###")</b><small>of @s.QuantityReceived.ToString("0.###") left</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ts-ring" style="--c:@retColor" data-ring="@retPct">
+                                <b>@(daysToOut == null ? heldDays.ToString() : Math.Abs(daysToOut.Value).ToString())</b>
+                                <small>@(daysToOut == null ? "days held" : daysToOut < 0 ? "days overdue" : "days to withdraw")</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ts-meta-group">
+                        <h6><i class="bi bi-people-fill"></i> Hand-over</h6>
+                        <dl class="ts-kv">
+                            <dt>Delivered</dt><dd>@s.DeliveryDateTime.ToString("dd MMM yyyy · HH:mm")</dd>
+                            <dt>Received</dt><dd>@s.ReceptionDateTime.ToString("dd MMM yyyy · HH:mm")</dd>
+                            <dt>Delivered by</dt><dd>@s.DeliveredByName</dd>
+                            <dt>From</dt><dd>@(s.DeliveringOrganization ?? "—")</dd>
+                            <dt>Received by</dt><dd>@s.ReceivedByName</dd>
+                            <dt>To</dt><dd>@(s.ReceivingOrganization ?? "—")</dd>
+                        </dl>
+                    </div>
+                    <div class="ts-meta-group">
+                        <h6><i class="bi bi-droplet-half"></i> Sample</h6>
+                        <dl class="ts-kv">
+                            <dt>Type</dt><dd>@s.SampleType</dd>
+                            <dt>Containers</dt><dd>@s.ContainersCount</dd>
+                            <dt>Sender barcode</dt><dd>@(s.ExternalBarcode ?? "—")</dd>
+                            <dt>Analysis</dt><dd>@(s.RequestedAnalysis ?? "—")</dd>
+                            <dt>Reference</dt><dd>@(s.RequestReferenceNumber ?? "—")</dd>
+                        </dl>
+                        @if (!string.IsNullOrWhiteSpace(s.Description)) { <p class="small text-muted mt-2 mb-0">@s.Description</p> }
+                    </div>
+                    <div class="ts-meta-group">
+                        <h6><i class="bi bi-thermometer-snow"></i> Transport</h6>
+                        <dl class="ts-kv">
+                            <dt>Condition</dt><dd>@s.TransportCondition @(range.HasValue ? $"({range.Value.Min}…{range.Value.Max}°C)" : "")</dd>
+                            <dt>Arrival temp</dt>
+                            <dd>
+                                @if (s.ArrivalTemperatureC.HasValue)
+                                {
+                                    <span class="iv-pill @(s.ArrivedOutOfRange ? "bad live" : "ok")">@s.ArrivalTemperatureC.Value.ToString("0.0")°C</span>
+                                }
+                                else { <span>—</span> }
+                            </dd>
+                        </dl>
+                        @if (!string.IsNullOrWhiteSpace(s.Comments)) { <p class="small text-muted mt-2 mb-0"><i class="bi bi-chat-quote"></i> @s.Comments</p> }
+                    </div>
+                    <div class="ts-meta-group mb-0">
+                        <h6><i class="bi bi-calendar2-check"></i> Retention</h6>
+                        <dl class="ts-kv">
+                            <dt>Planned withdrawal</dt><dd>@(s.PlannedWithdrawalDate?.ToString("dd MMM yyyy") ?? "Not set")</dd>
+                            <dt>Last update</dt><dd>@((s.UpdatedAtUtc ?? s.CreatedAtUtc).ToLocalTime().ToString("dd MMM yyyy HH:mm"))</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═════════════════ RIGHT ═════════════════ -->
+        <div class="col-xl-8">
+            <div class="row g-4">
+                <!-- Location -->
+                <div class="col-lg-7">
+                    <div class="iv-panel h-100">
+                        <div class="iv-panel-head gold">
+                            <div class="ph-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                            <div><h5>Location</h5><small>@(s.BoxId == null ? "Not occupying a slot" : (st == TempSampleStatus.CheckedOut ? "Out — slot reserved" : "Physically stored here"))</small></div>
+                            @if (s.BoxId != null) { <div class="ph-end"><span class="iv-pill gold">R@(s.RowIndex) · C@(s.ColumnIndex)</span></div> }
+                        </div>
+                        <div class="iv-panel-body">
+                            @if (s.BoxId == null)
+                            {
+                                <div class="iv-empty py-4">
+                                    <i class="bi @(final ? "bi-door-open" : "bi-hourglass-top")"></i>
+                                    <h5>@(final ? "Slot released" : "Awaiting placement")</h5>
+                                    @if (!final) { <button class="iv-btn iv-btn-gold mt-1" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-grid-3x3-gap-fill"></i> Place now</button> }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="iv-path mb-3">
+                                    <div class="iv-path-node"><i class="bi bi-building"></i><div><small>Room</small><b>@Model.RoomName</b></div></div>
+                                    <div class="iv-path-link"></div>
+                                    <div class="iv-path-node"><i class="bi bi-hourglass-split"></i><div><small>Holding unit</small><b>@Model.UnitName</b> <span class="iv-sub">@Model.UnitTypeName</span></div></div>
+                                    <div class="iv-path-link"></div>
+                                    <div class="iv-path-node"><i class="bi bi-grid-3x3"></i><div><small>Shelf › Box</small><b>@Model.ShelfName › @Model.BoxName</b></div></div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="iv-grid-legend"><span><i class="here"></i>This sample</span><span><i class="sample"></i>Other samples</span><span><i class="free"></i>Free</span></div>
+                                    <div class="iv-grid" id="dossierGrid" data-box="@s.BoxId" data-code="@s.SampleCode"
+                                         style="grid-template-columns:repeat(@Model.BoxCols, minmax(22px,1fr))"></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <div class="col-lg-5">
+                    <div class="iv-panel h-100">
+                        <div class="iv-panel-head">
+                            <div class="ph-icon"><i class="bi bi-folder2-open"></i></div>
+                            <div><h5>Documents</h5><small>SHA-256 sealed on upload</small></div>
+                            <div class="ph-end"><button class="iv-icon-btn" data-tip="Attach" data-bs-toggle="modal" data-bs-target="#mUpload"><i class="bi bi-plus-lg"></i></button></div>
+                        </div>
+                        <div class="iv-panel-body">
+                            @if (!Model.Attachments.Any())
+                            {
+                                <div class="iv-empty py-3"><i class="bi bi-paperclip"></i><h5>No documents</h5></div>
+                            }
+                            else
+                            {
+                                <div class="ts-docs">
+                                    @foreach (var a in Model.Attachments)
+                                    {
+                                        <a class="ts-doc" asp-action="Attachment" asp-route-id="@a.Id" title="SHA-256 @a.Sha256" style="animation-delay:@(n++ * 40)ms">
+                                            @if (a.Kind == AttachmentKind.Signature)
+                                            {
+                                                <img class="sig" src="@Url.Action("Attachment", new { id = a.Id, inline = true })" alt="signature" />
+                                            }
+                                            else { <i class="bi @KindIcon(a.Kind)"></i> }
+                                            <div class="nm">
+                                                <b>@a.OriginalFileName</b>
+                                                <small>@a.Kind · @(a.SizeBytes / 1024) KB · @a.UploadedBy · <span style="font-family:ui-monospace,Consolas,monospace">@(a.Sha256[..8])…</span></small>
+                                            </div>
+                                            <i class="bi bi-download" style="background:none;width:auto"></i>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custody chain -->
+                <div class="col-12">
+                    <div class="iv-panel">
+                        <div class="iv-panel-head teal">
+                            <div class="ph-icon"><i class="bi bi-link-45deg"></i></div>
+                            <div><h5>Chain of custody</h5><small>Append-only · every event sealed with SHA-256 of the previous one</small></div>
+                            <div class="ph-end">
+                                <button class="iv-btn iv-btn-primary" id="btnVerify" style="padding:7px 14px"><i class="bi bi-shield-check"></i> Verify chain</button>
+                            </div>
+                        </div>
+                        <div class="iv-panel-body">
+                            @if (Model.BrokenAtSequence == null)
+                            {
+                                <div class="ts-chain-banner ok" id="chainBanner">
+                                    <i class="bi bi-shield-fill-check"></i>
+                                    <span>Chain intact — @Model.Events.Count events, no tampering detected.</span>
+                                    <span class="ms-auto small">Last seal <code>@(Model.Events.LastOrDefault()?.Hash[..12])…</code></span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="ts-chain-banner bad" id="chainBanner">
+                                    <i class="bi bi-shield-fill-x"></i>
+                                    <span>Integrity broken at event #@Model.BrokenAtSequence — the record was altered outside the application.</span>
+                                </div>
+                            }
+
+                            <div class="ts-tl" id="timeline">
+                                @{ n = 0; }
+                                @foreach (var e in Model.Events.AsEnumerable().Reverse())
+                                {
+                                    var v = Ev(e.EventType);
+                                    var broken = Model.BrokenAtSequence != null && e.Sequence >= Model.BrokenAtSequence;
+                                    <div class="ts-ev ev-@e.EventType" data-seq="@e.Sequence" style="animation-delay:@(Math.Min(n++, 15) * 45)ms">
+                                        <span class="ts-ev-ico"><i class="bi @v.Icon"></i></span>
+                                        <div class="ts-ev-card">
+                                            <div class="ts-ev-top">
+                                                <span class="ts-ev-seq">#@e.Sequence</span>
+                                                <span class="ts-ev-type">@v.Label</span>
+                                                @if (e.QuantityDelta.HasValue)
+                                                {
+                                                    <span class="iv-pill @(e.QuantityDelta > 0 ? "ok" : "warn")">@(e.QuantityDelta > 0 ? "+" : "")@e.QuantityDelta.Value.ToString("0.###") → @e.QuantityAfter?.ToString("0.###")</span>
+                                                }
+                                                <span class="ts-ev-when"><i class="bi bi-person-circle"></i> @e.PerformedByName · @e.OccurredAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm:ss")</span>
+                                            </div>
+                                            <div class="ts-ev-body">
+                                                @if (e.Counterparty != null) { <div><i class="bi bi-person-badge text-muted"></i> @e.Counterparty</div> }
+                                                @if (e.FromLocation != null || e.ToLocation != null)
+                                                {
+                                                    <div class="ts-ev-move">
+                                                        @if (e.FromLocation != null) { <span><i class="bi bi-geo"></i> @e.FromLocation</span> }
+                                                        @if (e.FromLocation != null && e.ToLocation != null) { <i class="bi bi-arrow-right text-muted"></i> }
+                                                        @if (e.ToLocation != null) { <span><i class="bi bi-geo-alt-fill text-success"></i> @e.ToLocation</span> }
+                                                    </div>
+                                                }
+                                                @if (e.Notes != null) { <div>@e.Notes</div> }
+                                                @if (e.EventType == CustodyEventType.MetadataUpdated && e.DataJson != null)
+                                                {
+                                                    <table class="ts-ev-diff">
+                                                        @foreach (var d in JsonDocument.Parse(e.DataJson).RootElement.EnumerateArray())
+                                                        {
+                                                            <tr>
+                                                                <td>@d.GetProperty("field").GetString()</td>
+                                                                <td><del>@(d.GetProperty("from").GetString() ?? "∅")</del> <i class="bi bi-arrow-right small"></i> <ins>@(d.GetProperty("to").GetString() ?? "∅")</ins></td>
+                                                            </tr>
+                                                        }
+                                                    </table>
+                                                }
+                                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                                    <span class="ts-seal @(broken ? "bad" : "")" title="Previous: @e.PreviousHash&#10;This:     @e.Hash">
+                                                        <i class="bi bi-link-45deg"></i>@(e.PreviousHash[..8]) → @(e.Hash[..8])
+                                                    </span>
+                                                    @if (e.DataJson != null && e.DataJson.Contains("signatureSha256")) { <span class="iv-pill gold"><i class="bi bi-pen-fill"></i> Signed</span> }
+                                                    @if (e.ClientInfo != null) { <span class="ts-seal" title="@e.ClientInfo"><i class="bi bi-laptop"></i>@e.ClientInfo.Split('|')[0].Trim()</span> }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═════════════════════════════ MODALS ═════════════════════════════ -->
+
+<!-- Place / Relocate -->
+<div class="modal fade ts-modal" id="mPlace" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="Place" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-grid-3x3-gap-fill"></i> @(s.BoxId == null ? "Place in storage" : "Relocate sample")</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                @if (!Model.ListHoldingRooms.Any())
+                {
+                    <div class="ts-empty-zone"><i class="bi bi-exclamation-diamond"></i><p class="mb-0">No Temporary Holding unit exists yet. Create one in <a asp-controller="Rooms" asp-action="Index">Storage Locations</a>.</p></div>
+                }
+                else
+                {
+                    <div class="row g-2">
+                        <div class="col-md-3 col-6"><select id="pRoom" class="form-select"><option value="">Room</option>@foreach (var r in Model.ListHoldingRooms) { <option value="@r.Value">@r.Text</option> }</select></div>
+                        <div class="col-md-3 col-6"><select id="pUnit" class="form-select" disabled><option value="">Holding unit</option></select></div>
+                        <div class="col-md-3 col-6"><select id="pShelf" class="form-select" disabled><option value="">Shelf</option></select></div>
+                        <div class="col-md-3 col-6"><select id="pBox" class="form-select" disabled><option value="">Box</option></select></div>
+                    </div>
+                    <div id="pWrap" class="text-center mt-3" hidden>
+                        <div class="iv-grid-legend"><span><i class="free"></i>Free</span><span><i class="sample"></i>Sample</span><span><i class="lot"></i>Lot</span><span><i class="sel"></i>Selected</span></div>
+                        <div class="iv-grid" id="pGrid"></div>
+                        <div class="iv-slot-label" id="pLabel"></div>
+                    </div>
+                    <div class="ts-field mt-3"><label>Reason (optional)</label><input name="Reason" class="form-control" placeholder="e.g. consolidating boxes, freezer maintenance" /></div>
+                }
+                <input type="hidden" name="BoxId" id="pBoxId" /><input type="hidden" name="RowIndex" id="pRow" /><input type="hidden" name="ColumnIndex" id="pCol" />
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold" data-need="#pRow"><i class="bi bi-check2-circle"></i> Confirm location</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Check out -->
+<div class="modal fade ts-modal" id="mCheckOut" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="CheckOut" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-box-arrow-up-right"></i> Check out for analysis</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p class="small text-muted"><i class="bi bi-lock-fill"></i> The slot stays reserved until the sample returns.</p>
+                <div class="ts-field mb-3"><label>Taken by / lab *</label><input name="Counterparty" class="form-control" required placeholder="Name or laboratory" /></div>
+                <div class="ts-field mb-3"><label>Purpose</label><input name="Reason" class="form-control" value="@s.RequestedAnalysis" placeholder="e.g. PCR run" /></div>
+                <div class="ts-field"><label>Expected return</label><input name="ExpectedReturn" type="datetime-local" class="form-control" value="@DateTime.Now.AddHours(4).ToString("yyyy-MM-ddTHH:mm")" /></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-primary"><i class="bi bi-box-arrow-up-right"></i> Check out</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Return -->
+<div class="modal fade ts-modal" id="mReturn" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="Return" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-box-arrow-in-left"></i> Return to storage</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="ts-field mb-3"><label>Returned by</label><input name="Counterparty" class="form-control" /></div>
+                <div class="ts-field mb-1"><label>Quantity consumed during analysis</label><input name="Quantity" type="number" step="0.001" min="0" max="@s.CurrentQuantity" value="0" class="form-control" data-qty-preview="#retPrev" /></div>
+                <div class="ts-qty-preview" id="retPrev" data-max="@s.CurrentQuantity"><span>Remaining</span><div class="bar"><span></span></div><b>@s.CurrentQuantity.ToString("0.###")</b></div>
+                <div class="ts-field mt-3"><label>Notes</label><textarea name="Notes" rows="2" class="form-control"></textarea></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold"><i class="bi bi-check2-circle"></i> Confirm return</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Withdraw -->
+<div class="modal fade ts-modal" id="mWithdraw" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="Withdraw" method="post" data-signature>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header amber"><h5 class="modal-title"><i class="bi bi-box-arrow-right"></i> Withdraw sample</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="ts-seg mb-3">
+                    <input type="radio" name="FullWithdrawal" id="wFull" value="true" checked /><label for="wFull"><i class="bi bi-box-arrow-right"></i> Full — release the slot</label>
+                    <input type="radio" name="FullWithdrawal" id="wPart" value="false" /><label for="wPart"><i class="bi bi-droplet-half"></i> Partial — keep the rest</label>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-5 ts-field" id="wQtyField" hidden>
+                        <label>Quantity</label>
+                        <input name="Quantity" type="number" step="0.001" min="0.001" max="@s.CurrentQuantity" class="form-control" data-qty-preview="#wPrev" placeholder="max @s.CurrentQuantity.ToString("0.###")" />
+                    </div>
+                    <div class="col ts-field"><label>Handed to *</label><input name="Counterparty" required class="form-control" placeholder="Recipient name / organization" /></div>
+                    <div class="col-12 ts-field"><label>Reason</label><input name="Reason" class="form-control" placeholder="e.g. returned to sender after analysis" /></div>
+                </div>
+                <div class="ts-qty-preview" id="wPrev" data-max="@s.CurrentQuantity"><span>Remaining after</span><div class="bar"><span></span></div><b>0</b></div>
+                <label class="ts-label mt-3">Recipient signature</label>
+                <div class="ts-sig"><canvas></canvas><span class="hint"><i class="bi bi-pen me-2"></i>Sign here</span><button type="button" class="clear">Clear</button></div>
+                <input type="hidden" name="SignatureDataUrl" />
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold"><i class="bi bi-shield-lock-fill"></i> Seal withdrawal</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Dispose -->
+<div class="modal fade ts-modal" id="mDispose" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="DisposeSample" method="post" data-signature data-confirm="This closes the record permanently. Continue?">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header bad"><h5 class="modal-title"><i class="bi bi-trash3-fill"></i> Dispose sample</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <label class="ts-label">Method *</label>
+                <div class="ts-chips mb-3">
+                    @foreach (var m in new[] { "Autoclave", "Incineration", "Chemical inactivation", "Returned to sender", "Other" })
+                    {
+                        <label class="ts-chip"><input type="radio" name="Method" value="@m" /><span>@m</span></label>
+                    }
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-7 ts-field"><label>Reason *</label><input name="Reason" required class="form-control" placeholder="e.g. retention period ended" /></div>
+                    <div class="col-md-5 ts-field"><label>Witness</label><input name="Counterparty" class="form-control" placeholder="Name" /></div>
+                </div>
+                <label class="ts-label mt-3">Signature</label>
+                <div class="ts-sig"><canvas></canvas><span class="hint"><i class="bi bi-pen me-2"></i>Sign here</span><button type="button" class="clear">Clear</button></div>
+                <input type="hidden" name="SignatureDataUrl" />
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-danger" style="padding:10px 18px"><i class="bi bi-trash3-fill"></i> Dispose & close record</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Note -->
+<div class="modal fade ts-modal" id="mNote" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="Note" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-chat-left-text"></i> Add note</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><textarea name="Notes" rows="4" required class="form-control" placeholder="Observation, phone call, deviation…"></textarea></div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-primary"><i class="bi bi-link-45deg"></i> Add to chain</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Upload -->
+<div class="modal fade ts-modal" id="mUpload" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form class="modal-content iv-form" asp-action="Upload" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@s.Id" />
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-paperclip"></i> Attach documents</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="ts-drop" id="uDrop"><i class="bi bi-cloud-arrow-up"></i><p><b>Drop files here</b> or click to browse<br /><small>max 25 MB each</small></p><input type="file" id="uFiles" name="files" multiple hidden /></div>
+                <ul class="ts-files" id="uList"></ul>
+                <div id="uKinds"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold" data-need-files><i class="bi bi-upload"></i> Upload & seal</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit -->
+<div class="modal fade ts-modal" id="mEdit" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <form class="modal-content iv-form" asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@s.Id" />
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-pencil-square"></i> Correct metadata</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="alert alert-warning rounded-4 small"><i class="bi bi-info-circle-fill"></i> Every change is written as a field-by-field diff into the custody chain. Quantities and location are changed through their own actions.</div>
+                <div class="row g-3">
+                    <div class="col-md-3 ts-field"><label>Delivery</label><input name="DeliveryDateTime" type="datetime-local" class="form-control" value="@Model.Edit.DeliveryDateTime.ToString("yyyy-MM-ddTHH:mm")" required /></div>
+                    <div class="col-md-3 ts-field"><label>Reception</label><input name="ReceptionDateTime" type="datetime-local" class="form-control" value="@Model.Edit.ReceptionDateTime.ToString("yyyy-MM-ddTHH:mm")" required /></div>
+                    <div class="col-md-3 ts-field"><label>Delivered by</label><input name="DeliveredByName" class="form-control" value="@Model.Edit.DeliveredByName" required /></div>
+                    <div class="col-md-3 ts-field"><label>Planned withdrawal</label><input name="PlannedWithdrawalDate" type="date" class="form-control" value="@Model.Edit.PlannedWithdrawalDate?.ToString("yyyy-MM-dd")" /></div>
+                    <div class="col-md-6 ts-field"><label>Delivering organization</label><input name="DeliveringOrganization" class="form-control" value="@Model.Edit.DeliveringOrganization" /></div>
+                    <div class="col-md-6 ts-field"><label>Receiving organization</label><input name="ReceivingOrganization" class="form-control" value="@Model.Edit.ReceivingOrganization" /></div>
+                    <div class="col-md-4 ts-field"><label>Sample type</label><input name="SampleType" class="form-control" value="@Model.Edit.SampleType" required /></div>
+                    <div class="col-md-4 ts-field"><label>Sender barcode</label><input name="ExternalBarcode" class="form-control" value="@Model.Edit.ExternalBarcode" /></div>
+                    <div class="col-md-2 ts-field"><label>Unit</label>
+                        <select name="UnitId" class="form-select"><option value="">—</option>
+                            @foreach (var u in Model.ListUnits) { <option value="@u.Value" selected="@(u.Value == Model.Edit.UnitId?.ToString())">@u.Text</option> }
+                        </select>
+                    </div>
+                    <div class="col-md-2 ts-field"><label>Containers</label><input name="ContainersCount" type="number" min="1" class="form-control" value="@Model.Edit.ContainersCount" /></div>
+                    <div class="col-md-6 ts-field"><label>Requested analysis</label><input name="RequestedAnalysis" class="form-control" value="@Model.Edit.RequestedAnalysis" /></div>
+                    <div class="col-md-3 ts-field"><label>Reference no.</label><input name="RequestReferenceNumber" class="form-control" value="@Model.Edit.RequestReferenceNumber" /></div>
+                    <div class="col-md-3 ts-field"><label>Arrival temp (°C)</label><input name="ArrivalTemperatureC" type="number" step="0.1" class="form-control" value="@Model.Edit.ArrivalTemperatureC?.ToString(System.Globalization.CultureInfo.InvariantCulture)" /></div>
+                    <div class="col-md-4 ts-field"><label>Transport condition</label>
+                        <select name="TransportCondition" class="form-select">
+                            @foreach (TransportCondition c in Enum.GetValues(typeof(TransportCondition))) { <option value="@c" selected="@(c == Model.Edit.TransportCondition)">@c</option> }
+                        </select>
+                    </div>
+                    <div class="col-md-8 ts-field"><label>Description</label><input name="Description" class="form-control" value="@Model.Edit.Description" /></div>
+                    <div class="col-12 ts-field"><label>Comments</label><textarea name="Comments" rows="2" class="form-control">@Model.Edit.Comments</textarea></div>
+                    <div class="col-12 ts-field"><label class="text-danger">Reason for change *</label><input name="ChangeReason" required class="form-control" placeholder="e.g. typo in reference number reported by sender" /></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold"><i class="bi bi-shield-lock-fill"></i> Save & seal change</button></div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/inventory.js" asp-append-version="true"></script>
+    <script src="~/js/temp-sample-dossier.js" asp-append-version="true"></script>
+    <script>
+        TSDossier.init({ id: @s.Id, verifyUrl: '@Url.Action("VerifyChain", new { id = s.Id })' });
+    </script>
+    @if (TempData["Success"] != null)
+    {
+        <script>Swal.fire({ icon: 'success', title: 'Done', text: '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(TempData["Success"]!.ToString()!))', timer: 2600, showConfirmButton: false, toast: true, position: 'top-end' });</script>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <script>Swal.fire({ icon: 'error', title: 'Not saved', text: '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(TempData["Error"]!.ToString()!))', confirmButtonColor: '#032b42' });</script>
+    }
+}

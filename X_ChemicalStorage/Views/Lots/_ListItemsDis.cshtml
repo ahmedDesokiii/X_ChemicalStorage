@@ -1,82 +1,56 @@
-﻿@model LotViewModel
-
+@model LotViewModel
 @{
     var canExchange = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded;
+    var inStock = Model.ItemsList.Where(x => x.AvilableQuantity > 0).ToList();
+    int n = 0;
 }
 
-<div class="modal fade" id="ListItemsModalExchange" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content card card-success card-outline">
-
-            <div class="modal-header modal-header-custom">
-                <h5 class="modal-title fw-bold"><i class="bi bi-cart-dash-fill me-2"></i>Items List</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="modal fade iv-modal" id="ListItemsModalExchange" tabindex="-1" aria-hidden="true" dir="ltr">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cart-dash-fill"></i> Exchange Lot — choose item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
                 <input type="hidden" id="actionModeExchange" value="exchange" />
-                <div class="mb-3">
-                    <input type="text" id="itemsSearchInputExchange" class="form-control form-control-lg" placeholder="Scan barcode..." autocomplete="off" />
-                    <small id="scanMessageExchange" class="text-danger d-none mt-1">Item not found</small>
+                <div class="iv-scan">
+                    <i class="bi bi-upc-scan"></i>
+                    <input type="text" id="itemsSearchInputExchange" class="form-control" placeholder="Scan item barcode or type a name…" autocomplete="off" />
+                    <div id="scanMessageExchange" class="iv-scan-msg d-none"><i class="bi bi-exclamation-octagon-fill"></i> No in-stock item matches this barcode</div>
                 </div>
 
-                @if (!Model.ItemsList.Any())
+                @if (!inStock.Any())
                 {
-                    <div class="alert alert-warning text-center">
-                        <h5>No Items</h5>
-                        <p class="mb-0">No items have been added yet.</p>
-                    </div>
+                    <div class="iv-empty"><i class="bi bi-inbox"></i><h5>Nothing to exchange</h5><p>No item currently has available quantity.</p></div>
                 }
                 else
                 {
-                    <div class="items-grid">
-                        @foreach (var item in Model.ItemsList.Where(x=>x.AvilableQuantity>0))
+                    <div class="iv-pick-grid">
+                        @foreach (var item in inStock)
                         {
-                            <div class="item-card" data-barcode="@item.Code">
-                                <div class="item-card-header">
-                                    <div class="item-name fs-4">@item.Name</div>
-                                    <div>
-                                        <img src="@item.BarcodeImage" class="barcode-mobile" />
-                                        <div class="d-block p-0 m-0" style="font-size:12px"> @item.Code</div>
+                            var cold = item.StorageUnitType?.TemperatureValue < 0;
+                            var low = item.AvilableQuantity <= item.Limit;
+                            if (canExchange)
+                            {
+                                <a class="iv-pick item-card" data-barcode="@item.Code" data-name="@item.Name"
+                                   asp-controller="Items" asp-action="ExchangeLot" asp-route-id="@item.Id"
+                                   style="animation-delay:@(Math.Min(n++, 14) * 30)ms">
+                                    <div class="iv-pick-top">
+                                        <div class="iv-pick-name">@item.Name</div>
+                                        <span class="iv-code"><img src="@item.BarcodeImage" alt="" loading="lazy" /><span>@item.Code</span></span>
                                     </div>
-                                </div>
-                                
-                                <div class="item-meta text-start ps-4">
-                                    @{
-                                        var badgeClass = (item.StorageUnitType?.TemperatureValue < 0) ? "badge-cold" : "badge-room";
-                                    }
-                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span>
-
-                                    <div class="ps-2"><strong>Category:</strong> @item.Category?.Name</div>
-                                    <div class="ps-2">
-                                        <strong>SDS:</strong>
-                                        @if (item.SDS == true)
-                                        {
-                                            <span class="py-1 px-3 bg-success-subtle link-success rounded-5">
-                                                Valid
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="py-1 px-3 bg-danger-subtle link-danger rounded-5">
-                                                Invalid
-                                            </span>
-                                        }
+                                    <div class="iv-pick-meta">
+                                        <span class="iv-temp @(cold ? "cold" : "room")"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span>
                                     </div>
-                                    <div class="ps-2"><strong>Available Quantity:</strong> <span class="rounded-4 bg-warning-subtle fw-bold px-3 py-1 text-dark">@item.AvilableQuantity</span></div>
-
-                                </div>
-
-                                <div class="item-actions mt-0 mb-1">
-                                    @if (canExchange)
-                                    {
-                                        <a asp-controller="Items" asp-action="ExchangeLot" asp-route-id="@item.Id"
-                                           class="btn action-btn" data-action="exchange" title="Exchange Lot">
-                                            <i class="bi bi-cart-dash-fill fs-1"></i>
-                                        </a>
-                                    }
-                                </div>
-                            </div>
+                                    <div class="iv-pick-meta">
+                                        <span class="iv-pill teal">@item.Category?.Name</span>
+                                        <span class="iv-pill @(low ? "bad" : "ok")">Available @item.AvilableQuantity</span>
+                                    </div>
+                                    <div class="iv-pick-go"><span class="action-btn" data-action="exchange">Exchange</span><i class="bi bi-arrow-right-circle-fill fs-5"></i></div>
+                                </a>
+                            }
                         }
                     </div>
                 }
@@ -84,32 +58,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        (function() {
-            const modal = document.getElementById('ListItemsModalExchange');
-            if (!modal) return;
-
-            const input = modal.querySelector('#itemsSearchInputExchange');
-            const cards = modal.querySelectorAll('.item-card');
-            const scanMsg = modal.querySelector('#scanMessageExchange');
-
-            let timer;
-            input.addEventListener('input', () => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    const code = input.value.trim();
-                    input.value = '';
-                    scanMsg.classList.add('d-none');
-                    const match = [...cards].find(c => c.dataset.barcode === code);
-                    if (!match) return scanMsg.classList.remove('d-none');
-                    const btn = match.querySelector('.action-btn[data-action="exchange"]');
-                    if (btn) btn.click();
-                }, 300);
-            });
-
-            modal.addEventListener('shown.bs.modal', () => input.focus());
-        })();
-    </script>
-}

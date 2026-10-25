@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using X_ChemicalStorage.Models;
+using X_ChemicalStorage.Models.TempSamples;
 using X_ChemicalStorage.Models.ViewModels;
 
 namespace X_ChemicalStorage.Controllers
@@ -31,44 +32,85 @@ namespace X_ChemicalStorage.Controllers
                 .ToListAsync();
         }
 
+        // NOTE: the "Has…Lots" helpers now mean "has ANY occupant" —
+        // a Lot OR a placed temporary sample (BoxId != null). Names kept to avoid touching call sites.
+
         /// <summary>
-        /// Checks if a room contains any stored lots
+        /// Checks if a room contains any stored lots or placed temporary samples
         /// </summary>
         private async Task<bool> RoomHasLotsAsync(int roomId)
         {
             return await _context.Lots
-                .AsNoTracking()
-                .AnyAsync(l => l.Box.Shelf.StorageUnit.RoomId == roomId);
+                       .AsNoTracking()
+                       .AnyAsync(l => l.Box.Shelf.StorageUnit.RoomId == roomId)
+                || await _context.TempSamples
+                       .AsNoTracking()
+                       .AnyAsync(s => s.BoxId != null && s.Box!.Shelf.StorageUnit.RoomId == roomId);
         }
 
         /// <summary>
-        /// Checks if a storage unit contains any stored lots
+        /// Checks if a storage unit contains any stored lots or placed temporary samples
         /// </summary>
         private async Task<bool> StorageUnitHasLotsAsync(int storageUnitId)
         {
             return await _context.Lots
-                .AsNoTracking()
-                .AnyAsync(l => l.Box.Shelf.StorageUnitId == storageUnitId);
+                       .AsNoTracking()
+                       .AnyAsync(l => l.Box.Shelf.StorageUnitId == storageUnitId)
+                || await _context.TempSamples
+                       .AsNoTracking()
+                       .AnyAsync(s => s.BoxId != null && s.Box!.Shelf.StorageUnitId == storageUnitId);
         }
 
         /// <summary>
-        /// Checks if a shelf contains any stored lots
+        /// Checks if a shelf contains any stored lots or placed temporary samples
         /// </summary>
         private async Task<bool> ShelfHasLotsAsync(int shelfId)
         {
             return await _context.Lots
-                .AsNoTracking()
-                .AnyAsync(l => l.Box.ShelfId == shelfId);
+                       .AsNoTracking()
+                       .AnyAsync(l => l.Box.ShelfId == shelfId)
+                || await _context.TempSamples
+                       .AsNoTracking()
+                       .AnyAsync(s => s.BoxId != null && s.Box!.ShelfId == shelfId);
         }
 
         /// <summary>
-        /// Checks if a box contains any stored lots
+        /// Checks if a box contains any stored lots or placed temporary samples
         /// </summary>
         private async Task<bool> BoxHasLotsAsync(int boxId)
         {
             return await _context.Lots
+                       .AsNoTracking()
+                       .AnyAsync(l => l.BoxId == boxId)
+                || await _context.TempSamples
+                       .AsNoTracking()
+                       .AnyAsync(s => s.BoxId == boxId);
+        }
+
+        /// <summary>
+        /// Temporary samples per Holding unit (UnitId → count) for the Rooms page meters
+        /// </summary>
+        private async Task<Dictionary<int, int>> GetHoldingUnitOccupancyAsync()
+        {
+            return await _context.TempSamples
                 .AsNoTracking()
-                .AnyAsync(l => l.BoxId == boxId);
+                .Where(s => s.BoxId != null)
+                .GroupBy(s => s.Box!.Shelf.StorageUnitId)
+                .Select(g => new { UnitId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.UnitId, x => x.Count);
+        }
+
+        /// <summary>
+        /// Temporary samples per box (BoxId → count) for the box badges
+        /// </summary>
+        private async Task<Dictionary<int, int>> GetHoldingBoxOccupancyAsync()
+        {
+            return await _context.TempSamples
+                .AsNoTracking()
+                .Where(s => s.BoxId != null)
+                .GroupBy(s => s.BoxId!.Value)
+                .Select(g => new { BoxId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.BoxId, x => x.Count);
         }
 
         /// <summary>
@@ -98,12 +140,23 @@ namespace X_ChemicalStorage.Controllers
                         .ThenInclude(u => u.Shelves)
                             .ThenInclude(s => s.Boxes)
                     .OrderBy(r => r.Name)
+                    .AsSplitQuery()          // avoids the cartesian explosion of Room×Unit×Shelf×Box in one SQL
                     .ToListAsync();
+
+                // Lot occupancy is aggregated in SQL — no Lot rows are loaded
+                var lotBoxOcc = await _context.Lots.AsNoTracking()
+                    .Where(l => l.BoxId != null)
+                    .GroupBy(l => (int)l.BoxId!)
+                    .Select(g => new { BoxId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.BoxId, x => x.Count);
 
                 var model = new RoomsViewModel
                 {
                     RoomsList = rooms,
-                    ListStorageUnitTypes = await GetStorageUnitTypesListAsync()
+                    ListStorageUnitTypes = await GetStorageUnitTypesListAsync(),
+                    HoldingOccupancy = await GetHoldingUnitOccupancyAsync(),
+                    HoldingBoxOccupancy = await GetHoldingBoxOccupancyAsync(),
+                    LotBoxOccupancy = lotBoxOcc
                 };
 
                 return View(model);
@@ -186,15 +239,26 @@ namespace X_ChemicalStorage.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Prevent deletion if room contains stored lots
+                // Prevent deletion if room contains stored lots or temporary samples
                 if (await RoomHasLotsAsync(id))
                 {
-                    TempData["Error"] = "Cannot delete this room because it contains stored samples. Please relocate all samples first.";
+                    TempData["Error"] = "Cannot delete this room because it contains stored lots or temporary samples. Please relocate them first.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                _context.Rooms.Remove(room);
-                await _context.SaveChangesAsync();
+                // FKs are Restrict → delete the (empty) hierarchy bottom-up in one transaction
+                await using (var tx = await _context.Database.BeginTransactionAsync())
+                {
+                    var unitIds = room.StorageUnits.Select(u => u.Id).ToList();
+                    var shelves = await _context.Shelves.Where(sh => unitIds.Contains(sh.StorageUnitId)).ToListAsync();
+                    var shelfIds = shelves.Select(sh => sh.Id).ToList();
+                    _context.Boxes.RemoveRange(await _context.Boxes.Where(b => shelfIds.Contains(b.ShelfId)).ToListAsync());
+                    _context.Shelves.RemoveRange(shelves);
+                    _context.StorageUnits.RemoveRange(room.StorageUnits);
+                    _context.Rooms.Remove(room);
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                }
 
                 _logger.LogInformation("Deleted room ID {RoomId} - '{RoomName}'", id, room.Name);
                 TempData["Success"] = $"Room '{room.Name}' has been deleted successfully.";
@@ -247,66 +311,58 @@ namespace X_ChemicalStorage.Controllers
                 }
             }
 
+            if (await _context.Rooms.AnyAsync(r => r.Name.ToLower() == model.RoomName.Trim().ToLower()))
+            {
+                TempData["Error"] = "A room with this name already exists.";
+                return RedirectToAction(nameof(GenerateWizard));
+            }
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Create the room
+                // Build the whole hierarchy in memory, then ONE SaveChanges (was one round-trip per unit/shelf batch)
                 var room = new Room { Name = model.RoomName.Trim() };
-                _context.Rooms.Add(room);
-                await _context.SaveChangesAsync();
-
+                var typeNames = await _context.StorageUnitTypes.AsNoTracking().ToDictionaryAsync(t => t.Id, t => t.Name);
+                var units = new List<StorageUnit>();
                 int totalUnits = 0, totalShelves = 0, totalBoxes = 0;
 
                 foreach (var unitInput in model.Units)
                 {
-                    var typeName = await GetStorageUnitTypeNameAsync(unitInput.StorageUnitTypeId);
+                    var typeName = typeNames.TryGetValue(unitInput.StorageUnitTypeId, out var tn) ? tn : "Unit";
+                    var prefix = unitInput.Zone == StorageZone.TemporaryHolding ? "Holding" : typeName;
 
                     for (int u = 1; u <= unitInput.UnitsCount; u++)
                     {
                         var storageUnit = new StorageUnit
                         {
-                            RoomId = room.Id,
+                            Room = room,
                             StorageUnitTypeId = unitInput.StorageUnitTypeId,
                             IsHazardous = unitInput.IsHazardous,
-                            Name = $"{typeName} - Unit {u}"
+                            Zone = unitInput.Zone,
+                            Name = $"{prefix} - Unit {units.Count(x => x.StorageUnitTypeId == unitInput.StorageUnitTypeId && x.Zone == unitInput.Zone) + 1}",
+                            Shelves = new List<Shelf>()
                         };
-                        _context.StorageUnits.Add(storageUnit);
-                        await _context.SaveChangesAsync();
-                        totalUnits++;
 
-                        var shelves = new List<Shelf>();
                         for (int sh = 1; sh <= unitInput.ShelvesPerUnit; sh++)
                         {
-                            shelves.Add(new Shelf
-                            {
-                                StorageUnitId = storageUnit.Id,
-                                Name = $"Shelf {sh}"
-                            });
-                        }
-                        _context.Shelves.AddRange(shelves);
-                        await _context.SaveChangesAsync();
-                        totalShelves += shelves.Count;
-
-                        var boxes = new List<Box>();
-                        foreach (var shelf in shelves)
-                        {
+                            var shelf = new Shelf { Name = $"Shelf {sh}", Boxes = new List<Box>() };
                             for (int b = 1; b <= unitInput.BoxesPerShelf; b++)
                             {
-                                boxes.Add(new Box
-                                {
-                                    ShelfId = shelf.Id,
-                                    Name = $"Box {b}",
-                                    RowsCount = unitInput.RowsCount,
-                                    ColumnsCount = unitInput.ColumnsCount
-                                });
+                                shelf.Boxes.Add(new Box { Name = $"Box {b}", RowsCount = unitInput.RowsCount, ColumnsCount = unitInput.ColumnsCount });
+                                totalBoxes++;
                             }
+                            storageUnit.Shelves.Add(shelf);
+                            totalShelves++;
                         }
-                        _context.Boxes.AddRange(boxes);
-                        await _context.SaveChangesAsync();
-                        totalBoxes += boxes.Count;
+                        units.Add(storageUnit);
+                        totalUnits++;
                     }
                 }
+
+                _context.Rooms.Add(room);
+                _context.StorageUnits.AddRange(units);
+                await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
@@ -333,7 +389,8 @@ namespace X_ChemicalStorage.Controllers
         #region Manual Add Operations
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddStorageUnit(int roomId, int storageUnitTypeId, string name, bool isHazardous)
+        public async Task<IActionResult> AddStorageUnit(int roomId, int storageUnitTypeId, string name, bool isHazardous,
+                                                        StorageZone zone = StorageZone.Inventory)
         {
             if (string.IsNullOrWhiteSpace(name) || roomId <= 0 || storageUnitTypeId <= 0)
             {
@@ -350,16 +407,31 @@ namespace X_ChemicalStorage.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                if (!Enum.IsDefined(typeof(StorageZone), zone))
+                {
+                    TempData["Error"] = "Invalid storage zone.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var newName = name.Trim();
+                if (await _context.StorageUnits.AnyAsync(u => u.RoomId == roomId && u.Name.ToLower() == newName.ToLower()))
+                {
+                    TempData["Error"] = "Another storage unit in this room already has this name.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 _context.StorageUnits.Add(new StorageUnit
                 {
                     RoomId = roomId,
                     StorageUnitTypeId = storageUnitTypeId,
-                    Name = name.Trim(),
-                    IsHazardous = isHazardous
+                    Name = newName,
+                    IsHazardous = isHazardous,
+                    Zone = zone
                 });
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = $"Storage unit '{name}' has been added successfully.";
+                var zoneText = zone == StorageZone.TemporaryHolding ? "Temporary Holding" : "Lots Inventory";
+                TempData["Success"] = $"Storage unit '{newName}' has been added to {zoneText}.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -450,7 +522,8 @@ namespace X_ChemicalStorage.Controllers
         #region Edit Operations
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditStorageUnit(int id, int storageUnitTypeId, string name, bool isHazardous)
+        public async Task<IActionResult> EditStorageUnit(int id, int storageUnitTypeId, string name, bool isHazardous,
+                                                         StorageZone zone = StorageZone.Inventory)
         {
             if (id <= 0 || storageUnitTypeId <= 0 || string.IsNullOrWhiteSpace(name))
             {
@@ -473,10 +546,20 @@ namespace X_ChemicalStorage.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Items depend on the storage condition (type) -> don't change it while samples are stored
-                if (unit.StorageUnitTypeId != storageUnitTypeId && await StorageUnitHasLotsAsync(id))
+                if (!Enum.IsDefined(typeof(StorageZone), zone))
                 {
-                    TempData["Error"] = "Cannot change the type of a storage unit that contains stored samples.";
+                    TempData["Error"] = "Invalid storage zone.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Type or zone change is only allowed on an empty unit (computed once)
+                bool typeChanged = unit.StorageUnitTypeId != storageUnitTypeId;
+                bool zoneChanged = unit.Zone != zone;
+                if ((typeChanged || zoneChanged) && await StorageUnitHasLotsAsync(id))
+                {
+                    TempData["Error"] = zoneChanged
+                        ? "Empty the unit before switching it between Lots Inventory and Temporary Holding."
+                        : "Cannot change the type of a storage unit that contains stored lots or samples.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -491,7 +574,11 @@ namespace X_ChemicalStorage.Controllers
                 unit.Name = newName;
                 unit.StorageUnitTypeId = storageUnitTypeId;
                 unit.IsHazardous = isHazardous;
+                unit.Zone = zone;
                 await _context.SaveChangesAsync();
+
+                if (zoneChanged)
+                    _logger.LogInformation("Storage unit {UnitId} zone changed to {Zone}", id, zone);
 
                 TempData["Success"] = $"Storage unit '{unit.Name}' has been updated successfully.";
                 return RedirectToAction(nameof(Index));
@@ -567,11 +654,14 @@ namespace X_ChemicalStorage.Controllers
                 // If the grid is shrinking, make sure no stored lot would fall outside the new grid
                 if (rowsCount < box.RowsCount || columnsCount < box.ColumnsCount)
                 {
-                    bool lotsOutside = await _context.Lots.AsNoTracking()
-                        .AnyAsync(l => l.BoxId == id && (l.RowIndex > rowsCount || l.ColumnIndex > columnsCount));
-                    if (lotsOutside)
+                    bool occupantsOutside =
+                        await _context.Lots.AsNoTracking()
+                            .AnyAsync(l => l.BoxId == id && (l.RowIndex > rowsCount || l.ColumnIndex > columnsCount))
+                     || await _context.TempSamples.AsNoTracking()
+                            .AnyAsync(s => s.BoxId == id && (s.RowIndex > rowsCount || s.ColumnIndex > columnsCount));
+                    if (occupantsOutside)
                     {
-                        TempData["Error"] = "Cannot shrink this box: some stored samples are located outside the new grid size.";
+                        TempData["Error"] = "Cannot shrink this box: some stored lots or samples are located outside the new grid size.";
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -710,12 +800,16 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
         #region Cascading AJAX Endpoints
+        /// <summary>
+        /// Units for the Lots cascade (CreateLot). Defaults to Inventory so lots can never
+        /// be placed in Temporary Holding units. Temp samples use TempSamples/GetHoldingUnitsByRoom.
+        /// </summary>
         [HttpGet]
-        public async Task<JsonResult> GetStorageUnitsByRoom(int roomId)
+        public async Task<JsonResult> GetStorageUnitsByRoom(int roomId, StorageZone zone = StorageZone.Inventory)
         {
             var units = await _context.StorageUnits
                 .AsNoTracking()
-                .Where(u => u.RoomId == roomId)
+                .Where(u => u.RoomId == roomId && u.Zone == zone)
                 .OrderBy(u => u.Name)
                 .Select(u => new { u.Id, u.Name, u.IsHazardous })
                 .ToListAsync();
@@ -747,10 +841,12 @@ namespace X_ChemicalStorage.Controllers
         }
 
         /// <summary>
-        /// Returns box grid dimensions and occupied slots for visual grid display
+        /// Returns box grid dimensions and ALL occupied slots (lots + temporary samples).
+        /// "LotNumber" key is kept for both kinds so the existing CreateLot grid JS works unchanged;
+        /// "Kind" lets the Temp Samples grid colour them differently.
         /// </summary>
         [HttpGet]
-        public async Task<JsonResult> GetBoxGrid(int boxId, int? excludeLotId = null)
+        public async Task<JsonResult> GetBoxGrid(int boxId, int? excludeLotId = null, int? excludeSampleId = null)
         {
             var box = await _context.Boxes
                 .AsNoTracking()
@@ -759,10 +855,18 @@ namespace X_ChemicalStorage.Controllers
 
             if (box == null) return Json(null);
 
-            var occupied = box.Lots
+            var lots = box.Lots
                 .Where(l => l.Id != excludeLotId)
-                .Select(l => new { l.RowIndex, l.ColumnIndex, l.LotNumber })
+                .Select(l => new GridOccupant(Convert.ToInt32(l.RowIndex), Convert.ToInt32(l.ColumnIndex), l.LotNumber, "lot", l.Id))
                 .ToList();
+
+            var samples = await _context.TempSamples
+                .AsNoTracking()
+                .Where(s => s.BoxId == boxId && (excludeSampleId == null || s.Id != excludeSampleId))
+                .Select(s => new GridOccupant(s.RowIndex ?? 0, s.ColumnIndex ?? 0, s.SampleCode, "sample", s.Id))
+                .ToListAsync();
+
+            var occupied = lots.Concat(samples).ToList();
 
             return Json(new
             {
@@ -773,6 +877,9 @@ namespace X_ChemicalStorage.Controllers
                 AvailableSlots = (box.RowsCount * box.ColumnsCount) - occupied.Count
             });
         }
+
+        /// <summary>Unified grid occupant (serialised camelCase: rowIndex, columnIndex, lotNumber, kind)</summary>
+        private sealed record GridOccupant(int RowIndex, int ColumnIndex, string? LotNumber, string Kind, int Id);
         #endregion
     }
 }

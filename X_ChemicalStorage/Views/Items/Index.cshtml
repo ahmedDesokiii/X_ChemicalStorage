@@ -1,463 +1,268 @@
-﻿@model ItemViewModel
-
+@model ItemViewModel
 @{
-    ViewData["Title"] = "Iventory Catalog";
-    int cNo = 0;
+    ViewData["Title"] = "Inventory Catalog";
 
-    // Define colors for each category
-    Dictionary<string, string>
-    categoryColors = new Dictionary<string, string>
-        ()
-        {
-        { "Electronics", "#0d6efd" },
-        { "Chemicals", "#198754" },
-        { "Food", "#ffc107" },
-        { "Furniture", "#fd7e14" },
-        { "Clothing", "#6f42c1" }
-        // Add more categories as needed
-        };
+    var items = Model.ItemsList;
+    var total = items.Count;
+    var outOf = items.Count(x => x.AvilableQuantity <= 0);
+    var low = items.Count(x => x.AvilableQuantity > 0 && x.AvilableQuantity <= x.Limit);
+    var sdsBad = items.Count(x => x.SDS != true);
+    var coldN = items.Count(x => x.StorageUnitType?.TemperatureValue < 0);
 
+    bool can(string p) => AuthorizationService.AuthorizeAsync(User, p).Result.Succeeded;
+    var canCreateItem = can(Permissions.Items.Create_Items);
+    var canCreateLot = can(Permissions.Lots.Create_Lots);
+    var canDetails = can(Permissions.Items.Details_Items);
+    var canEdit = can(Permissions.Items.Edit_Items);
+    var canDelete = can(Permissions.Items.Delete_Items);
+    var canPrint = can(Permissions.Items.Print_ItemBarcode);
+    var canExchange = can(Permissions.Lots.Exchange_Lots);
+
+    (string Row, string Cls, string Text) Stock(Item x) =>
+        x.AvilableQuantity <= 0 ? ("row-bad", "bad", "Out of stock")
+      : x.AvilableQuantity <= x.Limit ? ("row-warn", "warn", "Low stock")
+      : ("row-ok", "ok", "In stock");
+
+    int StockPct(Item x)
+    {
+        var target = Math.Max(1.0, Convert.ToDouble(x.Limit) * 3);       // full bar = 3× the reorder limit
+        return (int)Math.Clamp(Convert.ToDouble(x.AvilableQuantity) * 100 / target, 0, 100);
+    }
+    int i = 0;
 }
-        
-<style>
-    /* Card hover animation */
-    .card-hover {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+<link rel="stylesheet" href="~/css/inventory.css" asp-append-version="true" />
 
-        .card-hover:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.25);
-            z-index: 10;
-        }
-
-    /* Truncate text in header */
-    .card-header .text-truncate {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    /* Card body layout */
-    .card-body .data-row {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        font-size: 0.9rem;
-        margin-bottom: 4px;
-    }
-
-    .card-body .data-label {
-        font-weight: 600;
-        color: #415E72;
-    }
-
-    .card-body .data-value {
-        font-weight: bold;
-    }
-
-    /* Barcode image */
-    .barcode-img {
-        height: 40px;
-    }
-
-    /* Buttons: only icon, no border/background */
-    .icon-btn {
-        border: none;
-        background: none;
-        padding: 0;
-        margin: 0 4px;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-        .icon-btn:hover {
-            transform: scale(1.2);
-            color: #0d6efd; /* Optional hover color */
-        }
-
-    /* Storage icon colors */
-    .storage-room-temp {
-        color: red;
-    }
-
-    .storage-2-8c {
-        color: green;
-    }
-
-    .storage-other {
-        color: blue;
-    }
-
-    /* Mobile card spacing */
-    .professional-card {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-</style>
-
-<!-- Hero Header -->
-<div class="page-hero" dir="ltr">
+<!-- ═════════ HERO ═════════ -->
+<div class="iv-hero" dir="ltr">
+    <div class="iv-hero-orb"></div>
     <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <div class="d-flex align-items-center gap-4">
-                    <div class="hero-icon">
-                        <i class="bi bi-boxes"></i>
-                    </div>
-                    <div>
-                        <h1 class="hero-title">Items</h1>
-                        <p class="hero-subtitle">Manage Items , manage lots & assigne lots - exchange lots</p>
-                    </div>
+        <div class="iv-hero-row">
+            <div class="iv-hero-id">
+                <div class="iv-hero-icon"><i class="bi bi-boxes"></i></div>
+                <div>
+                    <h1 class="iv-hero-title">Items</h1>
+                    <p class="iv-hero-sub">Master catalog — stock levels, storage conditions and SDS compliance.</p>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <div class="hero-stats d-inline-flex gap-4">
-                    <div class="stat-item text-center">
-                        @*                         <div class="stat-value">@(Model.Count ?? 0)</div>
-                        <div class="stat-label">Users</div> *@
-                    </div>
-                    <div class="stat-item text-center">
-                        @* <div class="stat-value">@(Model.?.Sum(r => r.StorageUnits?.Count ?? 0) ?? 0)</div>
-                            <div class="stat-label">Roles</div> *@
-                    </div>
-                </div>
+            <div class="iv-hero-chips">
+                <div class="iv-hero-chip"><b data-count="@total">0</b><small>Items</small></div>
+                <div class="iv-hero-chip warn" style="animation-delay:.06s"><b data-count="@low">0</b><small>Low stock</small></div>
+                <div class="iv-hero-chip bad" style="animation-delay:.12s"><b data-count="@outOf">0</b><small>Out of stock</small></div>
+                <div class="iv-hero-chip gold" style="animation-delay:.18s"><b data-count="@coldN">0</b><small>Cold chain</small></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Main content -->
-<section class="container-fluid mt-3 " dir="ltr">
-    <div class="row">
-
-        <div class="col-md-1"></div>
-        <div class="col-md-10">
-            <div class="card p-0">
-                <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
-                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Create_Items).Result.Succeeded)
-                    {
-                        <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-1" title="Add New Item" onclick="ResetItem()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
-                    }
-                </div>
-                <!-- /.card-header -->
-
-                <div class="card-body p-0">
-                    <!-- Tab content -->
-                    @if (!Model.ItemsList.Any())
-                    {
-                        <div class="alert  alert-warning mt-5">
-                            <h4 class="alert-heading">No Items</h4>
-                            <p class="mb-0">No Items have been added to the app yet.</p>
-                        </div>
-                    }
-                    else
-                    {
-
-                        <!-- ================= MOBILE VIEW ================= -->
-                        <!-- MOBILE Cards -->
-                        <div id="mobile-cards" class="d-block d-md-none px-2 mt-4">
-                            @foreach (var item in Model.ItemsList)
-                            {
-                                var categoryColor = categoryColors.ContainsKey(item.Category.Name) ? categoryColors[item.Category.Name] : "#415E72";
-
-                                <div class="card professional-card mb-3 shadow-sm border-0 card-hover" style="border-left: 6px solid @categoryColor;">
-
-                                    <!-- Card Header -->
-                                    <div class="card-header text-white p-3 rounded-top"
-                                         style="background: linear-gradient(135deg, #032b42 0%, #0b4a6f 50%, #415E72 100%);">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="flex-grow-1 overflow-hidden">
-                                                <h5 class="fw-bold mb-1 text-truncate">@item.Name</h5>
-                                            </div>
-                                            <div class="text-center">
-                                                <img src="@item.BarcodeImage" class="barcode-img rounded-3" />
-                                                <small class="text-light">@item.Code</small>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <!-- Card Body -->
-                                    <div class="card-body pt-2 pb-1">
-                                        <div class="data-row"><span class="data-label">Lots:</span> <span class="data-value bg-primary text-white px-3 py-1 rounded-4 ">@item.Lots.Count</span></div>
-                                        <div class="data-row"><span class="data-label">SDS:</span> <span class="data-value" style="color:@(item.SDS == true ? "green" : "red")">@((item.SDS == true) ? "Valid" : "Invalid")</span></div>
-                                        <div class="data-row"><span class="data-label">Category:</span> <span class="data-value">@item.Category.Name</span></div>
-                                        <div class="data-row"><span class="data-label">Limit:</span> <span class="data-value text-warning">@item.Limit</span></div>
-                                        <div hidden class="data-row"><span class="data-label">Total Qty:</span> <span class="data-value">@item.TotalQuantity</span></div>
-                                        <div class="data-row"><span class="data-label">Available Qty:</span> <span class="data-value">@item.AvilableQuantity</span></div>
-                                        <div class="data-row">
-                                            <span class="data-label">Storage:</span>
-                                            <span class="data-value">
-                                                <i class="bi bi-thermometer-half fs-4 @(item.StorageUnitType?.TemperatureValue < 0 ? "storage-other" : "storage-2-8c")"></i>
-                                                @item.StorageUnitType?.Name
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Card Footer Buttons -->
-                                    <div class="card-footer bg-light border-0 pt-2 pb-2 d-flex justify-content-around gap-2 flex-wrap">
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
-                                        {
-                                            <a class="icon-btn" title="Add Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i></a>
-                                        }
-
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
-                                        {
-                                            <a class="icon-btn" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-2"></i></a>
-                                        }
-
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
-                                        {
-                                            <a class="icon-btn" title="Edit" 
-                                            onclick="EditItem(
-                                            '@item.Id',
-                                            '@item.Code',
-                                            '@item.Name',
-                                            '@item.AvilableQuantity',
-                                            '@item.Limit',
-                                            '@item.SDS',
-                                            '@item.StorageUnitTypeId',
-                                            '@item.CategoryId',
-                                            '@item.UnitId',
-                                            '@item.SubCategoryId'
-                                            )"
-                                            data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square fs-2"></i></a>
-                                        }
-
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
-                                        {
-                                            <a class="icon-btn" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill fs-2"></i></a>
-                                        }
-
-                                        @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
-                                        {
-                                            @if (item.AvilableQuantity > 0)
-                                            {
-                                                <a class="icon-btn"
-                                                   title="Exchange Lot"
-                                                   asp-controller="Items"
-                                                   asp-action="ExchangeLot"
-                                                   asp-route-Id="@item.Id">
-                                                    <i class="bi bi-cart-dash-fill fs-2"></i>
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <span class="icon-btn text-secondary"
-                                                      title="Cannot exchange — Available quantity is 0"
-                                                      style="cursor:not-allowed; opacity:.45;">
-                                                    <i class="bi bi-cart-dash-fill fs-2"></i>
-                                                </span>
-                                            }
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <div id="web-cards" class="d-none d-sm-block">
-                            <div id="Users" class="tabcontent mx-2">
-                                <table class="table table-hover display nowrap  px-0 table-bordered border-primary-subtle" id="tableUser">
-                                    <thead>
-                                        <tr class="text-center">
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Barcode</th>
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Name</th>
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Lots</th>
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">SDS</th>
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Category</th>
-                                            <th class=" text-white text-center fs-5" style="background-color:#032b42 !important;">Limit</th>
-                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Avilable<br class="m-0 p-0">Quantity</th>
-                                            <th class=" text-white text-center fs-6" style="background-color:#032b42 !important;">Storage<br class="m-0 p-0">Condition</th>
-                                            <th class=" text-white text-center fs-5" style="color:#415E72 !important ; background-color:#032b42 !important;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var item in Model.ItemsList)
-                                        {
-                                            cNo++;
-
-                                            <tr class="text-center">
-                                                <td class="text-center">
-
-                                                    <img src="@item.BarcodeImage"
-                                                         class="barcode-img rounded-2 shadow-sm bg-white p-1 w-100" />
-                                                    <div style="font-size:12px" class="text-dark">
-                                                        @item.Code
-                                                    </div>
-                                                </td>
-                                                <td class="fs-6 text-center py-1 px-1 ">
-                                                    <span class="link-primary fw-bold">@item.Name</span>
-                                                </td>
-                                                <td class="fs-6 text-center px-1">@item.Lots.Count(x => x.AvilableQuantity > 0 && x.CurrentState > 0)</td>
-                                                @if (item.SDS == true)
-                                                {
-                                                    <td class="text-center ">
-                                                        <span class="fw-bold py-2 px-3 bg-success-subtle link-success rounded-5">
-                                                            Valid
-                                                        </span>
-                                                    </td>
-                                                }
-                                                else
-                                                {
-                                                    <td class="text-center ">
-                                                        <span class="fw-bold py-2 px-3 bg-danger-subtle link-danger rounded-5">
-                                                            Invalid
-                                                        </span>
-                                                    </td>
-                                                }
-
-                                                <td class="fs-6 text-center px-1">@item.Category.Name</td>
-                                                <td class="text-center ">
-                                                    <span class="fw-bold py-2 px-3 bg-warning-subtle link-warning rounded-5">
-                                                        @item.Limit
-                                                    </span>
-                                                </td>
-                                                <td class="fs-6 text-center px-1"><span class="fw-bold">@item.AvilableQuantity</span></td>
-
-                                                <td class="text-start px-1 py-0">
-                                                    <span class="link-dark fw-bold px-3">
-                                                        <i class="bi bi-thermometer-half @(item.StorageUnitType?.TemperatureValue < 0 ? "link-primary" : "link-success") fs-3 px-1"></i>
-                                                        @item.StorageUnitType?.Name
-                                                    </span>
-                                                </td>
-                                                <td class="py-1">
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-success bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Add New Lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill fs-2"></i><br></a>
-                                                    }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
-                                                    }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Edit_Items).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" 
-                                                            onclick="EditItem(
-                                                            '@item.Id',
-                                                            '@item.Code',
-                                                            '@item.Name',
-                                                            '@item.AvilableQuantity',
-                                                            '@item.Limit',
-                                                            '@item.SDS',
-                                                            '@item.StorageUnitTypeId',
-                                                            '@item.CategoryId',
-                                                            '@item.UnitId',
-                                                            '@item.SubCategoryId'
-                                                            )"
-                                                            data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
-                                                    }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Delete_Items).Result.Succeeded)
-                                                    {
-                                                        <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill"></i></a>
-                                                    }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Items.Print_ItemBarcode).Result.Succeeded)
-                                                    {
-                                                        <a id="printBarcode" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Print Barcode" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code"><i class="bi bi-printer-fill"></i></a>
-                                                    }
-                                                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded)
-                                                    {
-                                                        @if (item.AvilableQuantity > 0)
-                                                        {
-                                                            <a class="icon-btn"
-                                                               title="Exchange Lot"
-                                                               asp-controller="Items"
-                                                               asp-action="ExchangeLot"
-                                                               asp-route-Id="@item.Id">
-                                                                <i class="bi bi-cart-dash-fill fs-2"></i>
-                                                            </a>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="icon-btn text-secondary"
-                                                                  title="Cannot exchange — Available quantity is 0"
-                                                                  style="cursor:not-allowed; opacity:.45;">
-
-                                                                <i class="bi bi-cart-dash-fill fs-2"></i>
-                                                            </span>
-                                                        }
-                                                    }
-                                                    <style>
-                                                                                                    .btn:hover {
-                                                                                                        transform: scale(1.1);
-                                                                                                        transition: 0.2s;
-                                                                                                    }
-                                                    </style>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    }
-
-                </div>
-                <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
-            <!-- /.card -->
-        </div>
-        <div class="col-md-1"></div>
-        <!-- /.col -->
+<section class="container-fluid pb-4" dir="ltr">
+    <!-- ═════════ ACTION TILES ═════════ -->
+    <div class="iv-tiles">
+        @if (canCreateItem)
+        {
+            <a class="iv-tile gold" onclick="ResetItem()" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                <i class="bi bi-plus-square-fill"></i>
+                <span>New Item<small>Add to the master catalog</small></span>
+            </a>
+        }
+        <a class="iv-tile ok" asp-controller="Lots" asp-action="Index">
+            <i class="bi bi-archive-fill"></i>
+            <span>Lots<small>Receive & exchange stock</small></span>
+        </a>
+        <a class="iv-tile bad" href="#" onclick="ivFilter('Low stock|Out of stock');return false;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Needs reorder<small>Filter low & empty items</small></span>
+            @if (low + outOf > 0) { <em class="iv-tile-count">@(low + outOf)</em> }
+        </a>
+        <a class="iv-tile navy" href="#" onclick="ivFilter('Invalid');return false;">
+            <i class="bi bi-shield-exclamation"></i>
+            <span>SDS issues<small>Items without a valid SDS</small></span>
+            @if (sdsBad > 0) { <em class="iv-tile-count">@sdsBad</em> }
+        </a>
     </div>
-    <!-- /.row -->
-</section>
-<!-- /.content -->
 
+    <div class="iv-panel">
+        <div class="iv-panel-head">
+            <div class="ph-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+            <div><h5>Catalog</h5><small>Stock bar fills at 3× the reorder limit</small></div>
+            <div class="ph-end">
+                <a href="#" class="iv-pill muted text-decoration-none" onclick="ivFilter('');return false;"><i class="bi bi-x-circle"></i> Clear filter</a>
+            </div>
+        </div>
+
+        @if (!items.Any())
+        {
+            <div class="iv-empty">
+                <i class="bi bi-box"></i>
+                <h5>No items yet</h5>
+                <p>Create your first item to start receiving lots.</p>
+                @if (canCreateItem)
+                {
+                    <button class="iv-btn iv-btn-gold" onclick="ResetItem()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-lg"></i> New Item</button>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- ───── Mobile ───── -->
+            <div class="iv-mcards d-md-none">
+                @foreach (var item in items)
+                {
+                    var s = Stock(item);
+                    var cold = item.StorageUnitType?.TemperatureValue < 0;
+                    var activeLots = item.Lots?.Count(x => x.AvilableQuantity > 0 && x.CurrentState > 0) ?? 0;
+                    <div class="iv-mcard @s.Row" style="animation-delay:@(Math.Min(i++, 10) * 40)ms">
+                        <div class="iv-mcard-head">
+                            <h6>@item.Name</h6>
+                            <span class="iv-code"><img src="@item.BarcodeImage" alt="" /><span>@item.Code</span></span>
+                        </div>
+                        <div class="iv-mcard-body">
+                            <div><label>Stock</label><span class="iv-pill @s.Cls">@s.Text</span></div>
+                            <div><label>Available</label><b>@item.AvilableQuantity <small class="iv-sub">/ limit @item.Limit</small></b></div>
+                            <div><label>Active lots</label><span class="iv-qty">@activeLots</span></div>
+                            <div><label>SDS</label><span class="iv-pill @(item.SDS == true ? "ok" : "bad")">@(item.SDS == true ? "Valid" : "Invalid")</span></div>
+                            <div><label>Category</label><span>@item.Category?.Name</span></div>
+                            <div><label>Storage</label><span class="iv-temp @(cold ? "cold" : "room")"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span></div>
+                        </div>
+                        <div class="iv-mcard-foot">
+                            @if (canCreateLot) { <a class="iv-icon-btn ok" data-tip="Receive lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill"></i></a> }
+                            @if (canExchange)
+                            {
+                                if (item.AvilableQuantity > 0) { <a class="iv-icon-btn cold" data-tip="Exchange" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill"></i></a> }
+                                else { <span class="iv-icon-btn locked" data-tip="Nothing available"><i class="bi bi-cart-dash-fill"></i></span> }
+                            }
+                            @if (canDetails) { <a class="iv-icon-btn" data-tip="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill"></i></a> }
+                            @if (canEdit)
+                            {
+                                <a class="iv-icon-btn" data-tip="Edit" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                                   onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.AvilableQuantity','@item.Limit','@item.SDS','@item.StorageUnitTypeId','@item.CategoryId','@item.UnitId','@item.SubCategoryId')">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            }
+                            @if (canDelete) { <a class="iv-icon-btn danger" data-tip="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill"></i></a> }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- ───── Desktop ───── -->
+            <div class="iv-table-wrap d-none d-md-block table-responsive">
+                <table class="iv-table display nowrap" id="tableUser">
+                    <thead>
+                        <tr>
+                            <th>Barcode</th>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Stock</th>
+                            <th>Available</th>
+                            <th>Lots</th>
+                            <th>SDS</th>
+                            <th>Storage</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            var s = Stock(item);
+                            var cold = item.StorageUnitType?.TemperatureValue < 0;
+                            var activeLots = item.Lots?.Count(x => x.AvilableQuantity > 0 && x.CurrentState > 0) ?? 0;
+                            <tr class="@s.Row">
+                                <td data-order="@item.Code"><span class="iv-code"><img src="@item.BarcodeImage" alt="" loading="lazy" /><span>@item.Code</span></span></td>
+                                <td class="text-start">
+                                    @if (canDetails)
+                                    {
+                                        <a class="iv-name" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id">@item.Name</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="iv-name">@item.Name</span>
+                                    }
+                                    <div class="iv-sub">@(item.SubCategory?.Name ?? "")</div>
+                                </td>
+                                <td><span class="iv-pill teal">@item.Category?.Name</span></td>
+                                <td><span class="iv-pill @s.Cls @(s.Cls == "bad" ? "live" : "")">@s.Text</span></td>
+                                <td data-order="@item.AvilableQuantity">
+                                    <div class="iv-stock">
+                                        <b>@item.AvilableQuantity</b> <span class="iv-sub">/ limit @item.Limit</span>
+                                        <div class="iv-stock-bar @(s.Cls != "ok" ? "low" : "")"><span style="--w:@(StockPct(item))%"></span></div>
+                                    </div>
+                                </td>
+                                <td data-order="@activeLots"><span class="iv-qty">@activeLots</span></td>
+                                <td><span class="iv-pill @(item.SDS == true ? "ok" : "bad")"><i class="bi @(item.SDS == true ? "bi-shield-fill-check" : "bi-shield-x")"></i>@(item.SDS == true ? "Valid" : "Invalid")</span></td>
+                                <td><span class="iv-temp @(cold ? "cold" : "room")"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span></td>
+                                <td>
+                                    <div class="iv-actions-cell">
+                                        @if (canCreateLot) { <a class="iv-icon-btn ok" data-tip="Receive lot" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item.Id"><i class="bi bi-cart-plus-fill"></i></a> }
+                                        @if (canExchange)
+                                        {
+                                            if (item.AvilableQuantity > 0) { <a class="iv-icon-btn cold" data-tip="Exchange" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item.Id"><i class="bi bi-cart-dash-fill"></i></a> }
+                                            else { <span class="iv-icon-btn locked" data-tip="Nothing available"><i class="bi bi-cart-dash-fill"></i></span> }
+                                        }
+                                        @if (canDetails) { <a class="iv-icon-btn" data-tip="Details" asp-controller="Items" asp-action="SelectedItem" asp-route-Id="@item.Id"><i class="bi bi-eye-fill"></i></a> }
+                                        @if (canEdit)
+                                        {
+                                            <a class="iv-icon-btn" data-tip="Edit" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                                               onclick="EditItem('@item.Id','@item.Code','@item.Name','@item.AvilableQuantity','@item.Limit','@item.SDS','@item.StorageUnitTypeId','@item.CategoryId','@item.UnitId','@item.SubCategoryId')">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        }
+                                        @if (canPrint) { <a class="iv-icon-btn" data-tip="Print label" target="_blank" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item.BarcodeImage" asp-route-Code="@item.Code"><i class="bi bi-printer-fill"></i></a> }
+                                        @if (canDelete) { <a class="iv-icon-btn danger" data-tip="Delete" onclick="DeleteItem('@item.Id')"><i class="bi bi-trash3-fill"></i></a> }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
 
 <partial name="_SaveItem" />
 
 @section Scripts {
     <script src="~/js/Users.js"></script>
+    <script src="~/js/inventory.js" asp-append-version="true"></script>
+
     @if (!string.IsNullOrEmpty(Context.Session.GetString(Helper.MsgType)))
     {
-        if (Context.Session.GetString(Helper.MsgType) == Helper.Success)
-        {
-            <script>
-
-                Swal.fire({
+        var ok = Context.Session.GetString(Helper.MsgType) == Helper.Success;
+        <script>
+            Swal.fire({
                 title: '@Context.Session.GetString(Helper.Title)',
-                text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
+                text: '@Html.Raw(Context.Session.GetString(Helper.Msg))',
+                icon: '@(ok ? "success" : "error")',
                 confirmButtonText: 'Ok',
-                icon: 'success'
-                });
-            </script>
-
-        }
-        else
-        {
-            <script>
-
-                Swal.fire({
-                title: '@Context.Session.GetString(Helper.Title)',
-                text: '@Html.Raw(@Context.Session.GetString(Helper.Msg))',
-                confirmButtonText: 'Ok',
-                icon: 'error'
-                });
-            </script>
-        }
+                confirmButtonColor: '#032b42'
+            });
+        </script>
         Context.Session.SetString(Helper.MsgType, "");
     }
 
     <script>
-
         let lbTitleEdit = '@Html.Raw("Edit Item")';
         let lbEdit = '@Html.Raw("Save Changes Only")';
         let lbAddNewRole = '@Html.Raw("Add New Item")';
         let lbbtnSave = '@Html.Raw("Save Data Only")';
 
         let lbTitleMsgDelete = '@Html.Raw("Delete Item")';
-        let lbTextMsgDelete = '@Html.Raw($"Are you sure !  Do you want to delete the Item data and everything related to it, including requests and records? ")';
-        let lbconfirmButtonText = '@Html.Raw("Yes , Remove")';
-        let lbcancelButtonText = '@Html.Raw("Cancle")';
+        let lbTextMsgDelete = '@Html.Raw("Are you sure? This deletes the item and everything related to it, including requests and records.")';
+        let lbconfirmButtonText = '@Html.Raw("Yes, remove")';
+        let lbcancelButtonText = '@Html.Raw("Cancel")';
 
-        let lbTitleDeletedOk = '@Html.Raw("Delete Item Done")';
-        let lbMsgDeletedOkRole = '@Html.Raw("The Item data has been successfully deleted!")';
+        let lbTitleDeletedOk = '@Html.Raw("Item deleted")';
+        let lbMsgDeletedOkRole = '@Html.Raw("The item has been deleted successfully!")';
         let lbSuccess = '@Html.Raw(Helper.Success)';
 
+        // Quick filters on top of DataTables (falls back to plain row hiding)
+        function ivFilter(term) {
+            const t = window.jQuery && jQuery.fn.dataTable && jQuery.fn.dataTable.isDataTable('#tableUser')
+                ? jQuery('#tableUser').DataTable() : null;
+            if (t) { t.search(term, { regex: true, smart: false }).draw(); return; }
+            const re = term ? new RegExp(term, 'i') : null;
+            document.querySelectorAll('#tableUser tbody tr, .iv-mcards .iv-mcard')
+                .forEach(r => r.style.display = !re || re.test(r.textContent) ? '' : 'none');
+        }
     </script>
-
 }

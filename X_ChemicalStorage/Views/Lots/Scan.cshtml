@@ -1,73 +1,70 @@
-﻿@{
+@{
     ViewData["Title"] = "Scan Item";
 }
+<link rel="stylesheet" href="~/css/inventory.css" asp-append-version="true" />
 
-<input type="text"
-       id="barcodeInput"
-       class="form-control"
-       placeholder="Scan Item Barcode"
-       autofocus />
+<div class="iv-hero" dir="ltr">
+    <div class="iv-hero-orb"></div>
+    <div class="container-fluid">
+        <div class="iv-hero-id">
+            <div class="iv-hero-icon"><i class="bi bi-upc-scan"></i></div>
+            <div>
+                <h1 class="iv-hero-title">Quick Scan</h1>
+                <p class="iv-hero-sub">Scan an item → pick a lot → enter quantity.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-<select id="lotSelect"
-        class="form-control mt-3"
-        disabled>
-    <option value="">-- اختر Lot --</option>
-</select>
-
-<input type="number"
-       id="qtyInput"
-       class="form-control mt-3"
-       placeholder="أدخل الكمية"
-       min="1"
-       disabled />
-
-<button id="submitBtn"
-        class="btn btn-primary mt-3"
-        disabled>
-    حفظ
-</button>
+<div class="container pb-4" dir="ltr" style="max-width:640px">
+    <div class="iv-panel iv-form">
+        <div class="iv-panel-body">
+            <div class="iv-scan">
+                <i class="bi bi-upc-scan"></i>
+                <input type="text" id="barcodeInput" class="form-control" placeholder="Scan item barcode" autofocus autocomplete="off" />
+            </div>
+            <div class="iv-field">
+                <label>Lot</label>
+                <select id="lotSelect" class="form-select" disabled><option value="">— Choose lot —</option></select>
+            </div>
+            <div class="iv-field">
+                <label>Quantity</label>
+                <input type="number" id="qtyInput" class="form-control" placeholder="Enter quantity" min="1" disabled />
+            </div>
+            <button id="submitBtn" class="iv-btn iv-btn-gold w-100" disabled><i class="bi bi-check2-circle"></i> Save</button>
+        </div>
+    </div>
+</div>
 
 <script>
     let maxQty = 0;
+    const sel = document.getElementById("lotSelect");
 
-    // Scan Barcode
     document.getElementById("barcodeInput").addEventListener("change", function () {
-        fetch(`/Lots/GetLotsByBarcode?barcode=${this.value}`)
+        sel.classList.add('iv-loading');
+        fetch(`/Lots/GetLotsByBarcode?barcode=${encodeURIComponent(this.value)}`)
             .then(res => res.json())
             .then(data => {
-                let select = document.getElementById("lotSelect");
-                select.innerHTML = '<option value="">-- اختر Lot --</option>';
-                select.disabled = false;
-
+                sel.innerHTML = '<option value="">— Choose lot —</option>';
+                sel.disabled = false;
                 data.forEach(lot => {
-                    let opt = document.createElement("option");
-                    opt.value = lot.id;
-                    opt.text = lot.displayText;
+                    const opt = new Option(lot.displayText, lot.id);
                     opt.dataset.qty = lot.availableQty;
-                    select.appendChild(opt);
+                    sel.appendChild(opt);
                 });
-            });
-
+            })
+            .finally(() => sel.classList.remove('iv-loading'));
         this.value = "";
     });
 
-    // Select Lot
-    document.getElementById("lotSelect").addEventListener("change", function () {
-        let opt = this.options[this.selectedIndex];
-        maxQty = opt.dataset.qty;
-
-        let qty = document.getElementById("qtyInput");
-        qty.disabled = false;
-        qty.max = maxQty;
-        qty.value = "";
-        qty.placeholder = `Max: ${maxQty}`;
+    sel.addEventListener("change", function () {
+        maxQty = +this.options[this.selectedIndex].dataset.qty || 0;
+        const q = document.getElementById("qtyInput");
+        q.disabled = false; q.max = maxQty; q.value = ""; q.placeholder = `Max: ${maxQty}`; q.focus();
     });
 
-    // Quantity
     document.getElementById("qtyInput").addEventListener("input", function () {
-        if (this.value > maxQty)
-            this.value = maxQty;
-
+        if (+this.value > maxQty) this.value = maxQty;
         document.getElementById("submitBtn").disabled = !this.value;
     });
 </script>

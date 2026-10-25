@@ -9,6 +9,11 @@ namespace X_ChemicalStorage.Models.ViewModels
 
         public Room NewRoom { get; set; } = new();
         public GenerateStorageViewModel GenerateModel { get; set; } = new();
+
+        // RoomsViewModel
+        public Dictionary<int, int> HoldingOccupancy { get; set; } = new();     // UnitId → samples
+        public Dictionary<int, int> HoldingBoxOccupancy { get; set; } = new();  // BoxId  → samples
+        public Dictionary<int, int> LotBoxOccupancy { get; set; } = new();
     }
 
     // بيانات الويزارد بتاع التوليد التلقائي
@@ -20,6 +25,7 @@ namespace X_ChemicalStorage.Models.ViewModels
 
     public class UnitGenerationInput
     {
+        public X_ChemicalStorage.Models.TempSamples.StorageZone Zone { get; set; }
         public int StorageUnitTypeId { get; set; }
         public int UnitsCount { get; set; }          // كام وحدة من النوع ده
         public bool IsHazardous { get; set; }

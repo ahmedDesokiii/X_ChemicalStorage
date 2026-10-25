@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using X_ChemicalStorage.IRepository;
 using static X_ChemicalStorage.Constants.Permissions;
@@ -11,10 +11,10 @@ namespace X_ChemicalStorage.Controllers
 {
     public class LotsController : Controller
     {
-        private readonly IServicesRepository<Lot> _servicesLot ;
-        private readonly IServicesLot _servicesOfLot ;
-        private readonly IServicesItem _servicesOfItem ;
-        private readonly IServicesRepository<Item> _servicesItem ;
+        private readonly IServicesRepository<Lot> _servicesLot;
+        private readonly IServicesLot _servicesOfLot;
+        private readonly IServicesItem _servicesOfItem;
+        private readonly IServicesRepository<Item> _servicesItem;
         private readonly IInventoryService _inventoryService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
@@ -54,7 +54,7 @@ namespace X_ChemicalStorage.Controllers
                                         .ToList(),
 
                 ExpiryLotsList = _servicesLot.GetAll()
-                                            .Where(x=>x.ExpiryDate.Value.Date <= DateTime.Today)
+                                            .Where(x => x.ExpiryDate != null && x.ExpiryDate.Value.Date <= DateTime.Today)
                                             .OrderBy(x => x.ExpiryDate)
                                             .ThenBy(x => x.ManufactureDate)
                                             .ThenBy(x => x.ReceivedDate)
@@ -76,7 +76,7 @@ namespace X_ChemicalStorage.Controllers
                 NewItem = new Item(),
 
             };
-            Lots.CanCreateLot = ( await _authorizationService
+            Lots.CanCreateLot = (await _authorizationService
                 .AuthorizeAsync(User, Permissions.Lots.Create_Lots)).Succeeded;
 
             Lots.CanViewExpiryLots = (await _authorizationService
@@ -132,9 +132,9 @@ namespace X_ChemicalStorage.Controllers
         [AutoValidateAntiforgeryToken]
         public IActionResult Save(ItemViewModel model)
         {
-               var userId = _userManager.GetUserId(User);
-           // model.NewLot.ItemId = model.NewItem.Id;
-           // model.NewLot.Item = model.NewItem;
+            var userId = _userManager.GetUserId(User);
+            // model.NewLot.ItemId = model.NewItem.Id;
+            // model.NewLot.Item = model.NewItem;
             if (model?.NewLot?.Id == 0)
             { //Create
                 //Exist
@@ -163,43 +163,35 @@ namespace X_ChemicalStorage.Controllers
             return RedirectToAction("index", "Lots");
         }
         #endregion
-        #region Add|Edit Lot [Create & Update]
-        [Authorize(Permissions.Lots.Create_Lots), Authorize(Permissions.Lots.Edit_Lots)]
+        #region Save & Print (Receive Lot screen → "Save & print label")
+        [Authorize(Permissions.Lots.Create_Lots)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult SaveAndPrint(LotViewModel model)
+        public IActionResult SaveAndPrint(ItemViewModel model)
         {
-            if (ModelState.IsValid)
+            if (model?.NewLot == null)
+                return RedirectToAction("Index", "Lots");
+
+            if (model.NewLot.Id == 0 && _servicesLot.FindBy(model.NewLot.LotNumber) != null)
             {
-                var userId = _userManager.GetUserId(User);
-
-                if (model?.NewLot?.Id == 0)
-                { //Create
-                    //Exist
-                    if (_servicesLot.FindBy(model.NewLot.LotNumber.ToString()) != null)
-                        SessionMsg(Helper.Error, "Exist Lot ", "This Lot already exists !");
-
-                    else
-                    {
-                        if (_servicesLot.Save(model.NewLot)) { 
-                            SessionMsg(Helper.Success, "Add Lot", "The Lot has been added successfully !");
-                            return RedirectToAction("PrintItemBarcode", "Lots", new { barcodeFile = model.NewLot.BarcodeImage });
-                        }
-                            
-                        else
-                            SessionMsg(Helper.Error, "Error Adding Lot", "An error occurred while adding some data !");
-                    }
-                }
-                else
-                { //Update
-                    if (_servicesLot.Save(model.NewLot))
-                        SessionMsg(Helper.Success, "Edit Lot", "The Lot has been modified successfully !");
-                    else
-                        SessionMsg(Helper.Error, "Error Editting Lot", "An error occurred while modifying some data !");
-
-                }
+                SessionMsg(Helper.Error, "Exist Lot ", "This Lot already exists !");
+                return RedirectToAction("Index", "Lots");
             }
-            return RedirectToAction("index", "Lots");
+
+            if (!_servicesLot.Save(model.NewLot))
+            {
+                SessionMsg(Helper.Error, "Error Adding Lot", "An error occurred while adding some data !");
+                return RedirectToAction("Index", "Lots");
+            }
+
+            SessionMsg(Helper.Success, "Add Lot", "The Lot has been added successfully !");
+
+            // Id is set by EF after Save; fall back to lookup by lot number just in case
+            var lotId = model.NewLot.Id != 0
+                ? model.NewLot.Id
+                : _context.Lots.Where(l => l.LotNumber == model.NewLot.LotNumber).Select(l => l.Id).FirstOrDefault();
+
+            return RedirectToAction(nameof(PrintLot), new { id = lotId });
         }
         #endregion
 
@@ -310,13 +302,41 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Print Lot Barcode
-        public IActionResult PrintLotBarcode(string barcodeFile, string itemName , string lotNumber, string expiryDate)
+        // Legacy entry point (route values) — kept so old links keep working
+        [Authorize(Permissions.Lots.Print_LotBarcode)]
+        public IActionResult PrintLotBarcode(string barcodeFile, string itemName, string lotNumber, string expiryDate)
         {
             ViewBag.BarcodePath = barcodeFile;
             ViewBag.ItemName = itemName;
             ViewBag.LotNumber = lotNumber;
-            ViewBag.ExpiryDate = Convert.ToDateTime(expiryDate).ToShortDateString();
-            return View();
+            ViewBag.ExpiryDate = DateTime.TryParse(expiryDate, out var d) ? d.ToString("dd/MM/yy") : "";
+            return View("PrintLotBarcode");
+        }
+
+        // New entry point: everything loaded from the DB by id (name, storage, location, dates)
+        [Authorize(Permissions.Lots.Print_LotBarcode)]
+        public IActionResult PrintLot(int id)
+        {
+            var lot = _context.Lots
+                .AsNoTracking()
+                .Include(l => l.Item).ThenInclude(i => i.StorageUnitType)
+                .Include(l => l.Box).ThenInclude(b => b.Shelf).ThenInclude(s => s.StorageUnit).ThenInclude(u => u.Room)
+                .FirstOrDefault(l => l.Id == id);
+
+            if (lot == null) return NotFound();
+
+            ViewBag.BarcodePath = lot.BarcodeImage;
+            ViewBag.ItemName = lot.Item?.Name;
+            ViewBag.ItemCode = lot.Item?.Code;
+            ViewBag.LotNumber = lot.LotNumber;
+            ViewBag.ExpiryDate = lot.ExpiryDate?.ToString("dd/MM/yy") ?? "";
+            ViewBag.ReceivedDate = lot.ReceivedDate?.ToString("dd/MM/yy") ?? "";
+            ViewBag.Storage = lot.Item?.StorageUnitType?.Name;
+            ViewBag.IsCold = lot.Item?.StorageUnitType?.TemperatureValue < 0;
+            ViewBag.Location = lot.Box == null ? "" :
+                $"{lot.Box.Shelf?.StorageUnit?.Name} › {lot.Box.Name} · R{lot.RowIndex}C{lot.ColumnIndex}";
+
+            return View("PrintLotBarcode");
         }
         #endregion
     }

@@ -1,4 +1,6 @@
-﻿namespace X_ChemicalStorage.Models
+﻿using X_ChemicalStorage.Models.TempSamples;
+
+namespace X_ChemicalStorage.Models
 {
     public class StorageUnit
     {
@@ -15,5 +17,8 @@
         public bool IsHazardous { get; set; } = false;
 
         public ICollection<Shelf> Shelves { get; set; } = new List<Shelf>();
+
+        public StorageZone Zone { get; set; } = StorageZone.Inventory;
+
     }
 }

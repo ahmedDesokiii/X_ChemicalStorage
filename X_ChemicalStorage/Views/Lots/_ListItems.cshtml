@@ -1,84 +1,56 @@
-﻿@model LotViewModel
-
+@model LotViewModel
 @{
     var canCreate = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded;
+    int n = 0;
 }
 
-<div class="modal fade" id="ListItemsModalCreate" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content card card-success card-outline">
-
-            <div class="modal-header modal-header-custom">
-                <h5 class="modal-title fw-bold"><i class="bi bi-cart-plus-fill me-2"></i>Items List</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="modal fade iv-modal" id="ListItemsModalCreate" tabindex="-1" aria-hidden="true" dir="ltr">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cart-plus-fill"></i> Receive Lot — choose item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
                 <input type="hidden" id="actionModeCreate" value="create" />
-                <div class="mb-3">
-                    <input type="text" id="itemsSearchInputCreate" class="form-control form-control-lg" placeholder="Scan barcode..." autocomplete="off" />
-                    <small id="scanMessageCreate" class="text-danger d-none mt-1">Item not found</small>
+                <div class="iv-scan">
+                    <i class="bi bi-upc-scan"></i>
+                    <input type="text" id="itemsSearchInputCreate" class="form-control" placeholder="Scan item barcode or type a name…" autocomplete="off" />
+                    <div id="scanMessageCreate" class="iv-scan-msg d-none"><i class="bi bi-exclamation-octagon-fill"></i> No item matches this barcode</div>
                 </div>
 
                 @if (!Model.ItemsList.Any())
                 {
-                    <div class="alert alert-warning text-center">
-                        <h5>No Items</h5>
-                        <p class="mb-0">No items have been added yet.</p>
-                    </div>
+                    <div class="iv-empty"><i class="bi bi-box"></i><h5>No items</h5><p>Create items first from the Items page.</p></div>
                 }
                 else
                 {
-                    <div class="items-grid">
+                    <div class="iv-pick-grid">
                         @foreach (var item in Model.ItemsList)
                         {
-                            <div class="item-card" data-barcode="@item.Code">
-                                <div class="item-card-header">
-                                    <div class="item-name fs-4">@item.Name</div>
-                                    <div>
-                                        <img src="@item.BarcodeImage" class="barcode-mobile" />
-                                        <div class="d-block p-0 m-0" style="font-size:12px"> @item.Code</div>
+                            var cold = item.StorageUnitType?.TemperatureValue < 0;
+                            var low = item.AvilableQuantity <= item.Limit;
+                            if (canCreate)
+                            {
+                                <a class="iv-pick item-card" data-barcode="@item.Code" data-name="@item.Name"
+                                   asp-controller="Items" asp-action="CreateLot" asp-route-id="@item.Id"
+                                   style="animation-delay:@(Math.Min(n++, 14) * 30)ms">
+                                    <div class="iv-pick-top">
+                                        <div class="iv-pick-name">@item.Name</div>
+                                        <span class="iv-code"><img src="@item.BarcodeImage" alt="" loading="lazy" /><span>@item.Code</span></span>
                                     </div>
-                                    
-
-                                </div>
-                               
-                                <div class="item-meta text-start ps-4">
-                                    @{
-                                        var badgeClass = (item.StorageUnitType?.TemperatureValue < 0) ? "badge-cold" : "badge-room";
-                                    }
-                                    <span class="storage-badge @badgeClass"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span>
-
-                                    <div class="ps-2"><strong>Category:</strong> @item.Category?.Name</div>
-                                    <div class="ps-2">
-                                        <strong>SDS:</strong>
-                                        @if (item.SDS == true)
-                                        {
-                                            <span class="py-1 px-3 bg-success-subtle link-success rounded-5">
-                                                Valid
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="py-1 px-3 bg-danger-subtle link-danger rounded-5">
-                                                Invalid
-                                            </span>
-                                        }
+                                    <div class="iv-pick-meta">
+                                        <span class="iv-temp @(cold ? "cold" : "room")"><i class="bi bi-thermometer-half"></i>@item.StorageUnitType?.Name</span>
                                     </div>
-                                    <div class="ps-2"><strong>Available Quantity:</strong> <span class="rounded-4 bg-warning-subtle fw-bold px-3 py-1 text-dark">@item.AvilableQuantity</span></div>
-
-                                </div>
-
-                                <div class="item-actions mt-0 mb-1">
-                                    @if (canCreate)
-                                    {
-                                        <a asp-controller="Items" asp-action="CreateLot" asp-route-id="@item.Id"
-                                           class="btn action-btn my-1" data-action="create" title="Create Lot">
-                                            <i class="bi bi-cart-plus-fill fs-1"></i>
-                                        </a>
-                                    }
-                                </div>
-                            </div>
+                                    <div class="iv-pick-meta">
+                                        <span class="iv-pill teal">@item.Category?.Name</span>
+                                        <span class="iv-pill @(item.SDS == true ? "ok" : "bad")">SDS @(item.SDS == true ? "✓" : "✗")</span>
+                                        <span class="iv-pill @(low ? "bad" : "muted")">Stock @item.AvilableQuantity</span>
+                                    </div>
+                                    <div class="iv-pick-go"><span class="action-btn" data-action="create">Receive lot</span><i class="bi bi-arrow-right-circle-fill fs-5"></i></div>
+                                </a>
+                            }
                         }
                     </div>
                 }
@@ -86,5 +58,3 @@
         </div>
     </div>
 </div>
-
-

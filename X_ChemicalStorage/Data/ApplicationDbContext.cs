@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
 using X_ChemicalStorage.Models;
+using X_ChemicalStorage.Models.TempSamples;
 
 namespace X_ChemicalStorage.Data
 {
@@ -99,6 +100,69 @@ namespace X_ChemicalStorage.Data
                 .WithMany(i => i.Lots)
                 .HasForeignKey(l => l.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // StorageUnit.Zone  (Inventory = Lots | TemporaryHolding = temp samples)
+            builder.Entity<StorageUnit>()
+                .Property(u => u.Zone)
+                .HasConversion<string>()
+                .HasMaxLength(30)
+                .HasDefaultValue(StorageZone.Inventory);   // all existing units stay "Inventory"
+
+            // ===== TempSample =====
+            builder.Entity<TempSample>(e =>
+            {
+                e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+                e.Property(x => x.TransportCondition).HasConversion<string>().HasMaxLength(30);
+
+                e.HasIndex(x => x.SampleCode).IsUnique();
+                e.HasIndex(x => x.Status);
+                e.HasIndex(x => x.RequestReferenceNumber);
+                e.HasIndex(x => x.PlannedWithdrawalDate);
+                e.HasIndex(x => x.ExternalBarcode);
+
+                // One active sample per slot. Withdrawn/Disposed samples release BoxId → filter excludes them.
+                e.HasIndex(x => new { x.BoxId, x.RowIndex, x.ColumnIndex })
+                    .IsUnique()
+                    .HasFilter("[BoxId] IS NOT NULL");
+
+                e.HasOne(x => x.Box)
+                    .WithMany()                    // no nav on Box → Lots side untouched
+                    .HasForeignKey(x => x.BoxId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(x => x.Unit)
+                    .WithMany()
+                    .HasForeignKey(x => x.UnitId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ===== TempSampleCustodyEvent (append-only) =====
+            builder.Entity<TempSampleCustodyEvent>(e =>
+            {
+                e.Property(x => x.EventType).HasConversion<string>().HasMaxLength(30);
+                e.Property(x => x.StatusAfter).HasConversion<string>().HasMaxLength(20);
+
+                e.HasIndex(x => new { x.TempSampleId, x.Sequence }).IsUnique();   // also blocks concurrent double-append
+                e.HasIndex(x => x.OccurredAtUtc);
+
+                e.HasOne(x => x.TempSample)
+                    .WithMany(s => s.CustodyEvents)
+                    .HasForeignKey(x => x.TempSampleId)
+                    .OnDelete(DeleteBehavior.Restrict);   // history is never cascade-deleted
+            });
+
+            // ===== TempSampleAttachment =====
+            builder.Entity<TempSampleAttachment>(e =>
+            {
+                e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(30);
+                e.HasIndex(x => x.TempSampleId);
+
+                e.HasOne(x => x.TempSample)
+                    .WithMany(s => s.Attachments)
+                    .HasForeignKey(x => x.TempSampleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
 
             builder.Entity<SupplierLot>()
                 .HasKey(sl => new { sl.SupplierId, sl.LotId });
@@ -258,6 +322,11 @@ namespace X_ChemicalStorage.Data
         public virtual DbSet<Location> Locations { get; set; }
         public virtual DbSet<Lot> Lots { get; set; }
         public virtual DbSet<Item> Items { get; set; }
+
+        public DbSet<TempSample> TempSamples => Set<TempSample>();
+        public DbSet<TempSampleCustodyEvent> TempSampleCustodyEvents => Set<TempSampleCustodyEvent>();
+        public DbSet<TempSampleAttachment> TempSampleAttachments => Set<TempSampleAttachment>();
+
         public virtual DbSet<SupplierLot> SupplierLots { get; set; }
         public virtual DbSet<ItemTransaction> ItemTransactions { get; set; }
         public virtual DbSet<LotTransaction> LotTransactions { get; set; }

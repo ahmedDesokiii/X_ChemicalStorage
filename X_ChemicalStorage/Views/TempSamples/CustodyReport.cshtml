@@ -1,0 +1,121 @@
+@using X_ChemicalStorage.Models.TempSamples
+@model X_ChemicalStorage.ViewModels.TempSamples.TempSampleDossierViewModel
+@{
+    Layout = null;
+    var s = Model.Sample;
+    var intact = Model.BrokenAtSequence == null;
+    var sigs = Model.Attachments.Where(a => a.Kind == AttachmentKind.Signature).ToList();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Chain of Custody · @s.SampleCode</title>
+    <style>
+        @@page { size: A4; margin: 14mm 12mm; }
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #13293d; font-size: 10.5pt; margin: 0; }
+        @@media screen { body { background: #e9eef3; } .page { max-width: 210mm; margin: 24px auto; background: #fff; padding: 14mm 12mm; box-shadow: 0 20px 50px rgba(3,43,66,.2); border-radius: 6px; } .bar { text-align: center; padding: 14px; background: #032b42; } .bar button { border: 0; border-radius: 10px; padding: 8px 20px; font-weight: 800; background: #C5A547; color: #032b42; cursor: pointer; } }
+        @@media print { .bar { display: none; } }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #032b42; padding-bottom: 10px; position: relative; }
+        header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #C5A547; }
+        header h1 { margin: 0; font-size: 17pt; letter-spacing: .3px; }
+        header small { color: #6b7f92; }
+        .code { font-family: Consolas, monospace; font-weight: 800; font-size: 14pt; color: #032b42; }
+        .qr { width: 26mm; height: 26mm; }
+        h2 { font-size: 10pt; text-transform: uppercase; letter-spacing: 1.2px; color: #064663; border-left: 4px solid #C5A547; padding-left: 8px; margin: 18px 0 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        .kv td { padding: 4px 6px; border-bottom: 1px solid #e3e9ef; vertical-align: top; }
+        .kv td:nth-child(odd) { color: #6b7f92; width: 20%; font-weight: 600; }
+        .kv td:nth-child(even) { font-weight: 700; width: 30%; }
+        .chain th { background: #032b42; color: #fff; font-size: 8pt; text-transform: uppercase; letter-spacing: .6px; padding: 6px 5px; text-align: left; }
+        .chain td { padding: 5px; border-bottom: 1px solid #e3e9ef; font-size: 8.5pt; vertical-align: top; }
+        .chain tr:nth-child(even) td { background: #f7fafc; }
+        .hash { font-family: Consolas, monospace; font-size: 7pt; color: #6b7f92; word-break: break-all; }
+        .verdict { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 12px 16px; border-radius: 10px; border: 2px solid; }
+        .verdict.ok { border-color: #1f9d6b; background: #effaf5; color: #136b48; }
+        .verdict.bad { border-color: #d64550; background: #fdf0f1; color: #a3202b; }
+        .verdict b { font-size: 12pt; }
+        .stamp { width: 60px; height: 60px; border-radius: 50%; border: 3px double currentColor; display: grid; place-items: center; font-weight: 900; font-size: 8pt; text-align: center; transform: rotate(-12deg); flex-shrink: 0; }
+        .sigs { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+        .sigs div { text-align: center; font-size: 8pt; color: #6b7f92; }
+        .sigs img { height: 60px; border-bottom: 1px solid #13293d; display: block; margin-bottom: 4px; }
+        footer { margin-top: 20px; font-size: 7.5pt; color: #6b7f92; display: flex; justify-content: space-between; border-top: 1px solid #e3e9ef; padding-top: 6px; }
+    </style>
+</head>
+<body>
+    <div class="bar"><button onclick="window.print()">🖨 Print / Save as PDF</button></div>
+    <div class="page">
+        <header>
+            <div>
+                <h1>Chain of Custody Record</h1>
+                <small>Temporary sample custody · generated @DateTime.Now.ToString("dd MMM yyyy HH:mm") by @User.Identity?.Name</small>
+                <div class="code" style="margin-top:6px">@s.SampleCode</div>
+            </div>
+            <img class="qr" src="@s.QrImagePath" alt="QR" />
+        </header>
+
+        <h2>Reception record</h2>
+        <table class="kv">
+            <tr><td>Sample type</td><td>@s.SampleType</td><td>Status</td><td>@s.Status</td></tr>
+            <tr><td>Delivered</td><td>@s.DeliveryDateTime.ToString("dd MMM yyyy HH:mm")</td><td>Received</td><td>@s.ReceptionDateTime.ToString("dd MMM yyyy HH:mm")</td></tr>
+            <tr><td>Delivered by</td><td>@s.DeliveredByName</td><td>Received by</td><td>@s.ReceivedByName</td></tr>
+            <tr><td>From</td><td>@(s.DeliveringOrganization ?? "—")</td><td>To</td><td>@(s.ReceivingOrganization ?? "—")</td></tr>
+            <tr><td>Quantity received</td><td>@s.QuantityReceived.ToString("0.###") @s.Unit?.Name</td><td>Current quantity</td><td>@s.CurrentQuantity.ToString("0.###") @s.Unit?.Name</td></tr>
+            <tr><td>Containers</td><td>@s.ContainersCount</td><td>Sender barcode</td><td>@(s.ExternalBarcode ?? "—")</td></tr>
+            <tr><td>Requested analysis</td><td>@(s.RequestedAnalysis ?? "—")</td><td>Reference no.</td><td>@(s.RequestReferenceNumber ?? "—")</td></tr>
+            <tr><td>Transport</td><td>@s.TransportCondition</td><td>Arrival temp.</td><td>@(s.ArrivalTemperatureC?.ToString("0.0") ?? "—") °C @(s.ArrivedOutOfRange ? "⚠ out of range" : "")</td></tr>
+            <tr><td>Planned withdrawal</td><td>@(s.PlannedWithdrawalDate?.ToString("dd MMM yyyy") ?? "—")</td><td>Current location</td><td>@(s.BoxId == null ? "—" : $"{Model.RoomName} › {Model.UnitName} › {Model.ShelfName} › {Model.BoxName} [R{s.RowIndex}·C{s.ColumnIndex}]")</td></tr>
+            @if (!string.IsNullOrWhiteSpace(s.Description) || !string.IsNullOrWhiteSpace(s.Comments))
+            {
+                <tr><td>Description</td><td>@s.Description</td><td>Comments</td><td>@s.Comments</td></tr>
+            }
+        </table>
+
+        <h2>Custody events (@Model.Events.Count)</h2>
+        <table class="chain">
+            <thead><tr><th>#</th><th>Date / time</th><th>Event</th><th>By</th><th>Counterparty</th><th>Movement</th><th>Qty</th><th>Notes</th></tr></thead>
+            <tbody>
+                @foreach (var e in Model.Events)
+                {
+                    <tr>
+                        <td><b>@e.Sequence</b></td>
+                        <td>@e.OccurredAtUtc.ToLocalTime().ToString("dd/MM/yy HH:mm:ss")</td>
+                        <td><b>@e.EventType</b></td>
+                        <td>@e.PerformedByName</td>
+                        <td>@e.Counterparty</td>
+                        <td>@e.FromLocation @(e.FromLocation != null && e.ToLocation != null ? "→" : "") @e.ToLocation</td>
+                        <td>@(e.QuantityDelta?.ToString("+0.###;-0.###")) @(e.QuantityAfter.HasValue ? $"= {e.QuantityAfter:0.###}" : "")</td>
+                        <td>@e.Notes<div class="hash">@e.Hash</div></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="verdict @(intact ? "ok" : "bad")">
+            <div class="stamp">@(intact ? "SEAL\nOK" : "BROKEN")</div>
+            <div>
+                <b>@(intact ? "Integrity verified" : $"Integrity broken at event #{Model.BrokenAtSequence}")</b><br />
+                Each event stores the SHA-256 hash of the previous event. Recomputing all @Model.Events.Count hashes
+                @(intact ? "reproduced every seal — this record has not been altered." : "did not match — the record was modified outside the application.")
+            </div>
+        </div>
+
+        @if (sigs.Any())
+        {
+            <h2>Signatures</h2>
+            <div class="sigs">
+                @foreach (var g in sigs)
+                {
+                    <div><img src="@Url.Action("Attachment", new { id = g.Id, inline = true })" alt="signature" />@g.UploadedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm") · @g.UploadedBy</div>
+                }
+            </div>
+        }
+
+        <footer>
+            <span>@s.SampleCode · @Model.Attachments.Count document(s) on file</span>
+            <span>Last seal: @(Model.Events.LastOrDefault()?.Hash)</span>
+        </footer>
+    </div>
+</body>
+</html>

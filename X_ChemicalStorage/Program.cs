@@ -108,6 +108,8 @@ builder.Services.AddScoped<IServicesRepository<Item>, ServicesItem>();
 builder.Services.AddScoped<IServicesItem, ServicesItem>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IServicesLot, ServicesLot>();
+builder.Services.AddScoped<ITempSampleService, TempSampleService>();
+
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IServicesRepository<Lot>, ServicesLot>();
 builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManufacuterCompany>();

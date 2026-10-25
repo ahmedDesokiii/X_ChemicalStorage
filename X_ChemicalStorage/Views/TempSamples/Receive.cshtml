@@ -1,0 +1,273 @@
+@using X_ChemicalStorage.Models.TempSamples
+@model X_ChemicalStorage.ViewModels.TempSamples.TempSampleReceiveViewModel
+@{
+    ViewData["Title"] = "Receive Temporary Sample";
+}
+<link rel="stylesheet" href="~/css/temp-samples.css" asp-append-version="true" />
+
+<!-- Hero -->
+<div class="ts-hero" dir="ltr">
+    <div class="ts-hero-orb"></div>
+    <div class="container-fluid position-relative">
+        <nav class="ts-crumbs">
+            <a asp-controller="Rooms" asp-action="Index"><i class="bi bi-building"></i> Storage</a>
+            <i class="bi bi-chevron-right"></i>
+            <a asp-controller="TempSamples" asp-action="Index"><i class="bi bi-hourglass-split"></i> Temporary Samples</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>Reception</span>
+        </nav>
+        <h1 class="ts-hero-title">Sample Reception</h1>
+        <p class="ts-hero-sub">Every hand-over is sealed into a tamper-evident chain of custody.</p>
+    </div>
+</div>
+
+<div class="container-fluid ts-wrap" dir="ltr">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4"></div>
+
+    <form asp-action="Receive" method="post" enctype="multipart/form-data" id="tsForm" novalidate>
+        @Html.AntiForgeryToken()
+        <div class="row g-4">
+
+            <!-- ═════════ WIZARD ═════════ -->
+            <div class="col-xl-8">
+                <!-- Stepper -->
+                <div class="ts-stepper">
+                    <div class="ts-stepper-track"><span id="tsTrackFill"></span></div>
+                    <button type="button" class="ts-step active" data-step="1"><i class="bi bi-people-fill"></i><span>Hand-over</span></button>
+                    <button type="button" class="ts-step" data-step="2"><i class="bi bi-droplet-half"></i><span>Sample</span></button>
+                    <button type="button" class="ts-step" data-step="3"><i class="bi bi-thermometer-snow"></i><span>Transport & Docs</span></button>
+                    <button type="button" class="ts-step" data-step="4"><i class="bi bi-grid-3x3-gap-fill"></i><span>Placement</span></button>
+                </div>
+
+                <div class="ts-panels">
+                    <!-- STEP 1 -->
+                    <section class="ts-panel active" data-step="1">
+                        <h4 class="ts-panel-title"><span>01</span> Who handed it over, and when?</h4>
+                        <div class="row g-3">
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="DeliveryDateTime">Delivery date & time</label>
+                                <input asp-for="DeliveryDateTime" type="datetime-local" class="form-control" required data-preview="delivery" />
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="ReceptionDateTime">Reception date & time</label>
+                                <input asp-for="ReceptionDateTime" type="datetime-local" class="form-control" required data-preview="reception" />
+                                <small class="ts-hint" id="tsLagHint"></small>
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="DeliveredByName">Delivered by (person)</label>
+                                <input asp-for="DeliveredByName" class="form-control" placeholder="Full name" required data-preview="deliveredBy" />
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label>Received by</label>
+                                <input class="form-control" value="@User.Identity?.Name" readonly />
+                                <small class="ts-hint"><i class="bi bi-lock-fill"></i> Taken from your signed-in account</small>
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="DeliveringOrganization">Delivering organization / dept.</label>
+                                <input asp-for="DeliveringOrganization" class="form-control" placeholder="e.g. Central Lab – Microbiology" data-preview="fromOrg" />
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="ReceivingOrganization">Receiving organization / dept.</label>
+                                <input asp-for="ReceivingOrganization" class="form-control" placeholder="e.g. Bio Bank – Cold Storage" data-preview="toOrg" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- STEP 2 -->
+                    <section class="ts-panel" data-step="2">
+                        <h4 class="ts-panel-title"><span>02</span> What was received?</h4>
+                        <div class="row g-3">
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="SampleType">Sample / material type</label>
+                                <input asp-for="SampleType" list="tsTypes" class="form-control" required data-preview="type" />
+                                <datalist id="tsTypes">
+                                    @foreach (var t in Model.SampleTypeSuggestions) { <option value="@t"></option> }
+                                </datalist>
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="ExternalBarcode">Sender's barcode (optional)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                                    <input asp-for="ExternalBarcode" class="form-control" placeholder="Scan or type" />
+                                </div>
+                            </div>
+                            <div class="col-md-4 ts-field">
+                                <label asp-for="QuantityReceived">Quantity received</label>
+                                <input asp-for="QuantityReceived" type="number" step="0.001" min="0.001" class="form-control" required data-preview="qty" />
+                            </div>
+                            <div class="col-md-4 ts-field">
+                                <label asp-for="UnitId">Unit of measure</label>
+                                <select asp-for="UnitId" asp-items="Model.ListUnits" class="form-select" data-preview="unit">
+                                    <option value="">—</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 ts-field">
+                                <label asp-for="ContainersCount">Containers / packages</label>
+                                <div class="ts-stepper-num">
+                                    <button type="button" data-num="-1">−</button>
+                                    <input asp-for="ContainersCount" type="number" min="1" class="form-control" data-preview="containers" />
+                                    <button type="button" data-num="1">+</button>
+                                </div>
+                            </div>
+                            <div class="col-12 ts-field">
+                                <label asp-for="Description">Description</label>
+                                <textarea asp-for="Description" rows="2" class="form-control" placeholder="Visual condition, labels, seals…"></textarea>
+                            </div>
+                            <div class="col-md-6 ts-field">
+                                <label asp-for="RequestedAnalysis">Requested laboratory analysis</label>
+                                <input asp-for="RequestedAnalysis" class="form-control" placeholder="e.g. PCR, Culture, HPLC" data-preview="analysis" />
+                            </div>
+                            <div class="col-md-3 ts-field">
+                                <label asp-for="RequestReferenceNumber">Request / ref. no.</label>
+                                <input asp-for="RequestReferenceNumber" class="form-control" data-preview="ref" />
+                            </div>
+                            <div class="col-md-3 ts-field">
+                                <label asp-for="PlannedWithdrawalDate">Planned withdrawal</label>
+                                <input asp-for="PlannedWithdrawalDate" type="date" class="form-control" data-preview="withdraw" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- STEP 3 -->
+                    <section class="ts-panel" data-step="3">
+                        <h4 class="ts-panel-title"><span>03</span> How did it travel?</h4>
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-7">
+                                <label class="ts-label">Transport condition</label>
+                                <div class="ts-chips" id="tsTransport">
+                                    @foreach (TransportCondition c in Enum.GetValues(typeof(TransportCondition)))
+                                    {
+                                        var r = X_ChemicalStorage.Services.TempSampleService.RangeFor(c);
+                                        <label class="ts-chip">
+                                            <input type="radio" name="TransportCondition" value="@c" @(Model.TransportCondition == c ? "checked" : "")
+                                                   data-min="@(r?.Min)" data-max="@(r?.Max)" />
+                                            <span>@c<small>@(r.HasValue ? $"{r.Value.Min}…{r.Value.Max}°C" : "no range")</small></span>
+                                        </label>
+                                    }
+                                </div>
+                                <div class="ts-field mt-3">
+                                    <label asp-for="ArrivalTemperatureC">Arrival temperature (°C)</label>
+                                    <input asp-for="ArrivalTemperatureC" type="number" step="0.1" class="form-control ts-temp-input" placeholder="Measured on arrival" />
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="ts-gauge" id="tsGauge" data-state="idle">
+                                    <svg viewBox="0 0 200 120">
+                                        <path class="ts-gauge-bg" d="M20 110 A80 80 0 0 1 180 110" />
+                                        <path class="ts-gauge-band" id="tsGaugeBand" d="M20 110 A80 80 0 0 1 180 110" />
+                                        <line class="ts-gauge-needle" id="tsNeedle" x1="100" y1="110" x2="100" y2="40" />
+                                        <circle cx="100" cy="110" r="7" class="ts-gauge-hub" />
+                                    </svg>
+                                    <div class="ts-gauge-read"><span id="tsGaugeVal">—</span><small id="tsGaugeMsg">enter arrival temperature</small></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="ts-label mt-4">Delivery documents & attachments</label>
+                        <div class="ts-drop" id="tsDrop">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <p><b>Drop files here</b> or click to browse<br /><small>Delivery note, request form, temp log, photos — max 25 MB each</small></p>
+                            <input type="file" id="tsFiles" name="Files" multiple hidden />
+                        </div>
+                        <ul class="ts-files" id="tsFileList"></ul>
+                        <div id="tsKindInputs"></div>
+
+                        <div class="ts-field mt-3">
+                            <label asp-for="Comments">Comments & observations</label>
+                            <textarea asp-for="Comments" rows="2" class="form-control" placeholder="Leaks, broken seals, missing labels…"></textarea>
+                        </div>
+                    </section>
+
+                    <!-- STEP 4 -->
+                    <section class="ts-panel" data-step="4">
+                        <h4 class="ts-panel-title"><span>04</span> Where will it wait?</h4>
+                        @if (!Model.ListRooms.Any())
+                        {
+                            <div class="ts-empty-zone">
+                                <i class="bi bi-exclamation-diamond"></i>
+                                <p>No <b>Temporary Holding</b> unit exists yet. Create one from <a asp-controller="Rooms" asp-action="Index">Storage Locations</a>,
+                                    or save now — the sample will be logged as <b>Awaiting placement</b>.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row g-2">
+                                <div class="col-md-3"><select id="tsRoom" class="form-select"><option value="">Room</option>
+                                    @foreach (var r in Model.ListRooms) { <option value="@r.Value">@r.Text</option> }</select></div>
+                                <div class="col-md-3"><select id="tsUnit" class="form-select" disabled><option value="">Holding unit</option></select></div>
+                                <div class="col-md-3"><select id="tsShelf" class="form-select" disabled><option value="">Shelf</option></select></div>
+                                <div class="col-md-3"><select id="tsBox" class="form-select" disabled><option value="">Box</option></select></div>
+                            </div>
+                            <div class="ts-grid-wrap" id="tsGridWrap" hidden>
+                                <div class="ts-legend">
+                                    <span><i class="free"></i>Free</span><span><i class="lot"></i>Lot</span>
+                                    <span><i class="sample"></i>Sample</span><span><i class="sel"></i>Selected</span>
+                                </div>
+                                <div class="ts-grid" id="tsGrid"></div>
+                                <div class="ts-slot-label" id="tsSlotLabel">Pick a free slot — or skip to place later</div>
+                            </div>
+                        }
+                        <input type="hidden" asp-for="BoxId" id="tsBoxId" />
+                        <input type="hidden" asp-for="RowIndex" id="tsRow" />
+                        <input type="hidden" asp-for="ColumnIndex" id="tsCol" />
+                    </section>
+                </div>
+
+                <!-- Nav -->
+                <div class="ts-nav">
+                    <button type="button" class="btn ts-btn-ghost" id="tsPrev" disabled><i class="bi bi-arrow-left"></i> Back</button>
+                    <button type="button" class="btn ts-btn-primary" id="tsNext">Next <i class="bi bi-arrow-right"></i></button>
+                    <button type="submit" class="btn ts-btn-seal" id="tsSubmit" hidden>
+                        <i class="bi bi-shield-lock-fill"></i> Seal & Receive
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═════════ LIVE SAMPLE PASSPORT ═════════ -->
+            <div class="col-xl-4">
+                <div class="ts-passport" id="tsPassport">
+                    <div class="ts-passport-head">
+                        <div>
+                            <small>SAMPLE PASSPORT</small>
+                            <div class="ts-passport-code">TS-@DateTime.Now.Year-<span>••••••</span></div>
+                        </div>
+                        <div class="ts-qr-ghost"><i class="bi bi-qr-code"></i></div>
+                    </div>
+                    <div class="ts-passport-type" data-out="type">Sample type</div>
+                    <div class="ts-passport-qty"><span data-out="qty">1</span> <span data-out="unit"></span> · <span data-out="containers">1</span> container(s)</div>
+
+                    <div class="ts-route">
+                        <div class="ts-route-node"><small>FROM</small><b data-out="fromOrg">—</b><span data-out="deliveredBy"></span></div>
+                        <div class="ts-route-line"><i class="bi bi-truck"></i></div>
+                        <div class="ts-route-node"><small>TO</small><b data-out="toOrg">—</b><span>@User.Identity?.Name</span></div>
+                    </div>
+
+                    <dl class="ts-passport-meta">
+                        <dt>Analysis</dt><dd data-out="analysis">—</dd>
+                        <dt>Reference</dt><dd data-out="ref">—</dd>
+                        <dt>Transport</dt><dd data-out="transport">—</dd>
+                        <dt>Withdraw by</dt><dd data-out="withdraw">—</dd>
+                        <dt>Location</dt><dd data-out="location">Awaiting placement</dd>
+                    </dl>
+
+                    <div class="ts-chain-preview">
+                        <div class="ts-chain-dot on"></div><span>Received</span>
+                        <div class="ts-chain-link"></div>
+                        <div class="ts-chain-dot" id="tsChainStored"></div><span>Stored</span>
+                        <div class="ts-chain-link"></div>
+                        <div class="ts-chain-dot"></div><span>Withdrawn</span>
+                    </div>
+                    <div class="ts-progress-ring" id="tsCompleteness" style="--p:0"><span>0%</span><small>complete</small></div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/temp-sample-receive.js" asp-append-version="true"></script>
+    @if (TempData["Error"] != null)
+    {
+        <script>Swal.fire({ icon: 'error', title: 'Not saved', text: '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(TempData["Error"]!.ToString()!))' });</script>
+    }
+}

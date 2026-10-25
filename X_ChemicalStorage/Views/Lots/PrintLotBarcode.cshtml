@@ -1,30 +1,117 @@
-﻿@{
+@{
     Layout = null;
+    // Works for both actions: PrintLotBarcode (route values) and PrintLot(id)
+    string barcode = ViewBag.BarcodePath ?? "";
+    string item = ViewBag.ItemName ?? "";
+    string lotNo = ViewBag.LotNumber ?? "";
+    string exp = ViewBag.ExpiryDate ?? "";
+    string storage = ViewBag.Storage ?? "";
+    string location = ViewBag.Location ?? "";
+    string received = ViewBag.ReceivedDate ?? "";
+    string itemCode = ViewBag.ItemCode ?? "";
+    bool cold = ViewBag.IsCold ?? false;
 }
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Lot Sticker</title>
-    <link href="~/css/sticker.css" rel="stylesheet" />
+    <title>Lot @lotNo</title>
+    <style>
+        :root { --w: 50mm; --h: 30mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: #000; }
+
+        /* ───── Screen preview ───── */
+        @@media screen {
+            body { background: radial-gradient(800px 300px at 0 0, rgba(63,154,174,.25), transparent 60%), linear-gradient(135deg, #032b42, #064663); min-height: 100vh; }
+            .bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 20px; background: rgba(3,43,66,.92); color: #fff; border-bottom: 2px solid #C5A547; z-index: 5; }
+            .bar h1 { font-size: 15px; margin: 0 auto 0 0; font-weight: 700; letter-spacing: .3px; }
+            .bar h1 b { color: #C5A547; font-family: Consolas, monospace; }
+            .bar label { font-size: 12px; opacity: .8; }
+            .bar select, .bar input { border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); color: #fff; padding: 6px 10px; font-weight: 600; }
+            .bar select option { color: #000; }
+            .bar input { width: 64px; }
+            .bar button { border: 0; border-radius: 10px; padding: 8px 18px; font-weight: 800; cursor: pointer; background: linear-gradient(135deg, #C5A547, #dcc06b); color: #032b42; }
+            .sheet { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; padding: 30px; }
+            .label { background: #fff; border-radius: 6px; box-shadow: 0 14px 34px rgba(0,0,0,.35); transform: scale(1.6); transform-origin: top center; margin-bottom: calc(var(--h) * .6 + 10px); animation: pop .4s ease both; }
+            @@keyframes pop { from { opacity: 0; transform: scale(1.2) translateY(10px); } }
+        }
+        @@media print { .bar { display: none; } .sheet { padding: 0; } .label { page-break-after: always; } }
+
+        /* ───── Label (thermal-friendly: black only) ───── */
+        .label { width: var(--w); height: var(--h); padding: 1.4mm 1.8mm; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+        .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1mm; }
+        .name { font-weight: 800; font-size: 7.2pt; line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .temp { flex-shrink: 0; border: .3mm solid #000; border-radius: 1mm; padding: 0 1mm; font-size: 5.5pt; font-weight: 800; white-space: nowrap; }
+        .temp.cold { background: #000; color: #fff; }
+        .code { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; }
+        .code img { width: 100%; max-height: 11mm; object-fit: contain; image-rendering: pixelated; }
+        .code span { font-family: Consolas, monospace; font-size: 6.5pt; font-weight: 700; letter-spacing: .6px; }
+        .bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 1mm; font-size: 5.5pt; }
+        .exp { border: .35mm solid #000; border-radius: 1mm; padding: .2mm 1.2mm; text-align: center; line-height: 1.05; }
+        .exp small { display: block; font-size: 4.5pt; font-weight: 700; letter-spacing: .5px; }
+        .exp b { font-size: 7.5pt; }
+        .meta { line-height: 1.2; }
+
+        /* size presets */
+        body.s-40x25 { --w: 40mm; --h: 25mm; }
+        body.s-60x40 { --w: 60mm; --h: 40mm; }
+        body.s-60x40 .name { font-size: 9pt; } body.s-60x40 .code img { max-height: 16mm; }
+    </style>
+    <style id="pageSize">@@page { size: 50mm 30mm; margin: 0; }</style>
 </head>
 <body>
+    <div class="bar">
+        <h1>Lot label · <b>@lotNo</b></h1>
+        <label>Size</label>
+        <select id="size">
+            <option value="">50 × 30 mm</option>
+            <option value="s-40x25">40 × 25 mm</option>
+            <option value="s-60x40">60 × 40 mm</option>
+        </select>
+        <label>Copies</label>
+        <input id="copies" type="number" min="1" max="200" value="1" />
+        <button onclick="window.print()">🖨 Print</button>
+    </div>
 
-    <div class="sticker">
-        <img src="@ViewBag.BarcodePath" alt="Barcode" />
-        <div class="item-code">Lot# : @ViewBag.LotNumber</div>
-        <div class="item-code">Item : @ViewBag.ItemName</div>
-        <div class="item-code">
-            &nbsp; Exp : @ViewBag.ExpiryDate
+    <div class="sheet" id="sheet">
+        <div class="label" id="tpl">
+            <div class="top">
+                <div class="name">@item</div>
+                @if (!string.IsNullOrEmpty(storage))
+                {
+                    <div class="temp @(cold ? "cold" : "")">@(cold ? "❄ " : "")@storage</div>
+                }
+            </div>
+            <div class="code">
+                <img src="@barcode" alt="barcode" />
+                <span>@lotNo</span>
+            </div>
+            <div class="bottom">
+                <div class="meta">
+                    @if (!string.IsNullOrEmpty(itemCode)) { <div>Item: <b>@itemCode</b></div> }
+                    @if (!string.IsNullOrEmpty(location)) { <div>@location</div> }
+                    else if (!string.IsNullOrEmpty(received)) { <div>Rcv: @received</div> }
+                </div>
+                <div class="exp"><small>EXP</small><b>@exp</b></div>
+            </div>
         </div>
-
     </div>
 
     <script>
-        window.print();
+        const sheet = document.getElementById('sheet'), tpl = document.getElementById('tpl');
+        function render() {
+            const n = Math.max(1, Math.min(200, +document.getElementById('copies').value || 1));
+            sheet.querySelectorAll('.label:not(#tpl)').forEach(x => x.remove());
+            for (let i = 1; i < n; i++) sheet.appendChild(tpl.cloneNode(true)).removeAttribute('id');
+        }
+        document.getElementById('copies').addEventListener('input', render);
+        document.getElementById('size').addEventListener('change', e => {
+            document.body.className = e.target.value;
+            const dims = { '': '50mm 30mm', 's-40x25': '40mm 25mm', 's-60x40': '60mm 40mm' }[e.target.value];
+            document.getElementById('pageSize').textContent = `@@page { size: ${dims}; margin: 0; }`;
+        });
+        window.addEventListener('load', () => setTimeout(() => window.print(), 300));
     </script>
-
 </body>
 </html>
-

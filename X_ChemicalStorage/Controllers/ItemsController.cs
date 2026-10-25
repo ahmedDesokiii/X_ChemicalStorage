@@ -70,7 +70,7 @@ namespace X_ChemicalStorage.Controllers
                                     Value = s.Id.ToString(),
                                     Text = s.Name
                                 })
-                                .OrderByDescending(x=>x.Value)
+                                .OrderByDescending(x => x.Value)
                                 .ToList();
             Items.ListUnits = _context.Units
                                 .Where(l => l.CurrentState > 0)
@@ -80,7 +80,7 @@ namespace X_ChemicalStorage.Controllers
                                     Value = l.Id.ToString(),
                                     Text = l.Name
                                 }).ToList();
-            
+
 
             return View(Items);
         }
@@ -293,8 +293,10 @@ namespace X_ChemicalStorage.Controllers
             if (item == null) return NotFound();
 
             var lots = _context.Lots
+                .Include(x => x.Box).ThenInclude(b => b.Shelf).ThenInclude(s => s.StorageUnit).ThenInclude(u => u.Room)
                 .Where(x => x.ItemId == id && x.AvilableQuantity > 0)
-                .OrderBy(x => x.ExpiryDate)
+                .OrderBy(x => x.ExpiryDate == null)          // lots without expiry go last
+                .ThenBy(x => x.ExpiryDate)
                 .ToList();
 
             var newLot = lots.FirstOrDefault();
@@ -321,8 +323,18 @@ namespace X_ChemicalStorage.Controllers
         #region Print Barcode
         public IActionResult PrintItemBarcode(string barcodeFile, string code)
         {
-            ViewBag.BarcodePath = "/barcodes/" + code + ".png";
+            var item = _context.Items
+                .AsNoTracking()
+                .Include(i => i.StorageUnitType)
+                .Include(i => i.Category)
+                .FirstOrDefault(i => i.Code == code);
+
+            ViewBag.BarcodePath = item?.BarcodeImage ?? ("/barcodes/" + code + ".png");
             ViewBag.Code = code;
+            ViewBag.ItemName = item?.Name;
+            ViewBag.Storage = item?.StorageUnitType?.Name;
+            ViewBag.IsCold = item?.StorageUnitType?.TemperatureValue < 0;
+            ViewBag.Category = item?.Category?.Name;
             return View();
         }
         #endregion

@@ -5,8 +5,25 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject RoleManager<ApplicationRole> RoleManager
+@inject X_ChemicalStorage.Data.ApplicationDbContext LayoutDb
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    // Temporary samples needing attention (awaiting placement or overdue) → nav badge
+    int tsAttention = 0;
+    if (SignInManager.IsSignedIn(User))
+    {
+        try
+        {
+            var today = DateTime.Today;
+            tsAttention = LayoutDb.TempSamples.Count(s =>
+                s.Status == X_ChemicalStorage.Models.TempSamples.TempSampleStatus.Received ||
+                ((s.Status == X_ChemicalStorage.Models.TempSamples.TempSampleStatus.Stored ||
+                  s.Status == X_ChemicalStorage.Models.TempSamples.TempSampleStatus.CheckedOut) &&
+                 s.PlannedWithdrawalDate != null && s.PlannedWithdrawalDate < today));
+        }
+        catch { /* table not migrated yet — never break the layout */ }
+    }
 
     var servicesControllers = new[] { "Suppliers", "Categories", "Units", "ManufacuterCompanies", "Locations" };
     var isServicesActive = servicesControllers.Contains(currentController);
@@ -67,6 +84,7 @@
                 position: relative;
                 z-index: 1050;
             }
+
             @@keyframes topbarShine {
                 0% {
                     background-position: 0% 50%;
@@ -100,7 +118,7 @@
             /* Logo */
             .navbar-brand {
                 position: relative;
-                padding: 4px 8px;
+                padding: 4px 50px;
                 transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
             }
 
@@ -137,7 +155,7 @@
                 color: rgba(255, 255, 255, 0.82) !important;
                 font-weight: 500;
                 font-size: 0.92rem;
-                padding: 0.55rem 0.65rem !important;
+                padding: 0.55rem 0.9rem !important;
                 border-radius: 12px;
                 transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
                 position: relative;
@@ -187,6 +205,7 @@
                         border-radius: 2px;
                         animation: activeLine 1.5s ease-in-out infinite;
                     }
+
             @@keyframes activeLine {
                 0%, 100% {
                     opacity: 0.6;
@@ -203,6 +222,35 @@
                 border-bottom: none;
             }
 
+            /* Attention badge on nav items */
+            .nav-badge {
+                position: absolute;
+                top: 2px;
+                right: 4px;
+                min-width: 18px;
+                height: 18px;
+                padding: 0 5px;
+                border-radius: 10px;
+                background: var(--bb-gold);
+                color: var(--bb-navy);
+                font-size: .66rem;
+                font-weight: 800;
+                line-height: 18px;
+                text-align: center;
+                box-shadow: 0 0 0 2px var(--bb-navy), 0 0 0 0 rgba(197,165,71,.6);
+                animation: navBadge 2s infinite;
+            }
+
+            @@keyframes navBadge {
+                70% {
+                    box-shadow: 0 0 0 2px var(--bb-navy), 0 0 0 8px rgba(197,165,71,0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 2px var(--bb-navy), 0 0 0 0 rgba(197,165,71,0);
+                }
+            }
+
             /* Dropdown menu */
             .navbar .dropdown-menu {
                 background: linear-gradient(160deg, #032b42 0%, #053550 100%);
@@ -213,6 +261,7 @@
                 margin-top: 8px !important;
                 animation: dropdownIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
             }
+
             @@keyframes dropdownIn {
                 from {
                     opacity: 0;
@@ -290,6 +339,7 @@
             .page-enter {
                 animation: pageFadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
             }
+
             @@keyframes pageFadeIn {
                 from {
                     opacity: 0;
@@ -376,118 +426,128 @@
             <nav class="navbar navbar-expand-sm navbar-dark">
                 <div class="container-fluid">
 
-                <!-- Logo -->
-                <a asp-controller="Home" asp-action="Index" class="navbar-brand">
-                    <img src="~/images/bc.png" alt="Biodefense Center Logo">
-                </a>
+                    <!-- Logo -->
+                    <a asp-controller="Home" asp-action="Index" class="navbar-brand">
+                        <img src="~/images/bc.png" alt="Biodefense Center Logo">
+                    </a>
 
-                <!-- Mobile Button -->
-                <button class="navbar-toggler" type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#mainNavbar"
-                        aria-controls="mainNavbar"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                    <!-- Mobile Button -->
+                    <button class="navbar-toggler" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#mainNavbar"
+                            aria-controls="mainNavbar"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                <!-- Menu -->
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <ul class="navbar-nav me-auto mb-2 mb-sm-0 text-center">
+                    <!-- Menu -->
+                    <div class="collapse navbar-collapse" id="mainNavbar">
+                        <ul class="navbar-nav me-auto mb-2 mb-sm-0 text-center">
 
-                        @if (SignInManager.IsSignedIn(User))
-                        {
-                            @* Admin Links *@
-                            @if (User.IsInRole(Roles.Admin.ToString()))
+                            @if (SignInManager.IsSignedIn(User))
                             {
+                                @* Admin Links *@
+                                @if (User.IsInRole(Roles.Admin.ToString()))
+                                {
+                                    <li class="nav-item mx-1">
+                                        <a class="nav-link fs-6 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
+                                            <i class="bi bi-people-fill"></i>Users
+                                        </a>
+                                    </li>
+                                    <li class="nav-item mx-1">
+                                        <a class="nav-link fs-6 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
+                                            <i class="bi bi-collection-fill"></i>Roles
+                                        </a>
+                                    </li>
+                                }
+                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Dashboard.View).Result.Succeeded))
+                                {
+                                    <li class="nav-item mx-1">
+                                        <a class="nav-link fs-6 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
+                                            <i class="bi bi-speedometer"></i>Dashboard
+                                        </a>
+                                    </li>
+                                }
+
+                                @* Inventory Links *@
                                 <li class="nav-item mx-1">
-                                    <a class="nav-link fs-6 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
-                                        <i class="bi bi-people-fill"></i>Users
+                                    <a class="nav-link fs-6 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
+                                        <i class="bi bi-boxes"></i>Items
                                     </a>
                                 </li>
                                 <li class="nav-item mx-1">
-                                    <a class="nav-link fs-6 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
-                                        <i class="bi bi-collection-fill"></i>Roles
+                                    <a class="nav-link fs-6 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
+                                        <i class="bi bi-archive-fill"></i>Lots
                                     </a>
+                                </li>
+                                @* Rooms *@
+                                <li class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">
+                                        <i class="bi bi-building"></i>Rooms
+                                    </a>
+                                </li>
+                                @* Temporary Samples (custody) *@
+                                <li class="nav-item mx-1">
+                                    <a class="nav-link fs-6 position-relative @(currentController == "TempSamples" ? "active" : "")" asp-controller="TempSamples" asp-action="Index">
+                                        <i class="bi bi-hourglass-split"></i>Samples
+                                        @if (tsAttention > 0)
+                                        {
+                                            <span class="nav-badge" title="@tsAttention sample(s) awaiting placement or overdue">@tsAttention</span>
+                                        }
+                                    </a>
+                                </li>
+                                @* Bio Bank *@
+                                <li class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "BioBank" ? "active" : "")" asp-controller="BioBank" asp-action="Index">
+                                        <i class="bi bi-droplet"></i>Bio Bank
+                                    </a>
+                                </li>
+
+                                @* Services Dropdown *@
+                                <li class="nav-item dropdown mx-1">
+                                    <a class="nav-link dropdown-toggle fs-6 @(isServicesActive ? "active" : "")" data-bs-toggle="dropdown">
+                                        <i class="bi bi-database-fill-gear"></i>Services
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
+                                        {
+                                            <li><a class="dropdown-item @(currentController == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Index">Suppliers</a></li>
+                                        }
+                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Categories.View).Result.Succeeded))
+                                        {
+                                            <li><a class="dropdown-item @(currentController == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">Categories</a></li>
+                                        }
+                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Units.View).Result.Succeeded))
+                                        {
+                                            <li><a class="dropdown-item @(currentController == "Units" ? "active" : "")" asp-controller="Units" asp-action="Index">Units</a></li>
+                                        }
+                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Manufacuters.View).Result.Succeeded))
+                                        {
+                                            <li><a class="dropdown-item @(currentController == "ManufacuterCompanies" ? "active" : "")" asp-controller="ManufacuterCompanies" asp-action="Index">Manufacturers</a></li>
+                                        }
+                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Locations.View).Result.Succeeded))
+                                        {
+                                            <li><a class="dropdown-item @(currentController == "Locations" ? "active" : "")" asp-controller="Locations" asp-action="Index">Locations</a></li>
+                                        }
+                                    </ul>
                                 </li>
                             }
-                            @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Dashboard.View).Result.Succeeded))
-                            {
-                                <li class="nav-item mx-1">
-                                    <a class="nav-link fs-6 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
-                                        <i class="bi bi-speedometer"></i>Dashboard
-                                    </a>
-                                </li>
-                            }
+                        </ul>
 
-                            @* Inventory Links *@
-                            <li class="nav-item mx-1">
-                                <a class="nav-link fs-6 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
-                                    <i class="bi bi-boxes"></i>Items
-                                </a>
-                            </li>
-                            <li class="nav-item mx-1">
-                                <a class="nav-link fs-6 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
-                                    <i class="bi bi-archive-fill"></i>Lots
-                                </a>
-                            </li>
-                            @* Rooms *@
-                            <li class="nav-item mx-1">
-                                <a class="nav-link fs-6 @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">
-                                    <i class="bi bi-building"></i>Rooms
-                                </a>
-                            </li>
-                            @* Bio Bank *@
-                            <li class="nav-item mx-1">
-                                <a class="nav-link fs-6 @(currentController == "BioBank" ? "active" : "")" asp-controller="BioBank" asp-action="Index">
-                                    <i class="bi bi-droplet"></i>Bio Bank
-                                </a>
-                            </li>
-
-                            @* Services Dropdown *@
-                            <li class="nav-item dropdown mx-1">
-                                <a class="nav-link dropdown-toggle fs-6 @(isServicesActive ? "active" : "")" data-bs-toggle="dropdown">
-                                    <i class="bi bi-database-fill-gear"></i>Services
-                                </a>
-                                <ul class="dropdown-menu">
-                                    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
-                                    {
-                                        <li><a class="dropdown-item @(currentController == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Index">Suppliers</a></li>
-                                    }
-                                    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Categories.View).Result.Succeeded))
-                                    {
-                                        <li><a class="dropdown-item @(currentController == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">Categories</a></li>
-                                    }
-                                    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Units.View).Result.Succeeded))
-                                    {
-                                        <li><a class="dropdown-item @(currentController == "Units" ? "active" : "")" asp-controller="Units" asp-action="Index">Units</a></li>
-                                    }
-                                    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Manufacuters.View).Result.Succeeded))
-                                    {
-                                        <li><a class="dropdown-item @(currentController == "ManufacuterCompanies" ? "active" : "")" asp-controller="ManufacuterCompanies" asp-action="Index">Manufacturers</a></li>
-                                    }
-                                    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Locations.View).Result.Succeeded))
-                                    {
-                                        <li><a class="dropdown-item @(currentController == "Locations" ? "active" : "")" asp-controller="Locations" asp-action="Index">Locations</a></li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-
-                    <partial name="_NotifyPartial" />
-                    <partial name="_LoginPartial" />
+                        <partial name="_NotifyPartial" />
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
-            </div>
 
-            @if (!User.IsInRole("Admin"))
-            {
-                <button id="installBtn" class="btn d-none">
-                    Install App
-                </button>
-            }
-        </nav>
-    </header>
+                @if (!User.IsInRole("Admin"))
+                {
+                    <button id="installBtn" class="btn d-none">
+                        Install App
+                    </button>
+                }
+            </nav>
+        </header>
     }
     <div class="container-fluid pt-0 px-0 mx-0 page-enter" dir="rtl">
         <main role="main" class="pb-0">
@@ -507,7 +567,7 @@
 
     <script>
             // Header shadow on scroll
-            window.addEventListener('scroll', function () {
+            window.addEventListener('scroll', function() {
                 const h = document.getElementById('mainHeader');
                 if (h) h.classList.toggle('scrolled', window.scrollY > 12);
             });

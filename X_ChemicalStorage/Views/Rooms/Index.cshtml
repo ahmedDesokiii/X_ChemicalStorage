@@ -1,1410 +1,405 @@
-﻿@model X_ChemicalStorage.Models.ViewModels.RoomsViewModel
-
+@using X_ChemicalStorage.Models.TempSamples
+@model X_ChemicalStorage.Models.ViewModels.RoomsViewModel
 @{
-    ViewData["Title"] = "Rooms";
-}
+    ViewData["Title"] = "Storage Locations";
 
-<!-- Hero Header -->
-<div class="page-hero" dir="ltr">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <div class="d-flex align-items-center gap-4">
-                    <div class="hero-icon">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div>
-                        <h1 class="hero-title">Rooms</h1>
-                        <p class="hero-subtitle">Manage rooms, storage units, shelves & sample boxes</p>
+    int Used(int boxId) =>
+        (Model.LotBoxOccupancy != null && Model.LotBoxOccupancy.TryGetValue(boxId, out var l) ? l : 0)
+      + (Model.HoldingBoxOccupancy != null && Model.HoldingBoxOccupancy.TryGetValue(boxId, out var h) ? h : 0);
+    int Samples(int boxId) => Model.HoldingBoxOccupancy != null && Model.HoldingBoxOccupancy.TryGetValue(boxId, out var h) ? h : 0;
+
+    IEnumerable<Box> BoxesOf(StorageUnit u) => u.Shelves?.SelectMany(s => s.Boxes ?? new List<Box>()) ?? Enumerable.Empty<Box>();
+    int SlotsOf(IEnumerable<Box> b) => b.Sum(x => x.RowsCount * x.ColumnsCount);
+    int UsedOf(IEnumerable<Box> b) => b.Sum(x => Used(x.Id));
+
+    var rooms = Model.RoomsList ?? new List<Room>();
+    var allUnits = rooms.SelectMany(r => r.StorageUnits ?? new List<StorageUnit>()).ToList();
+    var allBoxes = allUnits.SelectMany(BoxesOf).ToList();
+    var totalSlots = SlotsOf(allBoxes);
+    var totalUsed = UsedOf(allBoxes);
+    var utilPct = totalSlots == 0 ? 0 : (int)Math.Round(totalUsed * 100.0 / totalSlots);
+    var samplesTotal = Model.HoldingBoxOccupancy?.Values.Sum() ?? 0;
+    int ri = 0;
+
+    async Task RenderUnit(StorageUnit unit, Room room, bool holding)
+    {
+        var boxes = BoxesOf(unit).ToList();
+        var slots = SlotsOf(boxes);
+        var used = UsedOf(boxes);
+        var pct = slots == 0 ? 0 : (int)Math.Round(used * 100.0 / slots);
+        var cold = unit.StorageUnitType?.TemperatureValue < 0;
+        int j = 0;
+
+        <div class="rm-unit" data-search="@(unit.Name + " " + unit.StorageUnitType?.Name + " " + string.Join(" ", unit.Shelves?.Select(s => s.Name) ?? Array.Empty<string>()) + " " + string.Join(" ", boxes.Select(b => b.Name)))">
+            <div class="rm-unit-bar" onclick="RM.toggle(this)">
+                <i class="bi bi-chevron-right rm-chev"></i>
+                <span class="rm-type @(holding ? "" : (cold ? "cold" : "room"))">
+                    <i class="bi @(holding ? "bi-hourglass-split" : "bi-thermometer-half")"></i>@unit.StorageUnitType?.Name
+                </span>
+                <span class="rm-unit-name">@unit.Name @if (unit.IsHazardous) { <span class="haz"><i class="bi bi-radioactive"></i>HAZ</span> }</span>
+                <span class="rm-meter @(pct >= 85 ? "hot" : "")" title="@used of @slots slots used">
+                    @used/@slots
+                    <span class="bar"><span style="--w:@(pct)%"></span></span>
+                </span>
+                <span class="rm-acts" onclick="event.stopPropagation()">
+                    <button type="button" class="iv-icon-btn" data-tip="Edit unit"
+                            data-id="@unit.Id" data-name="@unit.Name" data-type="@unit.StorageUnitTypeId"
+                            data-haz="@unit.IsHazardous.ToString().ToLower()" data-zone="@unit.Zone" onclick="RM.editUnit(this)">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <form asp-action="DeleteStorageUnit" method="post" class="rm-confirm" data-msg="Delete unit “@unit.Name” with all its shelves and boxes?">
+                        <input type="hidden" name="id" value="@unit.Id" />
+                        <button type="submit" class="iv-icon-btn danger" data-tip="Delete unit"><i class="bi bi-trash3-fill"></i></button>
+                    </form>
+                </span>
+            </div>
+
+            <div class="rm-expand">
+                <div class="rm-expand-inner">
+                    <div class="rm-shelves">
+                        @if (unit.Shelves == null || !unit.Shelves.Any())
+                        {
+                            <div class="rm-empty mt-2">No shelves yet</div>
+                        }
+                        else
+                        {
+                            foreach (var shelf in unit.Shelves)
+                            {
+                                <div class="rm-shelf">
+                                    <div class="rm-shelf-top">
+                                        <i class="bi bi-layers"></i>
+                                        <b>@shelf.Name</b>
+                                        <span class="iv-sub">@(shelf.Boxes?.Count ?? 0) boxes</span>
+                                        <button type="button" class="iv-icon-btn" style="width:28px;height:28px" data-tip="Add box" onclick="RM.inline('ab_@shelf.Id')"><i class="bi bi-plus-lg"></i></button>
+                                        <button type="button" class="iv-icon-btn" style="width:28px;height:28px" data-tip="Rename shelf" data-id="@shelf.Id" data-name="@shelf.Name" onclick="RM.editShelf(this)"><i class="bi bi-pencil-fill"></i></button>
+                                        <form asp-action="DeleteShelf" method="post" class="rm-confirm" data-msg="Delete shelf “@shelf.Name” and its boxes?">
+                                            <input type="hidden" name="id" value="@shelf.Id" />
+                                            <button type="submit" class="iv-icon-btn danger" style="width:28px;height:28px" data-tip="Delete shelf"><i class="bi bi-trash3-fill"></i></button>
+                                        </form>
+                                    </div>
+
+                                    <div class="rm-boxes">
+                                        @foreach (var box in shelf.Boxes ?? new List<Box>())
+                                        {
+                                            var bs = box.RowsCount * box.ColumnsCount;
+                                            var bu = Used(box.Id);
+                                            var bp = bs == 0 ? 0 : (int)Math.Round(bu * 100.0 / bs);
+                                            <button type="button" class="rm-box @(bp >= 100 ? "full" : bp >= 60 ? "warm" : "")" style="--h:@bp;--j:@(j++)"
+                                                    data-id="@box.Id" data-name="@box.Name" data-rows="@box.RowsCount" data-cols="@box.ColumnsCount"
+                                                    data-path="@room.Name › @unit.Name › @shelf.Name › @box.Name"
+                                                    onclick="RM.inspect(this)" title="@box.Name · @bu/@bs used">
+                                                @if (Samples(box.Id) > 0) { <span class="smp"></span> }
+                                                <b>@box.Name</b>
+                                                <small>@bu/@bs · @(box.RowsCount)×@(box.ColumnsCount)</small>
+                                            </button>
+                                        }
+                                        <button type="button" class="rm-box add" style="--j:@j" onclick="RM.inline('ab_@shelf.Id')" title="Add box"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+
+                                    <form asp-action="AddBox" method="post" class="rm-inline" id="ab_@shelf.Id">
+                                        <input type="hidden" name="shelfId" value="@shelf.Id" />
+                                        <input name="name" class="form-control" style="flex:1;min-width:110px" placeholder="Box name" required value="Box @((shelf.Boxes?.Count ?? 0) + 1)" />
+                                        <input name="rowsCount" type="number" min="1" value="9" class="form-control num" title="Rows" required />
+                                        <span class="align-self-center text-muted">×</span>
+                                        <input name="columnsCount" type="number" min="1" value="9" class="form-control num" title="Columns" required />
+                                        <button class="iv-btn iv-btn-primary" style="padding:6px 12px"><i class="bi bi-plus-lg"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        }
+
+                        <form asp-action="AddShelf" method="post" class="rm-inline show mt-2" style="background:transparent;border-style:dashed">
+                            <input type="hidden" name="storageUnitId" value="@unit.Id" />
+                            <input name="name" class="form-control" style="flex:1" placeholder="New shelf name…" required value="Shelf @((unit.Shelves?.Count ?? 0) + 1)" />
+                            <button class="iv-btn iv-btn-ghost" style="padding:6px 12px"><i class="bi bi-plus-lg"></i> Shelf</button>
+                        </form>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <div class="hero-stats d-inline-flex gap-4">
-                    <div class="stat-item text-center">
-                        <div class="stat-value">@(Model.RoomsList?.Count ?? 0)</div>
-                        <div class="stat-label">Rooms</div>
-                    </div>
-                    <div class="stat-item text-center">
-                        <div class="stat-value">@(Model.RoomsList?.Sum(r => r.StorageUnits?.Count ?? 0) ?? 0)</div>
-                        <div class="stat-label">Units</div>
-                    </div>
+        </div>
+    }
+}
+<link rel="stylesheet" href="~/css/inventory.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/rooms.css" asp-append-version="true" />
+
+<!-- ═════════════════ HERO ═════════════════ -->
+<div class="iv-hero" dir="ltr">
+    <div class="iv-hero-orb"></div>
+    <div class="container-fluid">
+        <div class="iv-hero-row">
+            <div class="iv-hero-id">
+                <div class="iv-hero-icon"><i class="bi bi-building"></i></div>
+                <div>
+                    <h1 class="iv-hero-title">Storage Locations</h1>
+                    <p class="iv-hero-sub">Rooms → units → shelves → boxes. Tiles fill with real occupancy — click any box to inspect it.</p>
                 </div>
+            </div>
+            <div class="iv-hero-chips">
+                <div class="iv-hero-chip"><b data-count="@rooms.Count">0</b><small>Rooms</small></div>
+                <div class="iv-hero-chip" style="animation-delay:.05s"><b data-count="@allUnits.Count">0</b><small>Units</small></div>
+                <div class="iv-hero-chip" style="animation-delay:.1s"><b data-count="@totalSlots">0</b><small>Slots</small></div>
+                <div class="iv-hero-chip gold" style="animation-delay:.15s"><b><span data-count="@utilPct">0</span>%</b><small>Utilization</small></div>
+                <div class="iv-hero-chip warn" style="animation-delay:.2s"><b data-count="@samplesTotal">0</b><small>Temp samples</small></div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    /* ===== CSS Variables - Harmonized with Layout ===== */
-    :root {
-        --primary-dark: #032b42;
-        --primary-mid: #032b42;
-        --primary-light: #032b42;
-        --accent: #0d6efd;
-        --success: #198754;
-        --danger: #dc3545;
-        --warning: #ffc107;
-        --bg-light: #f8fafb;
-        --bg-card: #ffffff;
-        --border: #dbe4ea;
-        --text-dark: #1a2b3c;
-        --text-muted: #6c757d;
-        --shadow-sm: 0 2px 8px rgba(3,43,66,0.06);
-        --shadow-md: 0 4px 20px rgba(3,43,66,0.10);
-        --shadow-lg: 0 8px 32px rgba(3,43,66,0.14);
-        --radius-sm: 10px;
-        --radius-md: 16px;
-        --radius-lg: 20px;
-    }
-
-    /* ===== Hero Header ===== */
-    .page-hero {
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 50%, var(--primary-light) 100%);
-        padding: 40px 30px;
-        border-radius: 0 0 var(--radius-lg) 0;
-        margin-bottom: 30px;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .page-hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 50%;
-        }
-
-    .hero-icon {
-        width: 64px;
-        height: 64px;
-        background: rgba(255,255,255,0.15);
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-
-        .hero-icon i {
-            font-size: 28px;
-            color: #fff;
-        }
-
-    .hero-title {
-        color: #fff;
-        font-size: 2rem;
-        font-weight: 800;
-        margin: 0;
-        letter-spacing: -0.5px;
-    }
-
-    .hero-subtitle {
-        color: rgba(255,255,255,0.7);
-        margin: 4px 0 0 0;
-        font-size: 0.95rem;
-    }
-
-    .hero-stats .stat-value {
-        color: #fff;
-        font-size: 1.6rem;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .hero-stats .stat-label {
-        color: rgba(255,255,255,0.6);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-top: 4px;
-    }
-
-    /* ===== Toolbar ===== */
-    .toolbar {
-        background: var(--bg-card);
-        border-radius: var(--radius-md);
-        padding: 16px 24px;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        border: 1px solid var(--border);
-    }
-
-    .toolbar-info h5 {
-        font-weight: 700;
-        color: var(--primary-dark);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .toolbar-info small {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-    }
-
-    .btn-action {
-        border-radius: var(--radius-sm);
-        padding: 10px 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-    }
-
-        .btn-action:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-
-    .btn-primary-custom {
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
-        color: #fff;
-    }
-
-        .btn-primary-custom:hover {
-            background: linear-gradient(135deg, var(--primary-mid) 0%, var(--primary-dark) 100%);
-            color: #fff;
-        }
-
-    .btn-outline-custom {
-        border: 2px solid var(--border);
-        color: var(--primary-light);
-        background: var(--bg-card);
-    }
-
-        .btn-outline-custom:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: #f0f7ff;
-        }
-
-    /* ===== Room Cards ===== */
-    .room-grid {
-        margin-bottom: 30px;
-    }
-
-    .room-card {
-        background: var(--bg-card);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        
-        border: 1px solid var(--border);
-    }
-
-        .room-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent);
-        }
-
-    .room-header {
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
-        padding: 20px;
-        position: relative;
-        /* overflow: hidden; */
-    }
-
-        .room-header::after {
-            content: '';
-            position: absolute;
-            bottom: -20px;
-            right: -20px;
-            width: 100px;
-            height: 100px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-        }
-
-    .room-icon-wrap {
-        width: 48px;
-        height: 48px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-
-        .room-icon-wrap i {
-            color: #fff;
-            font-size: 22px;
-        }
-
-    .room-name {
-        color: #fff;
-        font-weight: 700;
-        font-size: 1.1rem;
-        margin: 0;
-    }
-
-    .room-meta {
-        color: rgba(255,255,255,0.7);
-        font-size: 0.8rem;
-        margin-top: 2px;
-    }
-
-    /* ===== FIXED: Room Menu Button & Dropdown ===== */
-    .room-menu-btn {
-        background: rgba(255,255,255,0.15) !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        color: #fff !important;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        cursor: pointer;
-        position: relative;
-        z-index: 10;
-    }
-
-        .room-menu-btn:hover,
-        .room-menu-btn:focus,
-        .room-menu-btn:active {
-            background: rgba(255,255,255,0.25) !important;
-            color: #fff !important;
-            box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
-        }
-
-        .room-menu-btn::after {
-            display: none !important;
-        }
-
-        .room-menu-btn i {
-            font-size: 18px;
-        }
-
-    /* Dropdown fixes */
-    .room-dropdown-menu {
-        border: none;
-        box-shadow: 0 8px 32px rgba(3,43,66,0.18);
-        border-radius: 12px;
-        padding: 8px;
-        min-width: 200px;
-        background: #fff;
-        margin-top: 8px !important;
-    }
-
-        .room-dropdown-menu .dropdown-item {
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.15s;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-            .room-dropdown-menu .dropdown-item:hover {
-                background: #f0f7ff;
-                color: var(--accent);
-            }
-
-            .room-dropdown-menu .dropdown-item i {
-                width: 18px;
-                text-align: center;
-            }
-
-            .room-dropdown-menu .dropdown-item.text-danger {
-                color: var(--danger);
-            }
-
-                .room-dropdown-menu .dropdown-item.text-danger:hover {
-                    background: #fff0f0;
-                    color: #c62828;
-                }
-
-        .room-dropdown-menu .dropdown-divider {
-            margin: 6px 0;
-            border-color: var(--border);
-        }
-
-    /* ===== Units Section ===== */
-    .units-section {
-        padding: 16px;
-        background: var(--bg-light);
-        flex: 1;
-    }
-
-    .unit-block {
-        margin-bottom: 8px;
-    }
-
-    .unit-bar {
-        background: var(--bg-card);
-        border-radius: var(--radius-sm);
-        border: 1.5px solid var(--border);
-        padding: 12px 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-        .unit-bar:hover {
-            border-color: var(--accent);
-            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.08);
-        }
-
-        .unit-bar.active {
-            border-color: var(--accent);
-            background: #f0f7ff;
-        }
-
-    .expand-chevron {
-        color: var(--text-muted);
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 0.8rem;
-    }
-
-        .expand-chevron.rotated {
-            transform: rotate(90deg);
-        }
-
-    .unit-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-        .unit-badge.safe {
-            background: #e8f5e9;
-            color: var(--success);
-        }
-
-        .unit-badge.hazardous {
-            background: #ffebee;
-            color: var(--danger);
-        }
-
-    .unit-name {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--primary-dark);
-    }
-
-    .unit-status {
-        margin-left: auto;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 3px 10px;
-        border-radius: 20px;
-    }
-
-        .unit-status.safe {
-            background: #e8f5e9;
-            color: var(--success);
-        }
-
-        .unit-status.hazardous {
-            background: #ffebee;
-            color: var(--danger);
-        }
-
-    /* ===== Shelves ===== */
-    .shelves-wrapper {
-        margin-left: 24px;
-        margin-top: 6px;
-        display: none;
-        animation: slideDown 0.25s ease;
-    }
-
-    @@keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .shelf-item {
-        background: var(--bg-card);
-        border-radius: 8px;
-        border-left: 3px solid var(--primary-mid);
-        padding: 10px 14px;
-        margin-bottom: 6px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.2s;
-    }
-
-        .shelf-item:hover {
-            background: #f0f7ff;
-            border-left-color: var(--accent);
-        }
-
-        .shelf-item i {
-            color: var(--primary-light);
-            font-size: 0.85rem;
-        }
-
-    .shelf-name {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: var(--primary-dark);
-    }
-
-    .shelf-count {
-        margin-left: auto;
-        background: #f1f3f5;
-        color: var(--text-muted);
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    /* ===== NEW: Box List within Shelf ===== */
-    .box-list {
-        margin-left: 16px;
-        margin-top: 4px;
-        padding-left: 12px;
-        border-left: 2px dashed var(--border);
-    }
-
-    .box-item {
-        background: var(--bg-card);
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        padding: 8px 12px;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-        transition: all 0.2s;
-    }
-
-        .box-item:hover {
-            border-color: var(--accent);
-            background: #f0f7ff;
-        }
-
-        .box-item i {
-            color: var(--primary-light);
-            font-size: 0.8rem;
-        }
-
-    .box-name {
-        font-weight: 600;
-        color: var(--primary-dark);
-    }
-
-    .box-dims {
-        margin-left: auto;
-        background: #e3f2fd;
-        color: var(--primary-mid);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    /* ===== Add Forms ===== */
-    .add-form {
-        margin-top: 10px;
-    }
-
-        .add-form .form-control, .add-form .form-select {
-            border-radius: 8px;
-            border: 1.5px solid var(--border);
-            font-size: 0.85rem;
-            padding: 8px 12px;
-        }
-
-            .add-form .form-control:focus, .add-form .form-select:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-            }
-
-    .btn-add-sm {
-        border-radius: 8px;
-        padding: 8px 14px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-
-    /* ===== NEW: Add Box Form ===== */
-    .add-box-form {
-        margin-top: 8px;
-        padding: 12px;
-        background: var(--bg-light);
-        border-radius: 8px;
-        border: 1.5px dashed var(--border);
-    }
-
-        .add-box-form .form-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .add-box-form .form-control {
-            font-size: 0.8rem;
-            padding: 6px 10px;
-        }
-
-    /* ===== Row action buttons (Unit / Shelf / Box) ===== */
-    .item-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        margin-left: 8px;
-    }
-
-        .item-actions form {
-            margin: 0;
-        }
-
-    .btn-icon-sm {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        border: none;
-        background: transparent;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.15s;
-    }
-
-        .btn-icon-sm.edit {
-            color: var(--accent);
-        }
-
-            .btn-icon-sm.edit:hover {
-                background: #e3f2fd;
-            }
-
-        .btn-icon-sm.delete {
-            color: var(--danger);
-        }
-
-            .btn-icon-sm.delete:hover {
-                background: #ffebee;
-            }
-
-    /* ===== Footer Stats ===== */
-    .room-footer {
-        background: linear-gradient(180deg, #eef3f6 0%, #e8eef2 100%);
-        padding: 16px 20px;
-        display: flex;
-        justify-content: space-around;
-        border-top: 1px solid var(--border);
-    }
-
-    .footer-stat {
-        text-align: center;
-    }
-
-        .footer-stat .value {
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--primary-dark);
-            line-height: 1;
-        }
-
-            .footer-stat .value.success {
-                color: var(--success);
-            }
-
-        .footer-stat .label {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 4px;
-            font-weight: 600;
-        }
-
-    /* ===== Add Room Card ===== */
-    .add-room-card {
-        min-height: 320px;
-        border: 2px dashed var(--border);
-        border-radius: var(--radius-md);
-        background: var(--bg-light);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-    }
-
-        .add-room-card:hover {
-            border-color: var(--accent);
-            background: #f0f7ff;
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-        }
-
-    .add-room-icon {
-        width: 64px;
-        height: 64px;
-        background: #e3f2fd;
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s;
-    }
-
-    .add-room-card:hover .add-room-icon {
-        background: var(--accent);
-    }
-
-    .add-room-icon i {
-        font-size: 28px;
-        color: var(--accent);
-        transition: all 0.3s;
-    }
-
-    .add-room-card:hover .add-room-icon i {
-        color: #fff;
-    }
-
-    .add-room-title {
-        font-weight: 700;
-        color: var(--primary-dark);
-        margin: 0;
-    }
-
-    .add-room-desc {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-    }
-
-    /* ===== Modal ===== */
-    .modal-content {
-        border: none;
-        border-radius: var(--radius-md);
-        overflow: hidden;
-    }
-
-    .modal-header-custom {
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
-        color: #fff;
-        padding: 20px 24px;
-        border: none;
-    }
-
-        .modal-header-custom .modal-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-    .btn-close-white {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-    .modal-body-custom {
-        padding: 24px;
-    }
-
-    .form-label-custom {
-        font-weight: 600;
-        color: var(--primary-dark);
-        font-size: 0.9rem;
-        margin-bottom: 8px;
-    }
-
-    .form-control-custom {
-        border-radius: var(--radius-sm);
-        border: 1.5px solid var(--border);
-        padding: 12px 16px;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-
-        .form-control-custom:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
-        }
-
-    .modal-footer-custom {
-        border: none;
-        padding: 0 24px 24px;
-    }
-
-    /* ===== Alerts ===== */
-    .alert-floating {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        border-radius: var(--radius-sm);
-        padding: 14px 20px;
-        box-shadow: var(--shadow-lg);
-        border: none;
-        animation: slideInRight 0.4s ease;
-        min-width: 300px;
-    }
-
-    @@keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    .alert-floating.alert-success {
-        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-        color: #2e7d32;
-    }
-
-    .alert-floating.alert-danger {
-        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-        color: #c62828;
-    }
-
-    /* ===== Empty State ===== */
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-    }
-
-    .empty-state-icon {
-        width: 80px;
-        height: 80px;
-        background: var(--bg-light);
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-        border: 2px dashed var(--border);
-    }
-
-        .empty-state-icon i {
-            font-size: 36px;
-            color: var(--primary-light);
-        }
-
-    .empty-state h4 {
-        color: var(--primary-dark);
-        font-weight: 700;
-    }
-
-    .empty-state p {
-        color: var(--text-muted);
-        max-width: 400px;
-        margin: 0 auto 20px;
-    }
-
-    /* ===== Layout Color Harmony ===== */
-    /* Match with navbar active color #ffc107 */
-    .text-warning-custom {
-        color: #ffc107 !important;
-    }
-
-    /* Match with top bar #BBE0EF */
-    .bg-topbar {
-        background-color: #BBE0EF !important;
-    }
-
-    /* Subtle animations */
-    .unit-block, .shelf-item, .box-item {
-        animation: fadeIn 0.3s ease;
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-</style>
-
-<!-- Alerts -->
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-floating alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <strong>Success!</strong> @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-floating alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>Error!</strong> @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<!-- Toolbar -->
-<div class="toolbar" dir="ltr">
-    <div class="toolbar-info">
-        <h5><i class="bi bi-diagram-3-fill" style="color: var(--accent);"></i> Storage Hierarchy</h5>
-        <small>Organize your chemical storage locations</small>
-    </div>
-    <div class="d-flex gap-2">
-        <a asp-controller="Rooms" asp-action="GenerateWizard" class="btn btn-action btn-outline-custom">
-            <i class="bi bi-magic"></i> Auto-Generate
+<div class="container-fluid pb-4" dir="ltr">
+    <!-- ═════════════════ TOOLBAR ═════════════════ -->
+    <div class="rm-toolbar">
+        <div class="rm-search">
+            <i class="bi bi-search"></i>
+            <input id="rmSearch" placeholder="Find a room, unit, shelf or box…  (press / )" autocomplete="off" />
+        </div>
+        <div class="rm-legend d-none d-lg-flex">
+            <span><i style="background:rgba(63,154,174,.4)"></i>Used</span>
+            <span><i style="background:rgba(197,165,71,.6)"></i>≥ 60%</span>
+            <span><i style="background:rgba(214,69,80,.5)"></i>Full</span>
+            <span><i style="background:#f4b740;border-radius:50%"></i>Has samples</span>
+        </div>
+        <button class="iv-btn iv-btn-ghost" onclick="RM.expandAll(true)" title="Expand all"><i class="bi bi-arrows-expand"></i></button>
+        <button class="iv-btn iv-btn-ghost" onclick="RM.expandAll(false)" title="Collapse all"><i class="bi bi-arrows-collapse"></i></button>
+        <a asp-controller="TempSamples" asp-action="Index" class="iv-btn" style="background:linear-gradient(135deg,#0f3d3e,#14595b);color:#fff">
+            <i class="bi bi-hourglass-split"></i> Temporary Samples
+            @if (samplesTotal > 0) { <span class="badge rounded-pill" style="background:#f4b740;color:#0f3d3e">@samplesTotal</span> }
         </a>
-        <button type="button" class="btn btn-action btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-            <i class="bi bi-plus-lg"></i> Add Room
-        </button>
+        <a asp-action="GenerateWizard" class="iv-btn iv-btn-ghost"><i class="bi bi-magic"></i> Auto-Generate</a>
+        <button type="button" class="iv-btn iv-btn-gold" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg"></i> Add Room</button>
     </div>
-</div>
 
-<!-- Rooms Grid -->
-<div class="container-fluid room-grid" dir="ltr">
-    @if (Model.RoomsList != null && Model.RoomsList.Any())
+    <!-- ═════════════════ ROOMS ═════════════════ -->
+    @if (!rooms.Any())
     {
-        <div class="row g-4">
-            @foreach (var room in Model.RoomsList)
+        <div class="iv-panel"><div class="iv-empty">
+            <i class="bi bi-building-add"></i>
+            <h5>No rooms yet</h5>
+            <p>Create a room manually, or let the wizard generate the whole hierarchy in one go.</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a asp-action="GenerateWizard" class="iv-btn iv-btn-primary"><i class="bi bi-magic"></i> Auto-Generate</a>
+                <button class="iv-btn iv-btn-gold" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg"></i> Add Room</button>
+            </div>
+        </div></div>
+    }
+    else
+    {
+        <div class="rm-grid" id="rmGrid">
+            @foreach (var room in rooms)
             {
-                var totalShelves = room.StorageUnits?.Sum(u => u.Shelves?.Count ?? 0) ?? 0;
-                var totalBoxes = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Count ?? 0) ?? 0) ?? 0;
-                var totalSlots = room.StorageUnits?.Sum(u => u.Shelves?.Sum(s => s.Boxes?.Sum(b => b.RowsCount * b.ColumnsCount) ?? 0) ?? 0) ?? 0;
+                var units = room.StorageUnits ?? new List<StorageUnit>();
+                var lotUnits = units.Where(u => u.Zone == StorageZone.Inventory).ToList();
+                var holdUnits = units.Where(u => u.Zone == StorageZone.TemporaryHolding).ToList();
+                var rBoxes = units.SelectMany(BoxesOf).ToList();
+                var rSlots = SlotsOf(rBoxes);
+                var rUsed = UsedOf(rBoxes);
+                var rPct = rSlots == 0 ? 0 : (int)Math.Round(rUsed * 100.0 / rSlots);
+                var rSamples = rBoxes.Sum(b => Samples(b.Id));
 
-                <div class="col-xl-4 col-lg-6 col-md-6">
-                    <div class="room-card rounded-4">
-                        <!-- Header -->
-                        <div class="room-header rounded-top-4 d-flex justify-content-between align-items-start">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="room-icon-wrap">
-                                    <i class="bi bi-door-open-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="room-name">@room.Name</h6>
-                                    <div class="room-meta">
-                                        <i class="bi bi-box-seam me-1"></i>
-                                        @(room.StorageUnits?.Count ?? 0) Storage Units
-                                    </div>
-                                </div>
+                <div class="rm-card" style="--i:@(ri++)" data-room="@room.Name">
+                    <div class="rm-head">
+                        <div class="rm-head-row">
+                            <div class="rm-head-ico"><i class="bi bi-door-open-fill"></i></div>
+                            <div class="min-w-0">
+                                <h3 class="rm-room-name">@room.Name</h3>
+                                <small>@units.Count units · @rBoxes.Count boxes</small>
                             </div>
-                            <!-- FIXED: Dropdown with proper Bootstrap attributes -->
+                            <div class="rm-ring" data-ring="@rPct" style="--c:@(rPct >= 85 ? "#ff8a92" : "#C5A547")" title="@rUsed of @rSlots slots used">
+                                <b>@rPct%<small>USED</small></b>
+                            </div>
                             <div class="dropdown">
-                                <button class="room-menu-btn" type="button"
-                                        data-bs-toggle="dropdown"
-                                        data-bs-auto-close="true"
-                                        aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu room-dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <button type="button" class="dropdown-item" onclick="editRoom(@room.Id, '@room.Name')">
-                                            <i class="bi bi-pencil text-primary"></i>Edit Room
-                                        </button>
-                                    </li>
+                                <button class="rm-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><button type="button" class="dropdown-item" onclick="RM.editRoom(@room.Id, this)" data-name="@room.Name"><i class="bi bi-pencil text-primary"></i>Rename room</button></li>
+                                    <li><button type="button" class="dropdown-item" onclick="RM.expandRoom(this)"><i class="bi bi-arrows-expand"></i>Expand all units</button></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form asp-action="DeleteRoom" method="post" class="d-inline"
-                                              onsubmit="return confirm('Are you sure you want to delete this room? All associated data will be removed.');">
+                                        <form asp-action="DeleteRoom" method="post" class="rm-confirm" data-msg="Delete room “@room.Name”? Only possible when it holds no lots or samples.">
                                             <input type="hidden" name="id" value="@room.Id" />
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="bi bi-trash"></i>Delete Room
-                                            </button>
+                                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash"></i>Delete room</button>
                                         </form>
                                     </li>
                                 </ul>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Body: Storage Units -->
-                        <div class="units-section">
-                            @if (room.StorageUnits != null && room.StorageUnits.Any())
+                    <div class="rm-body">
+                        <!-- Lots inventory -->
+                        <div class="rm-zone"><i class="bi bi-boxes"></i> Lots inventory <span class="cnt">@lotUnits.Count</span></div>
+                        @if (!lotUnits.Any()) { <div class="rm-empty mb-2">No inventory units yet</div> }
+                        @foreach (var u in lotUnits) { await RenderUnit(u, room, false); }
+
+                        <!-- Temporary holding -->
+                        <div class="rm-hold">
+                            <div class="rm-zone">
+                                <span class="pulse"></span> Temporary holding <span class="cnt">@holdUnits.Count</span>
+                                @if (holdUnits.Any()) { <a class="cta" asp-controller="TempSamples" asp-action="Receive"><i class="bi bi-box-arrow-in-down"></i> Receive</a> }
+                            </div>
+                            @if (!holdUnits.Any())
                             {
-                                foreach (var unit in room.StorageUnits)
-                                {
-                                    var unitTypeName = unit.StorageUnitType?.Name ?? "Unit";
-                                    var unitIcon = unit.IsHazardous ? "bi-exclamation-triangle-fill" : "bi-box-seam";
-                                    var unitBadgeClass = unit.IsHazardous ? "hazardous" : "safe";
-                                    var unitStatusClass = unit.IsHazardous ? "hazardous" : "safe";
-                                    var unitStatusText = unit.IsHazardous ? "Hazardous" : "Safe";
-
-                                    <div class="unit-block">
-                                        <div class="unit-bar" onclick="toggleExpand(this)">
-                                            <i class="bi bi-chevron-right expand-chevron"></i>
-                                            <span class="unit-badge @unitBadgeClass">
-                                                <i class="bi @unitIcon"></i>
-                                                @unitTypeName
-                                            </span>
-                                            <span class="unit-name">@unit.Name</span>
-                                            <span class="unit-status @unitStatusClass">
-                                                <span class="item-actions" onclick="event.stopPropagation()">
-                                                    <button type="button" class="btn-icon-sm edit" title="Edit Unit"
-                                                            data-id="@unit.Id"
-                                                            data-name="@unit.Name"
-                                                            data-type="@unit.StorageUnitTypeId"
-                                                            data-haz="@unit.IsHazardous.ToString().ToLower()"
-                                                            onclick="editUnit(this)">
-                                                        <i class="bi bi-pencil-fill"></i>
-                                                    </button>
-                                                    <form asp-action="DeleteStorageUnit" method="post"
-                                                          onsubmit="return confirm('Delete this storage unit with all its shelves and boxes?');">
-                                                        <input type="hidden" name="id" value="@unit.Id" />
-                                                        <button type="submit" class="btn-icon-sm delete" title="Delete Unit">
-                                                            <i class="bi bi-trash3-fill"></i>
-                                                        </button>
-                                                    </form>
-                                                </span>
-                                                <i class="bi @(unit.IsHazardous ? "bi-exclamation-triangle" : "bi-shield-check") me-1"></i>
-                                                @unitStatusText
-                                            </span>
-                                        </div>
-                                        <!-- Shelves -->
-                                        <div class="shelves-wrapper">
-                                            @if (unit.Shelves != null && unit.Shelves.Any())
-                                            {
-                                                foreach (var shelf in unit.Shelves)
-                                                {
-                                                    <div class="shelf-item" onclick="toggleBoxExpand(this)">
-                                                        <i class="bi bi-layers"></i>
-                                                        <span class="shelf-name">@shelf.Name</span>
-                                                        <span class="shelf-count">
-                                                            @(shelf.Boxes?.Count ?? 0) Boxes
-                                                        </span>
-                                                        <span class="item-actions" onclick="event.stopPropagation()">
-                                                            <button type="button" class="btn-icon-sm edit" title="Edit Shelf"
-                                                                    data-id="@shelf.Id" data-name="@shelf.Name" onclick="editShelf(this)">
-                                                                <i class="bi bi-pencil-fill"></i>
-                                                            </button>
-                                                            <form asp-action="DeleteShelf" method="post"
-                                                                  onsubmit="return confirm('Delete this shelf with all its boxes?');">
-                                                                <input type="hidden" name="id" value="@shelf.Id" />
-                                                                <button type="submit" class="btn-icon-sm delete" title="Delete Shelf">
-                                                                    <i class="bi bi-trash3-fill"></i>
-                                                                </button>
-                                                            </form>
-                                                        </span>
-                                                    </div>
-                                                    <!-- NEW: Boxes List -->
-                                                    <div class="box-list" style="display:none;">
-                                                        @if (shelf.Boxes != null && shelf.Boxes.Any())
-                                                        {
-                                                            foreach (var box in shelf.Boxes)
-                                                            {
-                                                                <div class="box-item">
-                                                                    <i class="bi bi-grid-3x3"></i>
-                                                                    <span class="box-name">@box.Name</span>
-                                                                    <span class="box-dims">
-                                                                        @box.RowsCount × @box.ColumnsCount
-                                                                    </span>
-                                                                    <span class="item-actions">
-                                                                        <button type="button" class="btn-icon-sm edit" title="Edit Box"
-                                                                                data-id="@box.Id" data-name="@box.Name"
-                                                                                data-rows="@box.RowsCount" data-cols="@box.ColumnsCount"
-                                                                                onclick="editBox(this)">
-                                                                            <i class="bi bi-pencil-fill"></i>
-                                                                        </button>
-                                                                        <form asp-action="DeleteBox" method="post"
-                                                                              onsubmit="return confirm('Delete this box?');">
-                                                                            <input type="hidden" name="id" value="@box.Id" />
-                                                                            <button type="submit" class="btn-icon-sm delete" title="Delete Box">
-                                                                                <i class="bi bi-trash3-fill"></i>
-                                                                            </button>
-                                                                        </form>
-                                                                    </span>
-                                                                </div>
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            <div class="box-item" style="opacity:0.5;">
-                                                                <i class="bi bi-inbox"></i>
-                                                                <span class="text-muted">No boxes yet</span>
-                                                            </div>
-                                                        }
-                                                        <!-- NEW: Add Box Form -->
-                                                        <form asp-action="AddBox" method="post" class="add-box-form">
-                                                            <input type="hidden" name="shelfId" value="@shelf.Id" />
-                                                            <div class="row g-2">
-                                                                <div class="col-4">
-                                                                    <label class="form-label">Box Name</label>
-                                                                    <input type="text" name="name" class="form-control" placeholder="Box name" required />
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <label class="form-label">Rows</label>
-                                                                    <input type="number" name="rowsCount" class="form-control" value="9" min="1" required />
-                                                                </div>
-                                                                <div class="col-3">
-                                                                    <label class="form-label">Columns</label>
-                                                                    <input type="number" name="columnsCount" class="form-control" value="9" min="1" required />
-                                                                </div>
-                                                                <div class="col-2 d-flex align-items-end">
-                                                                    <button type="submit" class="btn btn-sm btn-primary-custom w-100" style="border-radius:8px;">
-                                                                        <i class="bi bi-plus-lg"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <div class="shelf-item" style="opacity:0.6;">
-                                                    <i class="bi bi-inbox"></i>
-                                                    <span class="shelf-name text-muted">No shelves yet</span>
-                                                </div>
-                                            }
-                                            <form asp-action="AddShelf" method="post" class="add-form d-flex gap-2 mt-2">
-                                                <input type="hidden" name="storageUnitId" value="@unit.Id" />
-                                                <input type="text" name="name" class="form-control form-control-sm" placeholder="New shelf name..." required />
-                                                <button type="submit" class="btn btn-add-sm btn-outline-secondary">
-                                                    <i class="bi bi-plus-lg"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                }
+                                <div class="rm-hold-empty">No holding unit here — add one below with zone <b>Temp Holding</b>.</div>
                             }
                             else
                             {
-                                <div class="text-center py-4">
-                                    <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
-                                    <p class="text-muted small mt-2 mb-0">No storage units yet</p>
-                                </div>
+                                foreach (var u in holdUnits) { await RenderUnit(u, room, true); }
+                                <a class="rm-hold-link" asp-controller="TempSamples" asp-action="Index"><i class="bi bi-journal-text"></i> @rSamples sample(s) · open custody register <i class="bi bi-arrow-right"></i></a>
                             }
+                        </div>
 
-                            <!-- Add Storage Unit -->
-                            <form asp-action="AddStorageUnit" method="post" class="add-form mt-3">
+                        <!-- Add unit -->
+                        <div class="rm-add-unit">
+                            <button type="button" class="rm-add-toggle" onclick="RM.inline('au_@room.Id')"><i class="bi bi-plus-circle"></i> Add storage unit</button>
+                            <form asp-action="AddStorageUnit" method="post" class="rm-add-form" id="au_@room.Id">
                                 <input type="hidden" name="roomId" value="@room.Id" />
-                                <div class="input-group input-group-sm">
-                                    <select name="storageUnitTypeId" class="form-select" required style="max-width: 120px;">
-                                        @* <option value="" disabled selected>Type</option> *@
-                                        @foreach (var type in Model.ListStorageUnitTypes)
-                                        {
-                                            <option value="@type.Value">@type.Text</option>
-                                        }
-                                    </select>
-                                    <input type="text" name="name" class="form-control" placeholder="Unit name" required />
-                                    <div class="input-group-text bg-white border-start-0">
-                                        <input class="form-check-input mt-0" type="checkbox" name="isHazardous" value="true" title="Hazardous material">
+                                <div class="row g-2">
+                                    <div class="col-7"><input name="name" class="form-control" placeholder="Unit name" required value="Unit @(units.Count + 1)" /></div>
+                                    <div class="col-5">
+                                        <select name="storageUnitTypeId" class="form-select" required>
+                                            @foreach (var t in Model.ListStorageUnitTypes) { <option value="@t.Value">@t.Text</option> }
+                                        </select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary-custom btn-add-sm">
-                                        <i class="bi bi-plus-lg"></i> Add
-                                    </button>
+                                </div>
+                                <div class="rm-zone-pick">
+                                    <input type="radio" name="zone" value="Inventory" id="zi_@room.Id" checked /><label for="zi_@room.Id" class="inv"><i class="bi bi-boxes"></i> Lots</label>
+                                    <input type="radio" name="zone" value="TemporaryHolding" id="zh_@room.Id" /><label for="zh_@room.Id" class="hold"><i class="bi bi-hourglass-split"></i> Temp Holding</label>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label class="form-check-label small fw-bold text-danger"><input type="checkbox" name="isHazardous" value="true" class="form-check-input me-1" />Hazardous</label>
+                                    <button class="iv-btn iv-btn-primary" style="padding:7px 14px"><i class="bi bi-plus-lg"></i> Add unit</button>
                                 </div>
                             </form>
                         </div>
+                    </div>
 
-                        <!-- Footer Stats -->
-                        <div class="room-footer rounded-bottom-4">
-                            <div class="footer-stat">
-                                <div class="value">@(room.StorageUnits?.Count ?? 0)</div>
-                                <div class="label">Units</div>
-                            </div>
-                            <div class="footer-stat">
-                                <div class="value">@totalShelves</div>
-                                <div class="label">Shelves</div>
-                            </div>
-                            <div class="footer-stat">
-                                <div class="value">@totalBoxes</div>
-                                <div class="label">Boxes</div>
-                            </div>
-                            <div class="footer-stat">
-                                <div class="value success">@totalSlots.ToString("N0")</div>
-                                <div class="label">Slots</div>
-                            </div>
-                        </div>
+                    <div class="rm-foot">
+                        <div><b>@units.Count</b><small>Units</small></div>
+                        <div><b>@units.Sum(u => u.Shelves?.Count ?? 0)</b><small>Shelves</small></div>
+                        <div><b>@rBoxes.Count</b><small>Boxes</small></div>
+                        <div class="gold"><b>@rUsed.ToString("N0")/@rSlots.ToString("N0")</b><small>Slots</small></div>
+                        <div class="amber"><b>@rSamples</b><small>Samples</small></div>
                     </div>
                 </div>
             }
 
-            <!-- Add Room Card -->
-            <div class="col-xl-4 col-lg-6 col-md-6">
-                <div class="add-room-card" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-                    <div class="add-room-icon">
-                        <i class="bi bi-plus-lg"></i>
-                    </div>
-                    <h6 class="add-room-title">Add New Room</h6>
-                    <small class="add-room-desc">Create a new storage location</small>
-                </div>
+            <div class="rm-new" style="--i:@ri" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <i class="bi bi-plus-lg"></i>
+                <b>Add new room</b>
+                <span class="iv-sub">or use Auto-Generate for a full structure</span>
             </div>
         </div>
     }
-    else
-    {
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="bi bi-building"></i>
-            </div>
-            <h4>No Rooms Found</h4>
-            <p>Get started by creating your first storage room. You can also use the auto-generation wizard to quickly set up multiple rooms.</p>
-            <button type="button" class="btn btn-action btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-                <i class="bi bi-plus-lg me-2"></i> Create First Room
-            </button>
-        </div>
-    }
 </div>
 
-<!-- Add/Edit Room Modal -->
-<div class="modal fade" id="addRoomModal" tabindex="-1" aria-hidden="true">
+<!-- ═════════════════ MODALS ═════════════════ -->
+<div class="modal fade iv-modal" id="addRoomModal" tabindex="-1" dir="ltr">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header modal-header-custom">
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                <h5 class="modal-title">
-                    <span id="modalTitle">Add Room</span>
-                    <i class="bi bi-door-open-fill me-2"></i>
-                </h5>
+        <form class="modal-content iv-form" asp-action="SaveRoom" method="post">
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-door-open-fill"></i> <span id="roomModalTitle">Add room</span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" name="Id" id="roomId" value="0" />
+                <div class="iv-field mb-0"><label>Room name</label><input name="Name" id="roomNameInput" class="form-control" required placeholder="e.g. Cold Room 1" /></div>
             </div>
-            <form asp-action="SaveRoom" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body modal-body-custom">
-                    <input type="hidden" name="Id" id="roomId" value="0" />
-                    <div class="mb-3">
-                        <label class="form-label form-label-custom">Room Name</label>
-                        <input type="text" name="Name" id="roomNameInput" required
-                               class="form-control form-control-custom" placeholder="e.g. Cold Room 1">
-                        <div class="form-text text-muted mt-2">
-                            <i class="bi bi-info-circle me-1"></i> Choose a descriptive name for easy identification.
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer modal-footer-custom">
-                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-action btn-primary-custom">
-                        <i class="bi bi-check-circle-fill me-2"></i>Save Room
-                    </button>
-                </div>
-            </form>
-        </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold"><i class="bi bi-check2-circle"></i> Save room</button></div>
+        </form>
     </div>
 </div>
 
-<!-- Edit Storage Unit Modal -->
-<div class="modal fade" id="editUnitModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade iv-modal" id="editUnitModal" tabindex="-1" dir="ltr">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header modal-header-custom">
-                <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Edit Storage Unit</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <form class="modal-content iv-form" asp-action="EditStorageUnit" method="post">
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-box-seam"></i> Edit storage unit</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" name="id" id="editUnitId" />
+                <div class="iv-field"><label>Name</label><input name="name" id="editUnitName" class="form-control" required /></div>
+                <div class="iv-field"><label>Type</label>
+                    <select name="storageUnitTypeId" id="editUnitType" class="form-select" required>
+                        @foreach (var t in Model.ListStorageUnitTypes) { <option value="@t.Value">@t.Text</option> }
+                    </select>
+                </div>
+                <div class="iv-field"><label>Zone</label>
+                    <div class="rm-zone-pick">
+                        <input type="radio" name="zone" value="Inventory" id="ezInv" /><label for="ezInv" class="inv"><i class="bi bi-boxes"></i> Lots</label>
+                        <input type="radio" name="zone" value="TemporaryHolding" id="ezHold" /><label for="ezHold" class="hold"><i class="bi bi-hourglass-split"></i> Temp Holding</label>
+                    </div>
+                    <small class="iv-sub"><i class="bi bi-info-circle"></i> Type and zone can only change while the unit is empty.</small>
+                </div>
+                <label class="form-check-label fw-bold text-danger"><input type="checkbox" name="isHazardous" value="true" id="editUnitHaz" class="form-check-input me-1" />Hazardous material</label>
             </div>
-            <form asp-action="EditStorageUnit" method="post">
-                <div class="modal-body modal-body-custom">
-                    <input type="hidden" name="id" id="editUnitId" />
-                    <div class="mb-3">
-                        <label class="form-label form-label-custom">Unit Name</label>
-                        <input type="text" name="name" id="editUnitName" required class="form-control form-control-custom" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label form-label-custom">Type</label>
-                        <select name="storageUnitTypeId" id="editUnitType" required class="form-select form-control-custom">
-                            @foreach (var type in Model.ListStorageUnitTypes)
-                            {
-                                <option value="@type.Value">@type.Text</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="isHazardous" value="true" id="editUnitHaz" />
-                        <label class="form-check-label text-danger fw-bold" for="editUnitHaz">Hazardous material</label>
-                    </div>
-                </div>
-                <div class="modal-footer modal-footer-custom">
-                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-action btn-primary-custom"><i class="bi bi-check-circle-fill me-2"></i>Save</button>
-                </div>
-            </form>
-        </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold"><i class="bi bi-check2-circle"></i> Save</button></div>
+        </form>
     </div>
 </div>
 
-<!-- Edit Shelf Modal -->
-<div class="modal fade" id="editShelfModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header modal-header-custom">
-                <h5 class="modal-title"><i class="bi bi-layers me-2"></i>Edit Shelf</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form asp-action="EditShelf" method="post">
-                <div class="modal-body modal-body-custom">
-                    <input type="hidden" name="id" id="editShelfId" />
-                    <label class="form-label form-label-custom">Shelf Name</label>
-                    <input type="text" name="name" id="editShelfName" required class="form-control form-control-custom" />
-                </div>
-                <div class="modal-footer modal-footer-custom">
-                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-action btn-primary-custom"><i class="bi bi-check-circle-fill me-2"></i>Save</button>
-                </div>
-            </form>
-        </div>
+<div class="modal fade iv-modal" id="editShelfModal" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <form class="modal-content iv-form" asp-action="EditShelf" method="post">
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-layers"></i> Rename shelf</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><input type="hidden" name="id" id="editShelfId" /><input name="name" id="editShelfName" class="form-control" required /></div>
+            <div class="modal-footer"><button class="iv-btn iv-btn-gold w-100"><i class="bi bi-check2-circle"></i> Save</button></div>
+        </form>
     </div>
 </div>
 
-<!-- Edit Box Modal -->
-<div class="modal fade" id="editBoxModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade iv-modal" id="editBoxModal" tabindex="-1" dir="ltr">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header modal-header-custom">
-                <h5 class="modal-title"><i class="bi bi-grid-3x3 me-2"></i>Edit Box</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <form class="modal-content iv-form" asp-action="EditBox" method="post">
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-grid-3x3"></i> Edit box</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" name="id" id="editBoxId" />
+                <div class="iv-field"><label>Name</label><input name="name" id="editBoxName" class="form-control" required /></div>
+                <div class="row g-2">
+                    <div class="col-6 iv-field"><label>Rows</label><input name="rowsCount" id="editBoxRows" type="number" min="1" class="form-control" required /></div>
+                    <div class="col-6 iv-field"><label>Columns</label><input name="columnsCount" id="editBoxCols" type="number" min="1" class="form-control" required /></div>
+                </div>
+                <small class="iv-sub"><i class="bi bi-info-circle"></i> Shrinking is blocked if anything would fall outside the new grid.</small>
             </div>
-            <form asp-action="EditBox" method="post">
-                <div class="modal-body modal-body-custom">
-                    <input type="hidden" name="id" id="editBoxId" />
-                    <div class="mb-3">
-                        <label class="form-label form-label-custom">Box Name</label>
-                        <input type="text" name="name" id="editBoxName" required class="form-control form-control-custom" />
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label class="form-label form-label-custom">Rows</label>
-                            <input type="number" name="rowsCount" id="editBoxRows" min="1" required class="form-control form-control-custom" />
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label form-label-custom">Columns</label>
-                            <input type="number" name="columnsCount" id="editBoxCols" min="1" required class="form-control form-control-custom" />
-                        </div>
-                    </div>
+            <div class="modal-footer"><button type="button" class="iv-btn iv-btn-ghost" data-bs-dismiss="modal">Cancel</button><button class="iv-btn iv-btn-gold"><i class="bi bi-check2-circle"></i> Save</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Box inspector -->
+<div class="modal fade iv-modal" id="boxInspector" tabindex="-1" dir="ltr">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-grid-3x3-gap-fill"></i> <span id="biTitle">Box</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="iv-sub mb-3" id="biPath"></div>
+                <div class="rm-insp-stats">
+                    <div><b id="biSlots">–</b><small>Slots</small></div>
+                    <div><b id="biLots">–</b><small>Lots</small></div>
+                    <div><b id="biSamples">–</b><small>Samples</small></div>
+                    <div><b id="biFree">–</b><small>Free</small></div>
                 </div>
-                <div class="modal-footer modal-footer-custom">
-                    <button type="button" class="btn btn-action btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-action btn-primary-custom"><i class="bi bi-check-circle-fill me-2"></i>Save</button>
+                <div class="text-center">
+                    <div class="iv-grid-legend"><span><i class="lot"></i>Lot</span><span><i class="sample"></i>Temp sample</span><span><i class="free"></i>Free</span></div>
+                    <div class="iv-grid rm-insp-grid" id="biGrid"></div>
                 </div>
-            </form>
+                <div class="rm-insp-list" id="biList"></div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <form asp-action="DeleteBox" method="post" class="rm-confirm" data-msg="Delete this box? Only possible when it is empty.">
+                    <input type="hidden" name="id" id="biDeleteId" />
+                    <button class="iv-btn iv-btn-danger"><i class="bi bi-trash3-fill"></i> Delete box</button>
+                </form>
+                <button type="button" class="iv-btn iv-btn-primary" onclick="RM.editBoxFromInspector()"><i class="bi bi-pencil-fill"></i> Edit box</button>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        // Toggle shelves expand/collapse
-        function toggleExpand(el) {
-            const shelves = el.nextElementSibling;
-            const icon = el.querySelector('.expand-chevron');
-            const isHidden = shelves.style.display === 'none' || !shelves.style.display || shelves.style.display === '';
-
-            if (isHidden) {
-                shelves.style.display = 'block';
-                icon.classList.add('rotated');
-                el.classList.add('active');
-            } else {
-                shelves.style.display = 'none';
-                icon.classList.remove('rotated');
-                el.classList.remove('active');
-            }
-        }
-
-        // Toggle boxes expand/collapse within shelf
-        function toggleBoxExpand(shelfEl) {
-            // Find the next sibling that is a box-list
-            let boxList = shelfEl.nextElementSibling;
-            while (boxList && !boxList.classList.contains('box-list')) {
-                boxList = boxList.nextElementSibling;
-            }
-
-            if (boxList) {
-                const isHidden = boxList.style.display === 'none' || !boxList.style.display || boxList.style.display === '';
-                if (isHidden) {
-                    boxList.style.display = 'block';
-                    shelfEl.style.borderLeftColor = 'var(--accent)';
-                } else {
-                    boxList.style.display = 'none';
-                    shelfEl.style.borderLeftColor = '';
-                }
-            }
-        }
-
-        // Edit room
-        function editRoom(id, name) {
-            document.getElementById('roomId').value = id;
-            document.getElementById('roomNameInput').value = name;
-            document.getElementById('modalTitle').textContent = 'Edit Room';
-            var modal = new bootstrap.Modal(document.getElementById('addRoomModal'));
-            modal.show();
-        }
-
-        function editUnit(btn) {
-            document.getElementById('editUnitId').value = btn.dataset.id;
-            document.getElementById('editUnitName').value = btn.dataset.name;
-            document.getElementById('editUnitType').value = btn.dataset.type;
-            document.getElementById('editUnitHaz').checked = btn.dataset.haz === 'true';
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('editUnitModal')).show();
-        }
-
-        function editShelf(btn) {
-            document.getElementById('editShelfId').value = btn.dataset.id;
-            document.getElementById('editShelfName').value = btn.dataset.name;
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('editShelfModal')).show();
-        }
-
-        function editBox(btn) {
-            document.getElementById('editBoxId').value = btn.dataset.id;
-            document.getElementById('editBoxName').value = btn.dataset.name;
-            document.getElementById('editBoxRows').value = btn.dataset.rows;
-            document.getElementById('editBoxCols').value = btn.dataset.cols;
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('editBoxModal')).show();
-        }
-
-        // Reset modal on close
-        document.getElementById('addRoomModal').addEventListener('hidden.bs.modal', function () {
-            document.getElementById('roomId').value = '0';
-            document.getElementById('roomNameInput').value = '';
-            document.getElementById('modalTitle').textContent = 'Add Room';
-        });
-
-        // Auto-dismiss alerts after 5 seconds
-        setTimeout(() => {
-            document.querySelectorAll('.alert-floating').forEach(alert => {
-                var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                if (bsAlert) bsAlert.close();
-            });
-        }, 5000);
-
-        // Prevent shelf click from triggering unit expand
-        document.querySelectorAll('.shelf-item').forEach(shelf => {
-            shelf.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        });
-    </script>
+    <script src="~/js/inventory.js" asp-append-version="true"></script>
+    <script src="~/js/rooms.js" asp-append-version="true"></script>
+    @if (TempData["Success"] != null)
+    {
+        <script>Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(TempData["Success"]!.ToString()!))', showConfirmButton: false, timer: 3000, timerProgressBar: true });</script>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <script>Swal.fire({ icon: 'error', title: 'Not done', text: '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(TempData["Error"]!.ToString()!))', confirmButtonColor: '#032b42' });</script>
+    }
 }
