@@ -4378,7 +4378,7 @@ namespace ERPWeb_v02.Constants
         Items,
         Manufacuters,
         Locations,
-        Lots // Inventory Lots
+        Lots // Lots
 
     }
 }
@@ -17896,12 +17896,12 @@ namespace X_ChemicalStorage.ViewModels
                             @* Inventory Links *@
                             <li class="nav-item mx-2">
                                 <a class="nav-link fs-5 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
-                                    <i class="bi bi-boxes fs-4"></i><br />Inventory Catalog
+                                    <i class="bi bi-boxes fs-4"></i><br />Items
                                 </a>
                             </li>
                             <li class="nav-item mx-2">
                                 <a class="nav-link fs-5 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
-                                    <i class="bi bi-archive-fill fs-4"></i><br />Inventory Lots
+                                    <i class="bi bi-archive-fill fs-4"></i><br />Lots
                                 </a>
                             </li>
                             @* Rooms Links *@

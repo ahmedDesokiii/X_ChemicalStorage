@@ -82,8 +82,6 @@ namespace X_ChemicalStorage.Controllers
         [AutoValidateAntiforgeryToken]
         public IActionResult Save(CategoryViewModel model)
         {
-            if (ModelState.IsValid)
-            {
                 var userId = _userManager.GetUserId(User);
                 if (model?.NewCategory?.Id == 0)
                 { //Create
@@ -104,7 +102,7 @@ namespace X_ChemicalStorage.Controllers
                     else
                         SessionMsg(Helper.Error, "Error Editting Category", "An error occurred while modifying some data !");
                 }
-            }
+            
             return RedirectToAction("index", "Categories");
         }
         #endregion

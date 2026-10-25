@@ -299,11 +299,22 @@ label.radio-card {
 
 
 
-/* ===== Modal ===== */
-.modal-header-custom {
-    background: linear-gradient(135deg, #0C7779, #415E72);
+.modal-header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
     color: #fff;
-    border-bottom: none;
+    padding: 20px 24px;
+    border: none;
+}
+
+    .modal-header .modal-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+.btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    color: #fff !important;
 }
 
 /* ===== Grid ===== */

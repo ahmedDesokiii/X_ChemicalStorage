@@ -318,7 +318,6 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
 
-
         #region Print Barcode
         public IActionResult PrintItemBarcode(string barcodeFile, string code)
         {

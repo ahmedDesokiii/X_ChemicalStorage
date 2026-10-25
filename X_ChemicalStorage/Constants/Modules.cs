@@ -9,7 +9,7 @@
         Items,
         Manufacuters,
         Locations,
-        Lots // Inventory Lots
+        Lots // Lots
 
     }
 }
