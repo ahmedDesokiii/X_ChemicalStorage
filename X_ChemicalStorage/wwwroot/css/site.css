@@ -1,18 +1,20 @@
-﻿
-@import url('https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Yanone+Kaffeesatz:wght@200..700&display=swap');
-/* {
-    font-family: "Berkshire Swash", serif;
-    font-weight: 400;
-    font-style: normal;
-}
-*/
-@import url('https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Changa:wght@200..800&family=Ubuntu+Condensed&family=Yanone+Kaffeesatz:wght@200..700&display=swap');
-* {
-    font-family: "Ubuntu Condensed", sans-serif;
-    font-weight: 400;
+﻿*@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&display=swap');*/
+@font-face {
+    font-family: 'Beiruti';
+    src: url('../fonts/Beiruti/Beiruti-Regular.ttf') format('truetype');
+    font-weight: normal;
     font-style: normal;
 }
 
+body {
+    font-family: 'Beiruti',sans-serif;
+}
+
+* {
+    font-family: "Beiruti", serif;
+    /*font-optical-sizing: auto;*/
+    /*font-style: normal;*/
+}
 html {
     font-size: 14px;
 }
