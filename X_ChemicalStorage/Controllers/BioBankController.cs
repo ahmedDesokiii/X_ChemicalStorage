@@ -747,8 +747,34 @@ namespace X_ChemicalStorage.Controllers
         public async Task<IActionResult> IngestReading([FromBody] IngestReadingDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            await _ioTService.ProcessIncomingReadingAsync(dto);
-            return Ok(new { message = "Reading processed" });
+            var result = await _ioTService.ProcessIncomingReadingAsync(dto);
+
+            // Show unlinked collectors on the station screen so they can be linked with one click
+            var station = HttpContext.RequestServices.GetRequiredService<X_ChemicalStorage.BioBank.Services.StationState>();
+            if (result == IngestResult.UnknownDevice)
+                station.UnlinkedCollectorSeen(dto.CollectorCode, "http/ingest", dto.Temperature, DateTime.UtcNow);
+            else
+                station.CollectorLinked(dto.CollectorCode);
+
+            return Ok(new { message = "Reading processed", result = result.ToString() });
+        }
+
+        /// Current IoT link of a freezer (204 when not linked) — used to pre-fill the Link Device dialog.
+        [HasPermission(Permissions.IoT.View, Permissions.BioBank.View)]
+        [HttpGet("api/freezers/{id}/iot-device")]
+        public async Task<IActionResult> GetIoTDevice(string id)
+        {
+            var device = await _ioTService.GetDeviceByFreezerAsync(id);
+            return device == null ? NoContent() : Ok(device);
+        }
+
+        [HasPermission(Permissions.IoT.ManageDevices)]
+        [HttpDelete("api/freezers/{id}/iot-device")]
+        public async Task<IActionResult> UnlinkIoTDevice(string id)
+        {
+            return await _ioTService.UnlinkDeviceAsync(id)
+                ? Ok(new { message = $"IoT device unlinked from {id}." })
+                : NotFound(new { message = $"Freezer '{id}' has no linked device." });
         }
 
         [HasPermission(Permissions.IoT.ManageDevices)]
@@ -829,8 +855,13 @@ namespace X_ChemicalStorage.Controllers
                 PowerStatus = power
             });
 
+            var station = HttpContext.RequestServices.GetRequiredService<StationState>();
             if (result == IngestResult.UnknownDevice)
-                return NotFound(new { message = $"Collector '{collector}' is not linked to any active freezer." });
+            {
+                station.UnlinkedCollectorSeen(collector, "test-ingest", temp, DateTime.UtcNow);
+                return NotFound(new { message = $"Collector '{collector}' is not linked to any active freezer. It is now listed on the Station screen for linking." });
+            }
+            station.CollectorLinked(collector);
 
             return Ok(new { message = "Reading ingested", result = result.ToString(), collector, temperature = temp, door, power });
         }

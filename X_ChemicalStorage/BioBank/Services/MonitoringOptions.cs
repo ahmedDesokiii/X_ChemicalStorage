@@ -9,6 +9,10 @@ namespace X_ChemicalStorage.BioBank.Services
         /// رابط خدمة مراقبة خارجية (healthchecks.io / Uptime Kuma / ...). فاضي = معطّل.
         public string HeartbeatUrl { get; set; } = "";
         public int HeartbeatIntervalMinutes { get; set; } = 5;
+
+        /// Used to check internet access (remote notifications need it). Empty = check disabled.
+        public string InternetProbeUrl { get; set; } = "https://api.telegram.org";
+        public int InternetCheckSeconds { get; set; } = 60;
     }
 
     public record HealthReport(string Status, List<string> Problems, List<string> Warnings);

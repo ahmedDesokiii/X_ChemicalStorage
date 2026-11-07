@@ -6,6 +6,7 @@ namespace X_ChemicalStorage.BioBank.Services
     {
         Task<IngestResult> ProcessIncomingReadingAsync(IngestReadingDto dto);
         Task<Bio_IoTDeviceDto> LinkDeviceAsync(LinkIoTDeviceDto dto);
+        Task<bool> UnlinkDeviceAsync(string freezerId);
         Task<List<Bio_FreezerReadingDto>> GetHistoricalAsync(string freezerId, DateTime from, DateTime to);
         Task<List<Bio_FreezerAlarmDto>> GetActiveAlarmsAsync(string? freezerId = null);
         Task AcknowledgeAlarmAsync(long alarmId, string performedBy, string? note = null);

@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Monitoring Station";
+}
+<link rel="stylesheet" href="~/css/station.css" asp-append-version="true" />
+
+<div class="st-page" dir="ltr" id="stationApp">
+
+    <!-- Alarm banner (local alarm: works without internet) -->
+    <div class="st-alarm-banner" id="stAlarmBanner" hidden>
+        <div class="st-alarm-pulse"><i class="bi bi-exclamation-octagon-fill"></i></div>
+        <div class="st-alarm-text">
+            <div class="st-alarm-title" id="stAlarmTitle">Active alarm</div>
+            <div class="st-alarm-sub" id="stAlarmSub"></div>
+        </div>
+        <div class="st-alarm-actions">
+            <button type="button" class="st-btn st-btn-light" id="stSilence"><i class="bi bi-volume-mute-fill"></i> Silence 10 min</button>
+            <a href="#stAlarms" class="st-btn st-btn-outline"><i class="bi bi-list-check"></i> Review</a>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="st-head">
+        <div>
+            <div class="st-eyebrow"><i class="bi bi-broadcast-pin"></i> Local monitoring station</div>
+            <h1>Freezer Monitoring Station</h1>
+            <div class="st-sub" id="stStationInfo">Connecting…</div>
+        </div>
+        <div class="st-head-actions">
+            <span class="st-overall" id="stOverall"><span class="dot"></span><span>Checking…</span></span>
+            <button type="button" class="st-btn st-btn-arm" id="stArm" title="Browsers need one click before a page may play sound">
+                <i class="bi bi-bell-slash-fill"></i> <span>Arm local alarm sound</span>
+            </button>
+            <button type="button" class="st-btn st-btn-outline" id="stFullscreen" title="Full screen"><i class="bi bi-arrows-fullscreen"></i></button>
+        </div>
+    </div>
+
+    <!-- System health strip -->
+    <div class="st-strip">
+        <div class="st-tile" id="stBroker">
+            <div class="st-tile-icon"><i class="bi bi-hdd-network-fill"></i></div>
+            <div><div class="st-tile-label">MQTT broker</div><div class="st-tile-value">–</div><div class="st-tile-meta"></div></div>
+        </div>
+        <div class="st-tile" id="stInternet">
+            <div class="st-tile-icon"><i class="bi bi-globe2"></i></div>
+            <div><div class="st-tile-label">Internet (remote alerts)</div><div class="st-tile-value">–</div><div class="st-tile-meta"></div></div>
+        </div>
+        <div class="st-tile" id="stEngine">
+            <div class="st-tile-icon"><i class="bi bi-cpu-fill"></i></div>
+            <div><div class="st-tile-label">Alarm engine</div><div class="st-tile-value">–</div><div class="st-tile-meta"></div></div>
+        </div>
+        <div class="st-tile" id="stFleet">
+            <div class="st-tile-icon"><i class="bi bi-snow2"></i></div>
+            <div><div class="st-tile-label">Freezers</div><div class="st-tile-value">–</div><div class="st-tile-meta"></div></div>
+        </div>
+    </div>
+
+    <ul class="st-notes" id="stNotes"></ul>
+
+    <div class="st-grid">
+        <!-- Gateways + freezers -->
+        <section>
+            <div class="st-section-title"><i class="bi bi-diagram-3-fill"></i> Gateways &amp; freezers <span class="st-count" id="stGwCount"></span></div>
+            <div id="stGateways"><div class="st-empty">Loading…</div></div>
+        </section>
+
+        <!-- Side: alarms + unlinked -->
+        <aside>
+            <div class="st-card" id="stAlarms">
+                <div class="st-card-title"><i class="bi bi-bell-fill"></i> Open alarms <span class="st-count" id="stAlarmCount"></span></div>
+                <div id="stAlarmList"><div class="st-empty">No open alarms</div></div>
+            </div>
+
+            <div class="st-card">
+                <div class="st-card-title"><i class="bi bi-plug-fill"></i> Not linked yet</div>
+                <div class="st-card-sub">Collectors sending data on the network and freezers without a device.</div>
+                <div id="stUnlinked"><div class="st-empty">Everything is linked</div></div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="st-foot">Last update: <span id="stUpdated">–</span> · refreshes every 10 s · server <span id="stServer"></span></div>
+</div>
+
+<!-- Link dialog -->
+<div class="modal fade" id="stLinkModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="stLinkForm" dir="ltr">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-link-45deg"></i> Link collector to freezer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Freezer *</label>
+                    <select class="form-select" id="stLinkFreezer" required></select>
+                    <div class="form-text">Linking a freezer that already has a device replaces its old collector.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Collector code *</label>
+                    <input class="form-control" id="stLinkCollector" list="stLinkCollectors" required maxlength="100" />
+                    <datalist id="stLinkCollectors"></datalist>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Gateway serial *</label>
+                    <input class="form-control" id="stLinkGateway" list="stLinkGateways" required maxlength="100" />
+                    <datalist id="stLinkGateways"></datalist>
+                </div>
+                <div class="mb-1">
+                    <label class="form-label">Device name</label>
+                    <input class="form-control" id="stLinkName" maxlength="150" placeholder="Optional" />
+                </div>
+                <div class="alert alert-danger py-2 mt-3 mb-0" id="stLinkError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="stLinkSave"><i class="bi bi-check2"></i> Link</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/station.js" asp-append-version="true"></script>
+}

@@ -515,6 +515,12 @@
                                         <i class="bi bi-droplet"></i>Bio Bank
                                     </a>
                                 </li>
+                                @* Local monitoring station (alarms sound on this PC, works without internet) *@
+                                <li has-permission="@Permissions.IoT.View" class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Station" ? "active" : "")" asp-controller="Station" asp-action="Index">
+                                        <i class="bi bi-broadcast-pin"></i>Station
+                                    </a>
+                                </li>
 
                                 @* Services Dropdown (hidden entirely when none of its pages is allowed) *@
                                 <li has-permission="@servicesPermissions" class="nav-item dropdown mx-1">

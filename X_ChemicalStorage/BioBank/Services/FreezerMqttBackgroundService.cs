@@ -17,13 +17,16 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly HashSet<string> _unknownLogged = new();
         private readonly string _clientId;
         private readonly IoTHealth _health;
+        private readonly StationState _station;
 
         public FreezerMqttBackgroundService(
             IServiceScopeFactory scopeFactory,
             IOptions<MqttOptions> options,
             ILogger<FreezerMqttBackgroundService> logger,
-            IoTHealth health)
+            IoTHealth health,
+            StationState station)
         {
+            _station = station;
             _health = health;
             _scopeFactory = scopeFactory;
             _options = options.Value;
@@ -162,6 +165,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 switch (result)
                 {
                     case IngestResult.UnknownDevice:
+                        _station.UnlinkedCollectorSeen(dto.CollectorCode, topic, dto.Temperature, DateTime.UtcNow);
                         if (_unknownLogged.Add(dto.CollectorCode))
                             _logger.LogWarning(
                                 "Data received from unregistered collector {Collector}. Link it to a freezer (api/iot/link).",
@@ -169,6 +173,7 @@ namespace X_ChemicalStorage.BioBank.Services
                         break;
 
                     default:
+                        _station.CollectorLinked(dto.CollectorCode);
                         _logger.LogDebug("Ingested {Collector}: {Temp}°C Result={Result}",
                             dto.CollectorCode, dto.Temperature, result);
                         break;

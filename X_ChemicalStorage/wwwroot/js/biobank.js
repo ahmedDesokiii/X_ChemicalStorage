@@ -708,51 +708,86 @@
             }
         });
     }
-    function openLinkIoTModal(freezerId) {
-        setModalWidth(false);
-        $("modalTitle").textContent = "Link IoT Device";
-        $("modalIcon").textContent = "🔗";
+    // ===================== IoT LINK (create / edit / unlink) =====================
+    function escAttr(v) {
+        return String(v ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
 
-        const body = $("modalBody");
-        body.innerHTML = `
+    async function openLinkIoTModal(freezerId) {
+        setModalWidth(false);
+        $("modalTitle").textContent = "IoT Device Link";
+        $("modalIcon").textContent = "🔗";
+        $("modalBody").innerHTML = `<div style="padding:24px;text-align:center;opacity:.8;">Loading current link…</div>`;
+        $("modalActions").innerHTML = "";
+        $("bbModal").classList.add("show");
+
+        // Current link of this freezer + collectors the station hears on the network but are not linked yet
+        let current = null, unlinked = [];
+        try {
+            const res = await fetch(`/biobank/api/freezers/${encodeURIComponent(freezerId)}/iot-device`);
+            if (res.status === 200) current = await res.json();
+        } catch { /* show empty form */ }
+        try {
+            const st = await fetch("/biobank/api/iot/station");
+            if (st.ok) unlinked = (await st.json()).unlinkedCollectors || [];
+        } catch { /* optional */ }
+
+        const isEdit = !!current;
+        $("modalTitle").textContent = isEdit ? "Edit IoT Device Link" : "Link IoT Device";
+
+        $("modalBody").innerHTML = `
         <form id="bbLinkIoTForm" class="bb-form" style="text-align:left;">
+            ${isEdit
+                ? `<div style="margin-bottom:10px;padding:8px 10px;border-radius:8px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);color:#cbd5e1;">
+                       Currently linked: <strong style="color:#22d3ee">${escAttr(current.collectorCode)}</strong> via gateway <strong style="color:#22d3ee">${escAttr(current.gatewaySerial)}</strong>
+                   </div>`
+                : `<div style="margin-bottom:10px;color:#94a3b8;">This freezer is not linked to any IoT device yet.</div>`}
             <div class="bb-form-row">
                 <label>Freezer ID</label>
-                <input type="text" id="iotFreezerId" value="${freezerId || ""}" readonly
-                       style="opacity:0.85;cursor:not-allowed;">
+                <input type="text" id="iotFreezerId" value="${escAttr(freezerId)}" readonly style="opacity:0.85;cursor:not-allowed;">
             </div>
             <div class="bb-form-row">
                 <label>Collector Code *</label>
-                <input type="text" id="iotCollector" placeholder="e.g. GF5022315032881" required maxlength="100">
+                <input type="text" id="iotCollector" list="iotUnlinkedList" value="${escAttr(current?.collectorCode)}"
+                       placeholder="e.g. GF5022315032881" required maxlength="100" autocomplete="off">
+                <datalist id="iotUnlinkedList">
+                    ${unlinked.map(u => `<option value="${escAttr(u.collectorCode)}">heard ${new Date(u.lastSeenAt).toLocaleTimeString()}${u.temperature != null ? ` · ${u.temperature}°C` : ""}</option>`).join("")}
+                </datalist>
+                ${unlinked.length ? `<small style="color:#94a3b8;">${unlinked.length} unlinked collector(s) detected on the network. Pick one from the list.</small>` : ""}
             </div>
             <div class="bb-form-row">
                 <label>Gateway Serial *</label>
-                <input type="text" id="iotSerial" placeholder="e.g. GF50222308030161" required maxlength="100">
+                <input type="text" id="iotSerial" value="${escAttr(current?.gatewaySerial)}" placeholder="e.g. GF50222308030161" required maxlength="100">
             </div>
             <div class="bb-form-row">
                 <label>Device Name</label>
-                <input type="text" id="iotDeviceName" placeholder="Optional" maxlength="150">
+                <input type="text" id="iotDeviceName" value="${escAttr(current?.deviceName)}" placeholder="Optional" maxlength="150">
             </div>
             <div id="bbLinkIoTError" class="bb-form-error" style="display:none;"></div>
-        </form>
-    `;
+        </form>`;
 
-        const actions = $("modalActions");
-        actions.innerHTML = `
+        $("modalActions").innerHTML = `
+        ${isEdit ? `<button type="button" class="bb-btn-cancel" id="bbUnlinkIoT" data-perm="IoT.ManageDevices" style="color:#ef4444;border-color:rgba(239,68,68,.5);margin-right:auto;">Unlink</button>` : ""}
         <button type="button" class="bb-btn-cancel" id="bbLinkIoTCancel">Cancel</button>
-        <button type="button" class="bb-modal-btn" id="bbLinkIoTSubmit" data-perm="IoT.ManageDevices">Link Device</button>
-    `;
-
-        $("bbModal").classList.add("show");
+        <button type="button" class="bb-modal-btn" id="bbLinkIoTSubmit" data-perm="IoT.ManageDevices">${isEdit ? "Save Changes" : "Link Device"}</button>`;
 
         $("bbLinkIoTCancel").onclick = () => $("bbModal").classList.remove("show");
-        $("bbLinkIoTSubmit").onclick = () => submitLinkIoT();
+        $("bbLinkIoTSubmit").onclick = () => submitLinkIoT(isEdit);
+        if (isEdit) $("bbUnlinkIoT").onclick = () => unlinkIoT(freezerId);
     }
 
-    async function submitLinkIoT() {
+    async function reloadFreezerView(freezerId) {
+        let fz = null;
+        try { fz = await apiGet(API.freezer(freezerId)); } catch { fz = freezersCache.find(f => f.id === freezerId) || { id: freezerId }; }
+        const i = freezersCache.findIndex(f => f.id === freezerId);
+        if (i >= 0 && fz) freezersCache[i] = fz;
+        await navigateTo("freezer", fz);
+    }
+
+    async function submitLinkIoT(isEdit) {
         const errorEl = $("bbLinkIoTError");
         const btn = $("bbLinkIoTSubmit");
-        if (errorEl) errorEl.style.display = "none";
+        errorEl.style.display = "none";
 
         const payload = {
             freezerId: ($("iotFreezerId")?.value || "").trim(),
@@ -762,46 +797,53 @@
         };
 
         if (!payload.freezerId || !payload.collectorCode || !payload.gatewaySerial) {
-            if (errorEl) {
-                errorEl.textContent = "Freezer ID, Collector Code and Gateway Serial are required.";
-                errorEl.style.display = "block";
-            }
+            errorEl.textContent = "Freezer ID, Collector Code and Gateway Serial are required.";
+            errorEl.style.display = "block";
             return;
         }
 
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = "Linking...";
-        }
-
+        const label = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Saving...";
         try {
             await apiPost("/biobank/api/iot/link", payload);
             $("bbModal").classList.remove("show");
-
             await Swal.fire({
                 icon: "success",
-                title: "Device Linked",
-                text: `Collector ${payload.collectorCode} linked to ${payload.freezerId}`,
+                title: isEdit ? "Link Updated" : "Device Linked",
+                text: `Collector ${payload.collectorCode} (gateway ${payload.gatewaySerial}) → ${payload.freezerId}`,
                 ...BB_SWAL_THEME
             });
-
-            // أعد تحميل صفحة الفريزر
-            let fz = freezersCache.find(f => f.id === payload.freezerId);
-            if (!fz) {
-                try { fz = await apiGet(API.freezer(payload.freezerId)); } catch { fz = { id: payload.freezerId }; }
-            }
-            await navigateTo("freezer", fz);
+            await reloadFreezerView(payload.freezerId);
         } catch (e) {
-            if (errorEl) {
-                errorEl.textContent = e.message || "Link failed";
-                errorEl.style.display = "block";
-            }
+            errorEl.textContent = e.message || "Saving the link failed";
+            errorEl.style.display = "block";
         } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = "Link Device";
-            }
+            btn.disabled = false;
+            btn.textContent = label;
         }
+    }
+
+    async function unlinkIoT(freezerId) {
+        const ok = await Swal.fire({
+            icon: "warning",
+            title: "Unlink IoT device?",
+            text: `Freezer ${freezerId} will stop being monitored. Readings and alarm history are kept.`,
+            showCancelButton: true,
+            confirmButtonText: "Unlink",
+            confirmButtonColor: "#ef4444",
+            ...BB_SWAL_THEME
+        });
+        if (!ok.isConfirmed) return;
+
+        const res = await fetch(`/biobank/api/freezers/${encodeURIComponent(freezerId)}/iot-device`, { method: "DELETE" });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            Swal.fire({ icon: "error", title: "Unlink failed", text: err.message || `HTTP ${res.status}`, ...BB_SWAL_THEME });
+            return;
+        }
+        $("bbModal").classList.remove("show");
+        await reloadFreezerView(freezerId);
     }
 
 

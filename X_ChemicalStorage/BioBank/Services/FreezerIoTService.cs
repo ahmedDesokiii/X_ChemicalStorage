@@ -85,29 +85,54 @@ namespace X_ChemicalStorage.BioBank.Services
             return result;
         }
 
+        /// Link a collector to a freezer, or update the existing link (one active device per freezer).
         public async Task<Bio_IoTDeviceDto> LinkDeviceAsync(LinkIoTDeviceDto dto)
         {
-            var freezer = await _db.Bio_Freezers.FirstOrDefaultAsync(f => f.Id == dto.FreezerId)
-                ?? throw new InvalidOperationException($"Freezer '{dto.FreezerId}' not found.");
+            var freezerId = dto.FreezerId.Trim();
+            var collector = dto.CollectorCode.Trim();
+            var gateway = dto.GatewaySerial.Trim();
+            var name = string.IsNullOrWhiteSpace(dto.DeviceName) ? null : dto.DeviceName.Trim();
 
-            // منع تكرار CollectorCode
-            if (await _db.Bio_IoTDevices.AnyAsync(d => d.CollectorCode == dto.CollectorCode))
-                throw new InvalidOperationException($"CollectorCode '{dto.CollectorCode}' is already linked.");
+            if (!await _db.Bio_Freezers.AnyAsync(f => f.Id == freezerId))
+                throw new InvalidOperationException($"Freezer '{freezerId}' not found.");
 
-            var device = new Bio_IoTDevice
+            // The collector may already be registered (active on another freezer, or an old unlinked row)
+            var sameCollector = await _db.Bio_IoTDevices.FirstOrDefaultAsync(d => d.CollectorCode == collector);
+            if (sameCollector != null && sameCollector.IsActive && sameCollector.FreezerId != freezerId)
+                throw new InvalidOperationException($"Collector '{collector}' is already linked to freezer '{sameCollector.FreezerId}'. Unlink it there first.");
+
+            var current = await _db.Bio_IoTDevices.Where(d => d.FreezerId == freezerId && d.IsActive).ToListAsync();
+
+            // Reuse the row that already owns this collector (CollectorCode is unique), otherwise the freezer's current row
+            var device = sameCollector ?? current.FirstOrDefault();
+            if (device == null)
             {
-                FreezerId = dto.FreezerId,
-                GatewaySerial = dto.GatewaySerial.Trim(),
-                CollectorCode = dto.CollectorCode.Trim(),
-                DeviceName = dto.DeviceName,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
+                device = new Bio_IoTDevice { CreatedAt = DateTime.UtcNow };
+                _db.Bio_IoTDevices.Add(device);
+            }
 
-            _db.Bio_IoTDevices.Add(device);
+            device.FreezerId = freezerId;
+            device.CollectorCode = collector;
+            device.GatewaySerial = gateway;
+            device.DeviceName = name;
+            device.IsActive = true;
+
+            // Only one active collector per freezer
+            foreach (var other in current.Where(d => d != device))
+                other.IsActive = false;
+
             await _db.SaveChangesAsync();
-
             return MapDevice(device);
+        }
+
+        /// Remove the freezer's IoT link (readings and alarms history stay).
+        public async Task<bool> UnlinkDeviceAsync(string freezerId)
+        {
+            var devices = await _db.Bio_IoTDevices.Where(d => d.FreezerId == freezerId).ToListAsync();
+            if (devices.Count == 0) return false;
+            _db.Bio_IoTDevices.RemoveRange(devices);
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<Bio_FreezerReadingDto>> GetHistoricalAsync(string freezerId, DateTime from, DateTime to)

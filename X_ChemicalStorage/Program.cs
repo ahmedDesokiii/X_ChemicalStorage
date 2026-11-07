@@ -159,6 +159,8 @@ builder.Services.AddSingleton<IoTHealth>();
 builder.Services.Configure<MonitoringOptions>(builder.Configuration.GetSection("Monitoring"));
 builder.Services.AddHttpClient();                       
 builder.Services.AddHostedService<HeartbeatService>();
+builder.Services.AddSingleton<StationState>();                       // local monitoring station (LAN)
+builder.Services.AddHostedService<ConnectivityMonitorService>();
 
 builder.Services.AddSingleton<INotificationChannel, SmsHttpChannel>();
 builder.Services.AddSingleton<INotificationChannel, EmailSmtpChannel>();
