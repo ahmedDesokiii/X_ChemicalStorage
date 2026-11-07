@@ -11,7 +11,7 @@ using X_ChemicalStorage.ViewModels.TempSamples;
 
 namespace X_ChemicalStorage.Controllers
 {
-    [Authorize]   // swap for Permissions.TempSamples.* once those constants exist
+    [Authorize]   // every action below carries its own [HasPermission]
     public class TempSamplesController : Controller
     {
         private readonly ITempSampleService _service;
@@ -29,6 +29,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         // ═════════════════════════ Register ═════════════════════════
+        [HasPermission(Permissions.TempSamples.View)]
         [HttpGet]
         public async Task<IActionResult> Index(TempSampleStatus? status, string? q)
         {
@@ -52,6 +53,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         // ═════════════════════════ Reception ═════════════════════════
+        [HasPermission(Permissions.TempSamples.Receive)]
         [HttpGet]
         public async Task<IActionResult> Receive()
         {
@@ -60,6 +62,7 @@ namespace X_ChemicalStorage.Controllers
             return View(vm);
         }
 
+        [HasPermission(Permissions.TempSamples.Receive)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(120L * 1024 * 1024)]
@@ -99,6 +102,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         // ═════════════════════════ Dossier ═════════════════════════
+        [HasPermission(Permissions.TempSamples.Details)]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -110,6 +114,7 @@ namespace X_ChemicalStorage.Controllers
             return View(vm);
         }
 
+        [HasPermission(Permissions.TempSamples.Edit)]
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(TempSampleEditViewModel vm)
         {
@@ -121,37 +126,45 @@ namespace X_ChemicalStorage.Controllers
             return await Run(vm.Id, a => _service.UpdateMetadataAsync(vm, a), "Metadata updated — the change is recorded in the custody chain.");
         }
 
+        [HasPermission(Permissions.TempSamples.Place)]
         [HttpPost, ValidateAntiForgeryToken]
         public Task<IActionResult> Place(TempSampleActionInput input) =>
             Run(input.Id, a => _service.PlaceAsync(input, a), "Sample placed / relocated.");
 
+        [HasPermission(Permissions.TempSamples.CheckOut)]
         [HttpPost, ValidateAntiForgeryToken]
         public Task<IActionResult> CheckOut(TempSampleActionInput input) =>
             Run(input.Id, a => _service.CheckOutAsync(input, a), "Sample checked out — its slot stays reserved.");
 
+        [HasPermission(Permissions.TempSamples.Return)]
         [HttpPost, ValidateAntiForgeryToken]
         public Task<IActionResult> Return(TempSampleActionInput input) =>
             Run(input.Id, a => _service.ReturnAsync(input, a), "Sample returned to storage.");
 
+        [HasPermission(Permissions.TempSamples.Withdraw)]
         [HttpPost, ValidateAntiForgeryToken]
         [RequestSizeLimit(5L * 1024 * 1024)]
         public Task<IActionResult> Withdraw(TempSampleActionInput input) =>
             Run(input.Id, a => _service.WithdrawAsync(input, a), "Withdrawal recorded.");
 
+        [HasPermission(Permissions.TempSamples.Dispose)]
         [HttpPost, ValidateAntiForgeryToken]
         [RequestSizeLimit(5L * 1024 * 1024)]
         public Task<IActionResult> DisposeSample(TempSampleActionInput input) =>
             Run(input.Id, a => _service.DisposeAsync(input, a), "Disposal recorded — the record is now closed.");
 
+        [HasPermission(Permissions.TempSamples.AddNote)]
         [HttpPost, ValidateAntiForgeryToken]
         public Task<IActionResult> Note(TempSampleActionInput input) =>
             Run(input.Id, a => _service.AddNoteAsync(input, a), "Note added to the custody chain.");
 
+        [HasPermission(Permissions.TempSamples.Attachments)]
         [HttpPost, ValidateAntiForgeryToken]
         [RequestSizeLimit(120L * 1024 * 1024)]
         public Task<IActionResult> Upload(int id, List<IFormFile> files, List<AttachmentKind>? fileKinds) =>
             Run(id, a => _service.AddAttachmentsAsync(id, files, fileKinds, a), "Document(s) attached.");
 
+        [HasPermission(Permissions.TempSamples.Attachments, Permissions.TempSamples.Details)]
         [HttpGet]
         public async Task<IActionResult> Attachment(int id, bool inline = false)
         {
@@ -161,6 +174,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         // ═════════════════════════ Printing / integrity ═════════════════════════
+        [HasPermission(Permissions.TempSamples.Print)]
         [HttpGet]
         public async Task<IActionResult> PrintLabel(int id)
         {
@@ -170,6 +184,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         /// <summary>Printable Chain-of-Custody certificate with every sealed event.</summary>
+        [HasPermission(Permissions.TempSamples.Print)]
         [HttpGet]
         public async Task<IActionResult> CustodyReport(int id)
         {
@@ -178,6 +193,7 @@ namespace X_ChemicalStorage.Controllers
             return View(vm);
         }
 
+        [HasPermission(Permissions.TempSamples.VerifyChain)]
         [HttpGet]
         public async Task<IActionResult> VerifyChain(int id)
         {

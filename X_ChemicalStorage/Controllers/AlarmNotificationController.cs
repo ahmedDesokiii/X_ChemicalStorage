@@ -28,10 +28,12 @@ namespace X_ChemicalStorage.Controllers
         public AlarmNotificationController(ApplicationDbContext db) => _db = db;
 
         // ---------------------------------------------------------------- contacts
+        [HasPermission(Permissions.IoT.ManageAlarmContacts)]
         [HttpGet("alarm-contacts")]
         public async Task<IActionResult> GetContacts()
             => Ok((await _db.AlarmContacts.OrderBy(c => c.Tier).ThenBy(c => c.Name).ToListAsync()));
 
+        [HasPermission(Permissions.IoT.ManageAlarmContacts)]
         [HttpPost("alarm-contacts")]
         public async Task<IActionResult> Create([FromBody] AlarmContactDto dto)
         {
@@ -43,6 +45,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(c);
         }
 
+        [HasPermission(Permissions.IoT.ManageAlarmContacts)]
         [HttpPut("alarm-contacts/{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] AlarmContactDto dto)
         {
@@ -54,6 +57,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(c);
         }
 
+        [HasPermission(Permissions.IoT.ManageAlarmContacts)]
         [HttpDelete("alarm-contacts/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -65,6 +69,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         /// يبعت رسالة اختبار فعلية لجهة الاتصال على كل قنواتها المفعّلة، ويرجّع النتيجة.
+        [HasPermission(Permissions.IoT.ManageAlarmContacts)]
         [HttpPost("alarm-contacts/{id:int}/test")]
         public async Task<IActionResult> Test(int id, [FromServices] NotificationDispatcher dispatcher,
             [FromServices] IEnumerable<INotificationChannel> channels)
@@ -107,6 +112,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         // ---------------------------------------------------------------- log
+        [HasPermission(Permissions.IoT.ViewNotifications)]
         [HttpGet("notifications")]
         public async Task<IActionResult> Log([FromQuery] string? freezerId, [FromQuery] DateTime? from,
             [FromQuery] DateTime? to, [FromQuery] int take = 200)

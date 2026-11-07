@@ -4,6 +4,7 @@ using X_ChemicalStorage.IRepository;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class UnitsController : Controller
     {
         private readonly IServicesRepository<Unit> _servicesUnit ;
@@ -25,7 +26,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of Units
-        [Authorize(Permissions.Units.View_Units)]
+        [HasPermission(Permissions.Units.View)]
         public IActionResult Index()
         {
             var Units = new UnitViewModel
@@ -39,7 +40,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Delete Unit [Delete & Delete Log]
         //Delete
-        [Authorize(Permissions.Units.Delete_Units)]
+        [HasPermission(Permissions.Units.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -61,11 +62,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit Unit [Create & Update]
-        [Authorize(Permissions.Units.Create_Units), Authorize(Permissions.Units.Edit_Units)]
+        [HasPermission(Permissions.Units.Create, Permissions.Units.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(UnitViewModel model)
+        public async Task<IActionResult> Save(UnitViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewUnit?.Id ?? 0) == 0 ? Permissions.Units.Create : Permissions.Units.Edit))
+                return Forbid();
+
             if (ModelState.IsValid)
             {
                 var userId = _userManager.GetUserId(User);
@@ -98,6 +103,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of Unit 
+        [HasPermission(Permissions.Units.Details, Permissions.Units.Edit)]
         [HttpGet]
         public IActionResult SelectedUnit(int id)
         {

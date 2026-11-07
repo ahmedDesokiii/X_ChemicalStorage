@@ -4,7 +4,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace ERPWeb_v02.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     //[AllowAnonymous]
     public class UsersController : Controller
     {
@@ -13,9 +13,11 @@ namespace ERPWeb_v02.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IPermissionService _permissions;
 
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IConfiguration configuration)
+        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IConfiguration configuration, IPermissionService permissions)
         {
+            _permissions = permissions;
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
@@ -30,6 +32,7 @@ namespace ERPWeb_v02.Controllers
         }
 
         #region All Users
+        [HasPermission(Permissions.Users.View)]
         public async Task<IActionResult> Index()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -60,6 +63,7 @@ namespace ERPWeb_v02.Controllers
         #endregion
 
         #region User Process [Add & Update]
+        [HasPermission(Permissions.Users.Create)]
         [HttpGet]
         public async Task<IActionResult> AddUser(string userId = null)
         {
@@ -71,6 +75,7 @@ namespace ERPWeb_v02.Controllers
             };
             return View(addUserVM);
         }
+        [HasPermission(Permissions.Users.Create)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddUser(AddUserViewModel model)
@@ -131,6 +136,7 @@ namespace ERPWeb_v02.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HasPermission(Permissions.Users.Edit)]
         public async Task<IActionResult> EditUser(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -153,6 +159,7 @@ namespace ERPWeb_v02.Controllers
             return View(profileFormVM);
         }
         
+        [HasPermission(Permissions.Users.Edit)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditUser(ProfileFormViewModel model)
@@ -184,6 +191,7 @@ namespace ERPWeb_v02.Controllers
         #endregion
 
         #region Roles Process [Manage Roles]
+        [HasPermission(Permissions.Users.ManageRoles)]
         public async Task<IActionResult> ManageRoles(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -210,6 +218,7 @@ namespace ERPWeb_v02.Controllers
             return View(userRolesVM);
         }
 
+        [HasPermission(Permissions.Users.ManageRoles)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ManageRoles(UserRolesViewModel model)
@@ -220,9 +229,14 @@ namespace ERPWeb_v02.Controllers
                 return NotFound();
 
             var userRoles = await _userManager.GetRolesAsync(user);
+            var callerIsAdmin = User.IsInRole(PermissionService.AdminRole);
 
             foreach (var role in model.Roles)
             {
+                // Only an Admin may grant or remove the Admin role (prevents privilege escalation)
+                if (!callerIsAdmin && role.DisplayValue == PermissionService.AdminRole)
+                    continue;
+
                 if (userRoles.Any(r => r == role.DisplayValue) && !role.IsSelected)
                     await _userManager.RemoveFromRoleAsync(user, role.DisplayValue);
 
@@ -244,9 +258,11 @@ namespace ERPWeb_v02.Controllers
                 await _userManager.UpdateAsync(user);
             }
 
+            _permissions.Invalidate();
             return RedirectToAction(nameof(Index));
         }
 
+        [HasPermission(Permissions.Users.ManageRoles)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRoles(UserRolesViewModel model)
@@ -258,9 +274,19 @@ namespace ERPWeb_v02.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            await _userManager.RemoveFromRolesAsync(user, userRoles);
-            await _userManager.AddToRolesAsync(user, model.Roles.Where(r => r.IsSelected).Select(r => r.DisplayValue));
+            var selected = model.Roles.Where(r => r.IsSelected).Select(r => r.DisplayValue).ToList();
 
+            // Only an Admin may grant or remove the Admin role (prevents privilege escalation)
+            if (!User.IsInRole(PermissionService.AdminRole))
+            {
+                selected.Remove(PermissionService.AdminRole);
+                if (userRoles.Contains(PermissionService.AdminRole)) selected.Add(PermissionService.AdminRole);
+            }
+
+            await _userManager.RemoveFromRolesAsync(user, userRoles);
+            await _userManager.AddToRolesAsync(user, selected);
+
+            _permissions.Invalidate();
             return RedirectToAction(nameof(Index));
         }
         #endregion
@@ -282,6 +308,7 @@ namespace ERPWeb_v02.Controllers
 
         //    return RedirectToAction(nameof(Index));
         //}
+        [HasPermission(Permissions.Users.Delete)]
         public async Task<IActionResult> DeleteUser(string userid)
         {
             if (string.IsNullOrEmpty(userid))
@@ -301,6 +328,47 @@ namespace ERPWeb_v02.Controllers
                 return BadRequest(result.Errors);
 
             return RedirectToAction(nameof(Index));
+        }
+        #endregion
+
+        #region User-specific Permissions [Grant / Deny overrides]
+        [HasPermission(Permissions.Users.ManagePermissions)]
+        [HttpGet]
+        public async Task<IActionResult> ManagePermissions(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var model = await PermissionMatrix.ForUserAsync(_context, user.Id, roles.Contains(PermissionService.AdminRole));
+            model.SubjectId = user.Id;
+            model.SubjectName = string.IsNullOrWhiteSpace(user.FullName) ? user.UserName! : user.FullName;
+            model.Details = user.UserName;
+            model.SubjectRoles = roles.ToList();
+            return View(model);
+        }
+
+        [HasPermission(Permissions.Users.ManagePermissions)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManagePermissions(int userId, Dictionary<int, string>? overrides)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return NotFound();
+
+            if (await _userManager.IsInRoleAsync(user, PermissionService.AdminRole))
+            {
+                SessionMsg(Helper.Warning, "صلاحيات المستخدم", "المستخدم ده Admin وعنده كل الصلاحيات، مفيش حاجة تتعدل.");
+                return RedirectToAction(nameof(ManagePermissions), new { userId });
+            }
+
+            var changes = await PermissionMatrix.SaveUserOverridesAsync(_context, user.Id, overrides ?? new(), User.Identity?.Name);
+            _permissions.Invalidate();
+
+            SessionMsg(Helper.Success, "صلاحيات المستخدم", $"تم حفظ الصلاحيات الخاصة ({changes} تعديل).");
+            return RedirectToAction(nameof(ManagePermissions), new { userId });
         }
         #endregion
     }

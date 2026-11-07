@@ -1,6 +1,6 @@
 @model LotViewModel
 @{
-    var canExchange = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange_Lots).Result.Succeeded;
+    var canExchange = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Exchange).Result.Succeeded;
     var inStock = Model.ItemsList.Where(x => x.AvilableQuantity > 0).ToList();
     int n = 0;
 }

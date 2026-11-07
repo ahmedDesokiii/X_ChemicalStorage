@@ -102,29 +102,29 @@
         <div class="ts-dock">
             @if (st == TempSampleStatus.Received)
             {
-                <a class="ts-act primary" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-grid-3x3-gap-fill"></i> Place in storage</a>
+                <a has-permission="@Permissions.TempSamples.Place" class="ts-act primary" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-grid-3x3-gap-fill"></i> Place in storage</a>
             }
             @if (st == TempSampleStatus.Stored)
             {
-                <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-arrow-left-right"></i> Relocate</a>
-                <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mCheckOut"><i class="bi bi-box-arrow-up-right"></i> Check out</a>
+                <a has-permission="@Permissions.TempSamples.Place" class="ts-act" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-arrow-left-right"></i> Relocate</a>
+                <a has-permission="@Permissions.TempSamples.CheckOut" class="ts-act" data-bs-toggle="modal" data-bs-target="#mCheckOut"><i class="bi bi-box-arrow-up-right"></i> Check out</a>
             }
             @if (st == TempSampleStatus.CheckedOut)
             {
-                <a class="ts-act primary" data-bs-toggle="modal" data-bs-target="#mReturn"><i class="bi bi-box-arrow-in-left"></i> Return to storage</a>
+                <a has-permission="@Permissions.TempSamples.Return" class="ts-act primary" data-bs-toggle="modal" data-bs-target="#mReturn"><i class="bi bi-box-arrow-in-left"></i> Return to storage</a>
             }
             @if (!final)
             {
-                <a class="ts-act @(st == TempSampleStatus.Stored ? "primary" : "")" data-bs-toggle="modal" data-bs-target="#mWithdraw"><i class="bi bi-box-arrow-right"></i> Withdraw</a>
-                <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mEdit"><i class="bi bi-pencil-square"></i> Edit</a>
+                <a has-permission="@Permissions.TempSamples.Withdraw" class="ts-act @(st == TempSampleStatus.Stored ? "primary" : "")" data-bs-toggle="modal" data-bs-target="#mWithdraw"><i class="bi bi-box-arrow-right"></i> Withdraw</a>
+                <a has-permission="@Permissions.TempSamples.Edit" class="ts-act" data-bs-toggle="modal" data-bs-target="#mEdit"><i class="bi bi-pencil-square"></i> Edit</a>
             }
-            <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mNote"><i class="bi bi-chat-left-text"></i> Note</a>
-            <a class="ts-act" data-bs-toggle="modal" data-bs-target="#mUpload"><i class="bi bi-paperclip"></i> Attach</a>
-            <a class="ts-act" target="_blank" asp-action="PrintLabel" asp-route-id="@s.Id"><i class="bi bi-printer"></i> Label</a>
-            <a class="ts-act" target="_blank" asp-action="CustodyReport" asp-route-id="@s.Id"><i class="bi bi-file-earmark-text"></i> Custody report</a>
+            <a has-permission="@Permissions.TempSamples.AddNote" class="ts-act" data-bs-toggle="modal" data-bs-target="#mNote"><i class="bi bi-chat-left-text"></i> Note</a>
+            <a has-permission="@Permissions.TempSamples.Attachments" class="ts-act" data-bs-toggle="modal" data-bs-target="#mUpload"><i class="bi bi-paperclip"></i> Attach</a>
+            <a has-permission="@Permissions.TempSamples.Print" class="ts-act" target="_blank" asp-action="PrintLabel" asp-route-id="@s.Id"><i class="bi bi-printer"></i> Label</a>
+            <a has-permission="@Permissions.TempSamples.Print" class="ts-act" target="_blank" asp-action="CustodyReport" asp-route-id="@s.Id"><i class="bi bi-file-earmark-text"></i> Custody report</a>
             @if (!final)
             {
-                <a class="ts-act danger" data-bs-toggle="modal" data-bs-target="#mDispose"><i class="bi bi-trash3"></i> Dispose</a>
+                <a has-permission="@Permissions.TempSamples.Dispose" class="ts-act danger" data-bs-toggle="modal" data-bs-target="#mDispose"><i class="bi bi-trash3"></i> Dispose</a>
             }
         </div>
     </div>
@@ -219,7 +219,7 @@
                                 <div class="iv-empty py-4">
                                     <i class="bi @(final ? "bi-door-open" : "bi-hourglass-top")"></i>
                                     <h5>@(final ? "Slot released" : "Awaiting placement")</h5>
-                                    @if (!final) { <button class="iv-btn iv-btn-gold mt-1" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-grid-3x3-gap-fill"></i> Place now</button> }
+                                    @if (!final) { <button has-permission="@Permissions.TempSamples.Place" class="iv-btn iv-btn-gold mt-1" data-bs-toggle="modal" data-bs-target="#mPlace"><i class="bi bi-grid-3x3-gap-fill"></i> Place now</button> }
                                 </div>
                             }
                             else
@@ -247,7 +247,7 @@
                         <div class="iv-panel-head">
                             <div class="ph-icon"><i class="bi bi-folder2-open"></i></div>
                             <div><h5>Documents</h5><small>SHA-256 sealed on upload</small></div>
-                            <div class="ph-end"><button class="iv-icon-btn" data-tip="Attach" data-bs-toggle="modal" data-bs-target="#mUpload"><i class="bi bi-plus-lg"></i></button></div>
+                            <div class="ph-end"><button has-permission="@Permissions.TempSamples.Attachments" class="iv-icon-btn" data-tip="Attach" data-bs-toggle="modal" data-bs-target="#mUpload"><i class="bi bi-plus-lg"></i></button></div>
                         </div>
                         <div class="iv-panel-body">
                             @if (!Model.Attachments.Any())

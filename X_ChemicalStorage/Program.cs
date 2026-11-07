@@ -38,6 +38,10 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 
 
 builder.Services.AddControllersWithViews(); // Adds MVC services\
+// ===== Permissions (DB-driven, see Authorization/ and Constants/Permissions.cs) =====
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<PermissionCacheSignal>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Scoped);
@@ -183,6 +187,18 @@ using (var scope = app.Services.CreateScope())
         await X_ChemicalStorage.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
         await X_ChemicalStorage.Seeds.DefaultUsers.SeedUserAsync(userManager, roleManager);
         await X_ChemicalStorage.Seeds.DefaultUsers.SeedAdminAsync(userManager, roleManager);
+
+        // Sync the permission catalog into ERP_Permissions (+ migrate old role claims).
+        // Never block startup: if the migration isn't applied yet, Admin still has full access.
+        try
+        {
+            await X_ChemicalStorage.Authorization.PermissionSeeder.SyncAsync(
+                services.GetRequiredService<ApplicationDbContext>(), logger);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Permission sync skipped. Run 'Update-Database' to create the permission tables.");
+        }
 
         logger.LogInformation("Finished Seeding Default Data");
         logger.LogInformation("Application Starting");

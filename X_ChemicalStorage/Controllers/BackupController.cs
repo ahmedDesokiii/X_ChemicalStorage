@@ -14,10 +14,12 @@ namespace X_ChemicalStorage.Controllers
         private string CurrentUser() =>
             User?.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity!.Name) ? User.Identity.Name! : "unknown";
 
+        [HasPermission(Permissions.Backup.View)]
         [HttpGet("status")]
         public async Task<IActionResult> Status() => Ok(await _svc.GetStatusAsync());
 
         /// نسخة يدوية (الزر جنب Add Freezer)
+        [HasPermission(Permissions.Backup.Run)]
         [HttpPost("run")]
         public async Task<IActionResult> Run()
         {

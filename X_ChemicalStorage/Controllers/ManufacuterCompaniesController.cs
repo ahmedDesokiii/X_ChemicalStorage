@@ -4,6 +4,7 @@ using X_ChemicalStorage.IRepository;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class ManufacuterCompaniesController : Controller
     {
         private readonly IServicesRepository<ManufacuterCompany> _servicesManufacuterCompany ;
@@ -25,7 +26,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of ManufacuterCompanies
-        [Authorize(Permissions.Manufacuters.View_Manufacuters)]
+        [HasPermission(Permissions.Manufacturers.View)]
         public IActionResult Index()
         {
             var ManufacuterCompanies = new ManufacuterCompanyViewModel
@@ -39,7 +40,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Delete ManufacuterCompanies [Delete & Delete Log]
         //Delete
-        [Authorize(Permissions.Manufacuters.Delete_Manufacuters)]
+        [HasPermission(Permissions.Manufacturers.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -61,11 +62,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit ManufacuterCompanies [Create & Update]
-        [Authorize(Permissions.Manufacuters.Create_Manufacuters), Authorize(Permissions.Manufacuters.Edit_Manufacuters)]
+        [HasPermission(Permissions.Manufacturers.Create, Permissions.Manufacturers.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(ManufacuterCompanyViewModel model)
+        public async Task<IActionResult> Save(ManufacuterCompanyViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewManufacuterCompany?.Id ?? 0) == 0 ? Permissions.Manufacturers.Create : Permissions.Manufacturers.Edit))
+                return Forbid();
+
             if (ModelState.IsValid)
             {
                 var userId = _userManager.GetUserId(User);
@@ -98,6 +103,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of ManufacuterCompany 
+        [HasPermission(Permissions.Manufacturers.Details, Permissions.Manufacturers.Edit)]
         [HttpGet]
         public IActionResult SelectedManufacuterCompany(int id)
         {

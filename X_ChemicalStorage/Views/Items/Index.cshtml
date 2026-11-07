@@ -10,13 +10,13 @@
     var coldN = items.Count(x => x.StorageUnitType?.TemperatureValue < 0);
 
     bool can(string p) => AuthorizationService.AuthorizeAsync(User, p).Result.Succeeded;
-    var canCreateItem = can(Permissions.Items.Create_Items);
-    var canCreateLot = can(Permissions.Lots.Create_Lots);
-    var canDetails = can(Permissions.Items.Details_Items);
-    var canEdit = can(Permissions.Items.Edit_Items);
-    var canDelete = can(Permissions.Items.Delete_Items);
-    var canPrint = can(Permissions.Items.Print_ItemBarcode);
-    var canExchange = can(Permissions.Lots.Exchange_Lots);
+    var canCreateItem = can(Permissions.Items.Create);
+    var canCreateLot = can(Permissions.Lots.Create);
+    var canDetails = can(Permissions.Items.Details);
+    var canEdit = can(Permissions.Items.Edit);
+    var canDelete = can(Permissions.Items.Delete);
+    var canPrint = can(Permissions.Items.PrintBarcode);
+    var canExchange = can(Permissions.Lots.Exchange);
 
     (string Row, string Cls, string Text) Stock(Item x) =>
         x.AvilableQuantity <= 0 ? ("row-bad", "bad", "Out of stock")

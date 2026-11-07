@@ -22,7 +22,7 @@
             <h1 class="ts-hero-title">Custody Register</h1>
             <p class="ts-hero-sub">Samples held on behalf of others — received, placed, and released with a sealed history.</p>
         </div>
-        <a asp-action="Receive" class="ts-cta"><i class="bi bi-box-arrow-in-down"></i> Receive Sample</a>
+        <a has-permission="@Permissions.TempSamples.Receive" asp-action="Receive" class="ts-cta"><i class="bi bi-box-arrow-in-down"></i> Receive Sample</a>
     </div>
 </div>
 
@@ -64,7 +64,7 @@
             <i class="bi bi-inboxes"></i>
             <h5>No samples here yet</h5>
             <p>Receive your first temporary sample to start its chain of custody.</p>
-            <a asp-action="Receive" class="ts-cta mt-2"><i class="bi bi-plus-lg"></i> Receive Sample</a>
+            <a has-permission="@Permissions.TempSamples.Receive" asp-action="Receive" class="ts-cta mt-2"><i class="bi bi-plus-lg"></i> Receive Sample</a>
         </div>
     }
     else
@@ -94,9 +94,9 @@
                         <div class="ts-due @dueCls">@dueTxt</div>
                     </div>
                     <div class="ts-actions d-flex gap-1">
-                        <a asp-action="PrintLabel" asp-route-id="@r.Id" target="_blank" title="Print label"><i class="bi bi-printer"></i></a>
+                        <a has-permission="@Permissions.TempSamples.Print" asp-action="PrintLabel" asp-route-id="@r.Id" target="_blank" title="Print label"><i class="bi bi-printer"></i></a>
                         <a href="#" onclick="verifyChain(@r.Id, '@r.SampleCode');return false;" title="Verify custody chain"><i class="bi bi-shield-check"></i></a>
-                        <a asp-action="Details" asp-route-id="@r.Id" title="Open dossier"><i class="bi bi-arrow-right-circle-fill"></i></a>
+                        <a has-permission="@Permissions.TempSamples.Details" asp-action="Details" asp-route-id="@r.Id" title="Open dossier"><i class="bi bi-arrow-right-circle-fill"></i></a>
                     </div>
                 </div>
             }

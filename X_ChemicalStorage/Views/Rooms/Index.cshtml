@@ -42,12 +42,12 @@
                     <span class="bar"><span style="--w:@(pct)%"></span></span>
                 </span>
                 <span class="rm-acts" onclick="event.stopPropagation()">
-                    <button type="button" class="iv-icon-btn" data-tip="Edit unit"
+                    <button has-permission="@Permissions.Rooms.Edit" type="button" class="iv-icon-btn" data-tip="Edit unit"
                             data-id="@unit.Id" data-name="@unit.Name" data-type="@unit.StorageUnitTypeId"
                             data-haz="@unit.IsHazardous.ToString().ToLower()" data-zone="@unit.Zone" onclick="RM.editUnit(this)">
                         <i class="bi bi-pencil-fill"></i>
                     </button>
-                    <form asp-action="DeleteStorageUnit" method="post" class="rm-confirm" data-msg="Delete unit “@unit.Name” with all its shelves and boxes?">
+                    <form has-permission="@Permissions.Rooms.Delete" asp-action="DeleteStorageUnit" method="post" class="rm-confirm" data-msg="Delete unit “@unit.Name” with all its shelves and boxes?">
                         <input type="hidden" name="id" value="@unit.Id" />
                         <button type="submit" class="iv-icon-btn danger" data-tip="Delete unit"><i class="bi bi-trash3-fill"></i></button>
                     </form>
@@ -70,9 +70,9 @@
                                         <i class="bi bi-layers"></i>
                                         <b>@shelf.Name</b>
                                         <span class="iv-sub">@(shelf.Boxes?.Count ?? 0) boxes</span>
-                                        <button type="button" class="iv-icon-btn" style="width:28px;height:28px" data-tip="Add box" onclick="RM.inline('ab_@shelf.Id')"><i class="bi bi-plus-lg"></i></button>
-                                        <button type="button" class="iv-icon-btn" style="width:28px;height:28px" data-tip="Rename shelf" data-id="@shelf.Id" data-name="@shelf.Name" onclick="RM.editShelf(this)"><i class="bi bi-pencil-fill"></i></button>
-                                        <form asp-action="DeleteShelf" method="post" class="rm-confirm" data-msg="Delete shelf “@shelf.Name” and its boxes?">
+                                        <button has-permission="@Permissions.Rooms.Create" type="button" class="iv-icon-btn" style="width:28px;height:28px" data-tip="Add box" onclick="RM.inline('ab_@shelf.Id')"><i class="bi bi-plus-lg"></i></button>
+                                        <button has-permission="@Permissions.Rooms.Edit" type="button" class="iv-icon-btn" style="width:28px;height:28px" data-tip="Rename shelf" data-id="@shelf.Id" data-name="@shelf.Name" onclick="RM.editShelf(this)"><i class="bi bi-pencil-fill"></i></button>
+                                        <form has-permission="@Permissions.Rooms.Delete" asp-action="DeleteShelf" method="post" class="rm-confirm" data-msg="Delete shelf “@shelf.Name” and its boxes?">
                                             <input type="hidden" name="id" value="@shelf.Id" />
                                             <button type="submit" class="iv-icon-btn danger" style="width:28px;height:28px" data-tip="Delete shelf"><i class="bi bi-trash3-fill"></i></button>
                                         </form>
@@ -93,10 +93,10 @@
                                                 <small>@bu/@bs · @(box.RowsCount)×@(box.ColumnsCount)</small>
                                             </button>
                                         }
-                                        <button type="button" class="rm-box add" style="--j:@j" onclick="RM.inline('ab_@shelf.Id')" title="Add box"><i class="bi bi-plus-lg"></i></button>
+                                        <button has-permission="@Permissions.Rooms.Create" type="button" class="rm-box add" style="--j:@j" onclick="RM.inline('ab_@shelf.Id')" title="Add box"><i class="bi bi-plus-lg"></i></button>
                                     </div>
 
-                                    <form asp-action="AddBox" method="post" class="rm-inline" id="ab_@shelf.Id">
+                                    <form has-permission="@Permissions.Rooms.Create" asp-action="AddBox" method="post" class="rm-inline" id="ab_@shelf.Id">
                                         <input type="hidden" name="shelfId" value="@shelf.Id" />
                                         <input name="name" class="form-control" style="flex:1;min-width:110px" placeholder="Box name" required value="Box @((shelf.Boxes?.Count ?? 0) + 1)" />
                                         <input name="rowsCount" type="number" min="1" value="9" class="form-control num" title="Rows" required />
@@ -108,7 +108,7 @@
                             }
                         }
 
-                        <form asp-action="AddShelf" method="post" class="rm-inline show mt-2" style="background:transparent;border-style:dashed">
+                        <form has-permission="@Permissions.Rooms.Create" asp-action="AddShelf" method="post" class="rm-inline show mt-2" style="background:transparent;border-style:dashed">
                             <input type="hidden" name="storageUnitId" value="@unit.Id" />
                             <input name="name" class="form-control" style="flex:1" placeholder="New shelf name…" required value="Shelf @((unit.Shelves?.Count ?? 0) + 1)" />
                             <button class="iv-btn iv-btn-ghost" style="padding:6px 12px"><i class="bi bi-plus-lg"></i> Shelf</button>
@@ -160,12 +160,12 @@
         </div>
         <button class="iv-btn iv-btn-ghost" onclick="RM.expandAll(true)" title="Expand all"><i class="bi bi-arrows-expand"></i></button>
         <button class="iv-btn iv-btn-ghost" onclick="RM.expandAll(false)" title="Collapse all"><i class="bi bi-arrows-collapse"></i></button>
-        <a asp-controller="TempSamples" asp-action="Index" class="iv-btn" style="background:linear-gradient(135deg,#0f3d3e,#14595b);color:#fff">
+        <a has-permission="@Permissions.TempSamples.View" asp-controller="TempSamples" asp-action="Index" class="iv-btn" style="background:linear-gradient(135deg,#0f3d3e,#14595b);color:#fff">
             <i class="bi bi-hourglass-split"></i> Temporary Samples
             @if (samplesTotal > 0) { <span class="badge rounded-pill" style="background:#f4b740;color:#0f3d3e">@samplesTotal</span> }
         </a>
-        <a asp-action="GenerateWizard" class="iv-btn iv-btn-ghost"><i class="bi bi-magic"></i> Auto-Generate</a>
-        <button type="button" class="iv-btn iv-btn-gold" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg"></i> Add Room</button>
+        <a has-permission="@Permissions.Rooms.Generate" asp-action="GenerateWizard" class="iv-btn iv-btn-ghost"><i class="bi bi-magic"></i> Auto-Generate</a>
+        <button has-permission="@Permissions.Rooms.Create" type="button" class="iv-btn iv-btn-gold" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg"></i> Add Room</button>
     </div>
 
     <!-- ═════════════════ ROOMS ═════════════════ -->
@@ -176,8 +176,8 @@
             <h5>No rooms yet</h5>
             <p>Create a room manually, or let the wizard generate the whole hierarchy in one go.</p>
             <div class="d-flex gap-2 justify-content-center">
-                <a asp-action="GenerateWizard" class="iv-btn iv-btn-primary"><i class="bi bi-magic"></i> Auto-Generate</a>
-                <button class="iv-btn iv-btn-gold" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg"></i> Add Room</button>
+                <a has-permission="@Permissions.Rooms.Generate" asp-action="GenerateWizard" class="iv-btn iv-btn-primary"><i class="bi bi-magic"></i> Auto-Generate</a>
+                <button has-permission="@Permissions.Rooms.Create" class="iv-btn iv-btn-gold" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg"></i> Add Room</button>
             </div>
         </div></div>
     }
@@ -209,11 +209,11 @@
                             <div class="dropdown">
                                 <button class="rm-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><button type="button" class="dropdown-item" onclick="RM.editRoom(@room.Id, this)" data-name="@room.Name"><i class="bi bi-pencil text-primary"></i>Rename room</button></li>
+                                    <li><button has-permission="@Permissions.Rooms.Edit" type="button" class="dropdown-item" onclick="RM.editRoom(@room.Id, this)" data-name="@room.Name"><i class="bi bi-pencil text-primary"></i>Rename room</button></li>
                                     <li><button type="button" class="dropdown-item" onclick="RM.expandRoom(this)"><i class="bi bi-arrows-expand"></i>Expand all units</button></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form asp-action="DeleteRoom" method="post" class="rm-confirm" data-msg="Delete room “@room.Name”? Only possible when it holds no lots or samples.">
+                                        <form has-permission="@Permissions.Rooms.Delete" asp-action="DeleteRoom" method="post" class="rm-confirm" data-msg="Delete room “@room.Name”? Only possible when it holds no lots or samples.">
                                             <input type="hidden" name="id" value="@room.Id" />
                                             <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash"></i>Delete room</button>
                                         </form>
@@ -233,7 +233,7 @@
                         <div class="rm-hold">
                             <div class="rm-zone">
                                 <span class="pulse"></span> Temporary holding <span class="cnt">@holdUnits.Count</span>
-                                @if (holdUnits.Any()) { <a class="cta" asp-controller="TempSamples" asp-action="Receive"><i class="bi bi-box-arrow-in-down"></i> Receive</a> }
+                                @if (holdUnits.Any()) { <a has-permission="@Permissions.TempSamples.Receive" class="cta" asp-controller="TempSamples" asp-action="Receive"><i class="bi bi-box-arrow-in-down"></i> Receive</a> }
                             </div>
                             @if (!holdUnits.Any())
                             {
@@ -242,14 +242,14 @@
                             else
                             {
                                 foreach (var u in holdUnits) { await RenderUnit(u, room, true); }
-                                <a class="rm-hold-link" asp-controller="TempSamples" asp-action="Index"><i class="bi bi-journal-text"></i> @rSamples sample(s) · open custody register <i class="bi bi-arrow-right"></i></a>
+                                <a has-permission="@Permissions.TempSamples.View" class="rm-hold-link" asp-controller="TempSamples" asp-action="Index"><i class="bi bi-journal-text"></i> @rSamples sample(s) · open custody register <i class="bi bi-arrow-right"></i></a>
                             }
                         </div>
 
                         <!-- Add unit -->
                         <div class="rm-add-unit">
-                            <button type="button" class="rm-add-toggle" onclick="RM.inline('au_@room.Id')"><i class="bi bi-plus-circle"></i> Add storage unit</button>
-                            <form asp-action="AddStorageUnit" method="post" class="rm-add-form" id="au_@room.Id">
+                            <button has-permission="@Permissions.Rooms.Create" type="button" class="rm-add-toggle" onclick="RM.inline('au_@room.Id')"><i class="bi bi-plus-circle"></i> Add storage unit</button>
+                            <form has-permission="@Permissions.Rooms.Create" asp-action="AddStorageUnit" method="post" class="rm-add-form" id="au_@room.Id">
                                 <input type="hidden" name="roomId" value="@room.Id" />
                                 <div class="row g-2">
                                     <div class="col-7"><input name="name" class="form-control" placeholder="Unit name" required value="Unit @(units.Count + 1)" /></div>
@@ -281,7 +281,7 @@
                 </div>
             }
 
-            <div class="rm-new" style="--i:@ri" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+            <div has-permission="@Permissions.Rooms.Create" class="rm-new" style="--i:@ri" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                 <i class="bi bi-plus-lg"></i>
                 <b>Add new room</b>
                 <span class="iv-sub">or use Auto-Generate for a full structure</span>
@@ -381,11 +381,11 @@
                 <div class="rm-insp-list" id="biList"></div>
             </div>
             <div class="modal-footer justify-content-between">
-                <form asp-action="DeleteBox" method="post" class="rm-confirm" data-msg="Delete this box? Only possible when it is empty.">
+                <form has-permission="@Permissions.Rooms.Delete" asp-action="DeleteBox" method="post" class="rm-confirm" data-msg="Delete this box? Only possible when it is empty.">
                     <input type="hidden" name="id" id="biDeleteId" />
                     <button class="iv-btn iv-btn-danger"><i class="bi bi-trash3-fill"></i> Delete box</button>
                 </form>
-                <button type="button" class="iv-btn iv-btn-primary" onclick="RM.editBoxFromInspector()"><i class="bi bi-pencil-fill"></i> Edit box</button>
+                <button has-permission="@Permissions.Rooms.Edit" type="button" class="iv-btn iv-btn-primary" onclick="RM.editBoxFromInspector()"><i class="bi bi-pencil-fill"></i> Edit box</button>
             </div>
         </div>
     </div>

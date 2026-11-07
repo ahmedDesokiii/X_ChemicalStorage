@@ -11,6 +11,7 @@ using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class CategoriesController : Controller
     {
         private readonly IServicesRepository<Category> _servicesCategory;
@@ -38,7 +39,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of Categories
-        [Authorize(Permissions.Categories.View_Categories)]
+        [HasPermission(Permissions.Categories.View)]
         public IActionResult Index()
         {
             var Categories = new CategoryViewModel
@@ -55,7 +56,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Delete Category [Delete & Delete Log]
-        [Authorize(Permissions.Categories.Delete_Categories)]
+        [HasPermission(Permissions.Categories.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -76,12 +77,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit Category [Create & Update]
-        [Authorize(Permissions.Categories.Create_Categories),
-         Authorize(Permissions.Categories.Edit_Categories)]
+        [HasPermission(Permissions.Categories.Create, Permissions.Categories.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(CategoryViewModel model)
+        public async Task<IActionResult> Save(CategoryViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewCategory?.Id ?? 0) == 0 ? Permissions.Categories.Create : Permissions.Categories.Edit))
+                return Forbid();
+
                 var userId = _userManager.GetUserId(User);
                 if (model?.NewCategory?.Id == 0)
                 { //Create
@@ -108,6 +112,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of Category
+        [HasPermission(Permissions.Categories.Details, Permissions.Categories.Edit)]
         [HttpGet]
         public IActionResult SelectedCategory(int id)
         {

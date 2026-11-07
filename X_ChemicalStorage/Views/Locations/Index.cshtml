@@ -20,7 +20,7 @@
         <div class="col-md-10">
             <div class="card p-0">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
-                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Create_Locations).Result.Succeeded)
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Create).Result.Succeeded)
                     {
                         <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New Location" onclick="ResetLocation()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
                     }
@@ -76,15 +76,15 @@
                                             <td class="fs-6 text-center px-1">@loc.TubeNum</td>
 
                                             <td class="py-1">
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Details_Locations).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Details).Result.Succeeded)
                                                 {
                                                     <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Locations" asp-action="SelectedLocation" asp-route-Id="@loc.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Edit_Locations).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Edit).Result.Succeeded)
                                                 {
                                                     <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditLocation('@loc.Id','@loc.RoomType','@loc.RoomNum','@loc.CaseNum','@loc.ShelfNum','@loc.RackNum','@loc.BoxNum','@loc.TubeNum')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Delete_Locations).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Locations.Delete).Result.Succeeded)
                                                 {
                                                     <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteLocation('@loc.Id')"><i class="bi bi-trash3-fill"></i></a>
                                                 }

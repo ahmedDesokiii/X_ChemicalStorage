@@ -2,6 +2,7 @@
 using System.Reflection.Emit;
 using X_ChemicalStorage.Models;
 using X_ChemicalStorage.Models.TempSamples;
+using X_ChemicalStorage.Models.Authorization;
 
 namespace X_ChemicalStorage.Data
 {
@@ -309,6 +310,34 @@ namespace X_ChemicalStorage.Data
             builder.ConfigureBioIoT();
             builder.ConfigureBioNotifications();
 
+            // ===== Permissions (DB-driven authorization) =====
+            builder.Entity<AppPermission>(e =>
+            {
+                e.ToTable("ERP_Permissions");
+                e.HasIndex(x => x.Key).IsUnique();
+                e.HasIndex(x => x.Module);
+            });
+
+            builder.Entity<RolePermission>(e =>
+            {
+                e.ToTable("ERP_RolePermissions");
+                e.HasKey(x => new { x.RoleId, x.PermissionId });
+                e.HasOne(x => x.Role).WithMany()
+                    .HasForeignKey(x => x.RoleId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Permission).WithMany(p => p.RolePermissions)
+                    .HasForeignKey(x => x.PermissionId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<UserPermission>(e =>
+            {
+                e.ToTable("ERP_UserPermissions");
+                e.HasKey(x => new { x.UserId, x.PermissionId });
+                e.HasOne(x => x.User).WithMany()
+                    .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Permission).WithMany(p => p.UserPermissions)
+                    .HasForeignKey(x => x.PermissionId).OnDelete(DeleteBehavior.Cascade);
+            });
+
         }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<StorageUnitType> StorageUnitTypes { get; set; }
@@ -362,6 +391,11 @@ namespace X_ChemicalStorage.Data
 
         public DbSet<Bio_FreezerSettingsAudit> FreezerSettingsAudit { get; set; }
         public DbSet<Bio_BackupLog> BackupLogs { get; set; }
+
+        // Permissions
+        public DbSet<AppPermission> AppPermissions => Set<AppPermission>();
+        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+        public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
 
     }
 }

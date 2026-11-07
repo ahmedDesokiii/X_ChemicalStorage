@@ -5,6 +5,7 @@ using X_ChemicalStorage.IRepository.ServicesRepository;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class LocationsController : Controller
     {
         private readonly IServicesRepository<Location> _servicesLocation ;
@@ -26,7 +27,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of Locations
-        [Authorize(Permissions.Locations.View_Locations)]
+        [HasPermission(Permissions.Locations.View)]
         public IActionResult Index()
         {
             var Locations = new LocationViewModel
@@ -40,7 +41,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Delete Location [Delete & Delete Log]
         //Delete
-        [Authorize(Permissions.Locations.Delete_Locations)]
+        [HasPermission(Permissions.Locations.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -62,11 +63,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit Center [Create & Update]
-        [Authorize(Permissions.Locations.Create_Locations), Authorize(Permissions.Locations.Edit_Locations)]
+        [HasPermission(Permissions.Locations.Create, Permissions.Locations.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(LocationViewModel model)
+        public async Task<IActionResult> Save(LocationViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewLocation?.Id ?? 0) == 0 ? Permissions.Locations.Create : Permissions.Locations.Edit))
+                return Forbid();
+
             if (ModelState.IsValid)
             {
                 var userId = _userManager.GetUserId(User);
@@ -98,6 +103,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of Location 
+        [HasPermission(Permissions.Locations.Details, Permissions.Locations.Edit)]
         [HttpGet]
         public IActionResult SelectedLocation(int id)
         {

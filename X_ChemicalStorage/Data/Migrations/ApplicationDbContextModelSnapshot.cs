@@ -244,6 +244,119 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("ERP_WebUsers", (string)null);
                 });
 
+            modelBuilder.Entity("X_ChemicalStorage.Models.Authorization.AppPermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ArabicName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModuleArabicName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ModuleDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ModuleIcon")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int>("ModuleOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.HasIndex("Module");
+
+                    b.ToTable("ERP_Permissions", (string)null);
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Authorization.RolePermission", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GrantedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("ERP_RolePermissions", (string)null);
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Authorization.UserPermission", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GrantedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsGranted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("UserId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("ERP_UserPermissions", (string)null);
+                });
+
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_AlarmContact", b =>
                 {
                     b.Property<int>("Id")
@@ -1733,7 +1846,7 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("SupplierLots");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSample", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSample", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1875,7 +1988,7 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("TS_Samples");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleAttachment", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSampleAttachment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1928,7 +2041,7 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.ToTable("TS_Attachments");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleCustodyEvent", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSampleCustodyEvent", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -2084,6 +2197,44 @@ namespace X_ChemicalStorage.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Authorization.RolePermission", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Authorization.AppPermission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("X_ChemicalStorage.Models.ApplicationRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Authorization.UserPermission", b =>
+                {
+                    b.HasOne("X_ChemicalStorage.Models.Authorization.AppPermission", "Permission")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("X_ChemicalStorage.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
@@ -2363,7 +2514,7 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSample", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSample", b =>
                 {
                     b.HasOne("X_ChemicalStorage.Models.Box", "Box")
                         .WithMany()
@@ -2380,9 +2531,9 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleAttachment", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSampleAttachment", b =>
                 {
-                    b.HasOne("X_ChemicalStorage.Models.TempSample", "TempSample")
+                    b.HasOne("X_ChemicalStorage.Models.TempSamples.TempSample", "TempSample")
                         .WithMany("Attachments")
                         .HasForeignKey("TempSampleId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2391,15 +2542,22 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("TempSample");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSampleCustodyEvent", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSampleCustodyEvent", b =>
                 {
-                    b.HasOne("X_ChemicalStorage.Models.TempSample", "TempSample")
+                    b.HasOne("X_ChemicalStorage.Models.TempSamples.TempSample", "TempSample")
                         .WithMany("CustodyEvents")
                         .HasForeignKey("TempSampleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("TempSample");
+                });
+
+            modelBuilder.Entity("X_ChemicalStorage.Models.Authorization.AppPermission", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserPermissions");
                 });
 
             modelBuilder.Entity("X_ChemicalStorage.Models.Bio_Box", b =>
@@ -2492,7 +2650,7 @@ namespace X_ChemicalStorage.Data.Migrations
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("X_ChemicalStorage.Models.TempSample", b =>
+            modelBuilder.Entity("X_ChemicalStorage.Models.TempSamples.TempSample", b =>
                 {
                     b.Navigation("Attachments");
 

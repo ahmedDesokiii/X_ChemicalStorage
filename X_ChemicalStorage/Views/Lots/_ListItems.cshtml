@@ -1,6 +1,6 @@
 @model LotViewModel
 @{
-    var canCreate = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create_Lots).Result.Succeeded;
+    var canCreate = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Create).Result.Succeeded;
     int n = 0;
 }
 

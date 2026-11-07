@@ -2,12 +2,15 @@
 @using X_ChemicalStorage.Constants
 @using X_ChemicalStorage.Models
 @inject IAuthorizationService AuthorizationService
+@inject IPermissionService PermissionService
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject RoleManager<ApplicationRole> RoleManager
 @inject X_ChemicalStorage.Data.ApplicationDbContext LayoutDb
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var servicesPermissions = string.Join(",", Permissions.Suppliers.View, Permissions.Categories.View, Permissions.Units.View,
+                                          Permissions.Manufacturers.View, Permissions.Locations.View);
 
     // Temporary samples needing attention (awaiting placement or overdue) → nav badge
     int tsAttention = 0;
@@ -462,48 +465,42 @@
 
                             @if (SignInManager.IsSignedIn(User))
                             {
-                                @* Admin Links *@
-                                @if (User.IsInRole(Roles.Admin.ToString()))
-                                {
-                                    <li class="nav-item mx-1">
-                                        <a class="nav-link fs-6 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
-                                            <i class="bi bi-people-fill"></i>Users
-                                        </a>
-                                    </li>
-                                    <li class="nav-item mx-1">
-                                        <a class="nav-link fs-6 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
-                                            <i class="bi bi-collection-fill"></i>Roles
-                                        </a>
-                                    </li>
-                                }
-                                @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Dashboard.View).Result.Succeeded))
-                                {
-                                    <li class="nav-item mx-1">
-                                        <a class="nav-link fs-6 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
-                                            <i class="bi bi-speedometer"></i>Dashboard
-                                        </a>
-                                    </li>
-                                }
+                                @* Every link is shown only if the user has its permission (has-permission tag helper → ERP_Permissions) *@
+                                <li has-permission="@Permissions.Users.View" class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
+                                        <i class="bi bi-people-fill"></i>Users
+                                    </a>
+                                </li>
+                                <li has-permission="@Permissions.Roles.View" class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">
+                                        <i class="bi bi-collection-fill"></i>Roles
+                                    </a>
+                                </li>
+                                <li has-permission="@Permissions.Dashboard.View" class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="MasterDashboard">
+                                        <i class="bi bi-speedometer"></i>Dashboard
+                                    </a>
+                                </li>
 
                                 @* Inventory Links *@
-                                <li class="nav-item mx-1">
+                                <li has-permission="@Permissions.Items.View" class="nav-item mx-1">
                                     <a class="nav-link fs-6 @(currentController == "Items" ? "active" : "")" asp-controller="Items" asp-action="Index">
                                         <i class="bi bi-boxes"></i>Items
                                     </a>
                                 </li>
-                                <li class="nav-item mx-1">
+                                <li has-permission="@Permissions.Lots.View" class="nav-item mx-1">
                                     <a class="nav-link fs-6 @(currentController == "Lots" ? "active" : "")" asp-controller="Lots" asp-action="Index">
                                         <i class="bi bi-archive-fill"></i>Lots
                                     </a>
                                 </li>
                                 @* Rooms *@
-                                <li class="nav-item mx-1">
+                                <li has-permission="@Permissions.Rooms.View" class="nav-item mx-1">
                                     <a class="nav-link fs-6 @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">
                                         <i class="bi bi-building"></i>Rooms
                                     </a>
                                 </li>
                                 @* Temporary Samples (custody) *@
-                                <li class="nav-item mx-1">
+                                <li has-permission="@Permissions.TempSamples.View" class="nav-item mx-1">
                                     <a class="nav-link fs-6 position-relative @(currentController == "TempSamples" ? "active" : "")" asp-controller="TempSamples" asp-action="Index">
                                         <i class="bi bi-hourglass-split"></i>Samples
                                         @if (tsAttention > 0)
@@ -513,38 +510,23 @@
                                     </a>
                                 </li>
                                 @* Bio Bank *@
-                                <li class="nav-item mx-1">
+                                <li has-permission="@Permissions.BioBank.View" class="nav-item mx-1">
                                     <a class="nav-link fs-6 @(currentController == "BioBank" ? "active" : "")" asp-controller="BioBank" asp-action="Index">
                                         <i class="bi bi-droplet"></i>Bio Bank
                                     </a>
                                 </li>
 
-                                @* Services Dropdown *@
-                                <li class="nav-item dropdown mx-1">
+                                @* Services Dropdown (hidden entirely when none of its pages is allowed) *@
+                                <li has-permission="@servicesPermissions" class="nav-item dropdown mx-1">
                                     <a class="nav-link dropdown-toggle fs-6 @(isServicesActive ? "active" : "")" data-bs-toggle="dropdown">
                                         <i class="bi bi-database-fill-gear"></i>Services
                                     </a>
                                     <ul class="dropdown-menu">
-                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.View).Result.Succeeded))
-                                        {
-                                            <li><a class="dropdown-item @(currentController == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Index">Suppliers</a></li>
-                                        }
-                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Categories.View).Result.Succeeded))
-                                        {
-                                            <li><a class="dropdown-item @(currentController == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">Categories</a></li>
-                                        }
-                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Units.View).Result.Succeeded))
-                                        {
-                                            <li><a class="dropdown-item @(currentController == "Units" ? "active" : "")" asp-controller="Units" asp-action="Index">Units</a></li>
-                                        }
-                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Manufacuters.View).Result.Succeeded))
-                                        {
-                                            <li><a class="dropdown-item @(currentController == "ManufacuterCompanies" ? "active" : "")" asp-controller="ManufacuterCompanies" asp-action="Index">Manufacturers</a></li>
-                                        }
-                                        @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Locations.View).Result.Succeeded))
-                                        {
-                                            <li><a class="dropdown-item @(currentController == "Locations" ? "active" : "")" asp-controller="Locations" asp-action="Index">Locations</a></li>
-                                        }
+                                        <li has-permission="@Permissions.Suppliers.View"><a class="dropdown-item @(currentController == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Index">Suppliers</a></li>
+                                        <li has-permission="@Permissions.Categories.View"><a class="dropdown-item @(currentController == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">Categories</a></li>
+                                        <li has-permission="@Permissions.Units.View"><a class="dropdown-item @(currentController == "Units" ? "active" : "")" asp-controller="Units" asp-action="Index">Units</a></li>
+                                        <li has-permission="@Permissions.Manufacturers.View"><a class="dropdown-item @(currentController == "ManufacuterCompanies" ? "active" : "")" asp-controller="ManufacuterCompanies" asp-action="Index">Manufacturers</a></li>
+                                        <li has-permission="@Permissions.Locations.View"><a class="dropdown-item @(currentController == "Locations" ? "active" : "")" asp-controller="Locations" asp-action="Index">Locations</a></li>
                                     </ul>
                                 </li>
                             }
@@ -570,6 +552,32 @@
         </main>
     </div>
 
+    @* Current user's permission keys for page scripts:  if (can('BioBank.Store')) { ... } *@
+    <script>
+        window.appPermissions = @Json.Serialize(SignInManager.IsSignedIn(User) ? await PermissionService.GetPermissionsAsync(User) : new HashSet<string>());
+        window.can = function () { return Array.prototype.some.call(arguments, function (k) { return window.appPermissions.indexOf(k) >= 0; }); };
+
+        // Elements rendered by JavaScript can carry data-perm="BioBank.Edit" (or "A,B" = any) → hidden when not allowed.
+        (function () {
+            function apply(root) {
+                if (!root || !root.querySelectorAll) return;
+                var list = Array.prototype.slice.call(root.querySelectorAll('[data-perm]'));
+                if (root.matches && root.matches('[data-perm]')) list.push(root);
+                list.forEach(function (el) {
+                    if (!window.can.apply(null, el.getAttribute('data-perm').split(/[,|]/).map(function (x) { return x.trim(); }))) {
+                        el.classList.add('d-none');
+                        el.setAttribute('disabled', 'disabled');
+                    }
+                });
+            }
+            document.addEventListener('DOMContentLoaded', function () {
+                apply(document);
+                new MutationObserver(function (ms) {
+                    ms.forEach(function (m) { m.addedNodes.forEach(apply); });
+                }).observe(document.body, { childList: true, subtree: true });
+            });
+        })();
+    </script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/Users.js" asp-append-version="true"></script>
     <script src="~/js/Roles.js" asp-append-version="true"></script>

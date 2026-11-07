@@ -1,0 +1,77 @@
+/* ===== Permission matrix (Roles / Users → Manage Permissions) ===== */
+.perm-page { --perm-navy: #032b42; --perm-accent: #158cba; --perm-grant: #198754; --perm-deny: #dc3545; }
+
+.perm-hero {
+    background: var(--perm-navy);
+    border-radius: 0 0 75px 0;
+    color: #fff;
+    padding: 1.25rem 1.5rem;
+}
+.perm-hero .crumb a { color: #8fb3c9; text-decoration: none; }
+.perm-hero h1 { font-size: 1.6rem; font-weight: 700; margin: 0; }
+
+.perm-summary {
+    position: sticky;
+    top: 70px;
+    z-index: 20;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(3, 43, 66, .12);
+}
+.perm-summary .subject { font-weight: 700; font-size: 1.25rem; color: var(--perm-navy); }
+.perm-summary .progress { height: 8px; }
+.perm-summary .dirty-dot { display: none; }
+.perm-summary.is-dirty .dirty-dot { display: inline-block; }
+
+.perm-card {
+    border: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(3, 43, 66, .08);
+    height: 100%;
+}
+.perm-card .card-header {
+    background: var(--perm-navy);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .7rem 1rem;
+}
+.perm-card .card-header .mod-icon {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .12);
+    font-size: 1.1rem;
+}
+.perm-card .card-header .mod-name { font-weight: 700; line-height: 1.1; }
+.perm-card .card-header small { color: #9fc0d4; }
+.perm-card .mod-count { background: rgba(255, 255, 255, .15); font-weight: 600; }
+.perm-card .form-switch .form-check-input { cursor: pointer; }
+
+.perm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .55rem 1rem;
+    border-bottom: 1px solid #eef2f5;
+}
+.perm-row:last-child { border-bottom: 0; }
+.perm-row:hover { background: #f6fafc; }
+.perm-row .perm-name { font-weight: 600; color: #213547; }
+.perm-row .perm-key { font-family: Consolas, monospace; font-size: .72rem; color: #8a99a6; direction: ltr; }
+.perm-row .form-check-input { width: 2.6em; height: 1.35em; cursor: pointer; }
+.perm-row.is-hidden, .perm-col.is-hidden { display: none !important; }
+
+/* user overrides: inherit / grant / deny */
+.perm-tri .btn { font-size: .78rem; padding: .2rem .55rem; }
+.perm-tri .btn-check:checked + .btn-outline-success { background: var(--perm-grant); color: #fff; }
+.perm-tri .btn-check:checked + .btn-outline-danger { background: var(--perm-deny); color: #fff; }
+.perm-tri .btn-check:checked + .btn-outline-secondary { background: #6c757d; color: #fff; }
+.perm-effective { width: 1.6rem; text-align: center; font-size: 1.1rem; }
+.perm-effective .bi-check-circle-fill { color: var(--perm-grant); }
+.perm-effective .bi-x-circle-fill { color: #c3ccd3; }
+
+.perm-legend span { white-space: nowrap; }

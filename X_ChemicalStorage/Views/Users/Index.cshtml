@@ -50,7 +50,7 @@
                         <i class="bi bi-plus fs-2 m-0 fw-bold"></i> 
                     </a> *@
                    
-                    <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New User" asp-action="AddUser" asp-controller="Users"><i class="bi bi-plus-square-fill"></i></a>
+                    <a has-permission="@Permissions.Users.Create" class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New User" asp-action="AddUser" asp-controller="Users"><i class="bi bi-plus-square-fill"></i></a>
 
                 </div>
                 <!-- /.card-header -->
@@ -118,9 +118,10 @@
                                             }
 
                                             <td class="py-1">
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-4" title="Manage Roles" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteUser('@user.Id')" @* asp-route-userId="@user.Id" *@><i class="bi bi-trash3-fill"></i></a>
+                                                <a has-permission="@Permissions.Users.ManagePermissions" class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-4" title="صلاحيات خاصة" asp-controller="Users" asp-action="ManagePermissions" asp-route-userId="@user.Id"><i class="bi bi-shield-lock"></i></a>
+                                                <a has-permission="@Permissions.Users.ManageRoles" class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-4" title="Manage Roles" asp-controller="Users" asp-action="ManageRoles" asp-route-userId="@user.Id"><i class="bi bi-view-stacked"></i></a>
+                                                <a has-permission="@Permissions.Users.Edit" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" asp-controller="Users" asp-action="EditUser" asp-route-userId="@user.Id"><i class="bi bi-pencil-square"></i></a>
+                                                <a has-permission="@Permissions.Users.Delete" class="btn fw-bold btn-outline-dark bg-transparent  border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteUser('@user.Id')" @* asp-route-userId="@user.Id" *@><i class="bi bi-trash3-fill"></i></a>
                                             </td>
                                         </tr>
                                     }

@@ -36,6 +36,7 @@ namespace X_ChemicalStorage.Controllers
 
         // ==================== VIEW ====================
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet]
         [Route("")]
         [Route("index")]
@@ -44,6 +45,7 @@ namespace X_ChemicalStorage.Controllers
             ViewData["Title"] = "Bio Bank Storage";
             return View();
         }
+        [HasPermission(Permissions.BioBank.View)]
         public IActionResult demo()
         {
             return View();
@@ -54,6 +56,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get all freezers (Room view)
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/freezers")]
         public async Task<IActionResult> GetAllFreezers()
         {
@@ -64,6 +67,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get single freezer by ID
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/freezers/{id}")]
         public async Task<IActionResult> GetFreezer(string id)
         {
@@ -77,6 +81,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Create a new freezer (and generate full hierarchy)
         /// </summary>
+        [HasPermission(Permissions.BioBank.ManageFreezers)]
         [HttpPost("api/freezers")]
         public async Task<IActionResult> CreateFreezer([FromBody] Bio_CreateFreezerDto dto)
         {
@@ -97,6 +102,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Delete a freezer (cascade deletes entire hierarchy)
         /// </summary>
+        [HasPermission(Permissions.BioBank.ManageFreezers)]
         [HttpDelete("api/freezers/{id}")]
         public async Task<IActionResult> DeleteFreezer(string id)
         {
@@ -112,6 +118,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get shelves of a -80°C freezer
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/freezers/{freezerId}/shelves")]
         public async Task<IActionResult> GetShelves(string freezerId)
         {
@@ -122,6 +129,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get racks under a specific shelf (-80°C)
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/freezers/{freezerId}/shelves/{shelfIndex:int}/racks")]
         public async Task<IActionResult> GetRacksByShelf(string freezerId, int shelfIndex)
         {
@@ -132,6 +140,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get racks of a -150°C freezer (no shelves)
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/freezers/{freezerId}/racks")]
         public async Task<IActionResult> GetRacksByFreezer(string freezerId)
         {
@@ -142,6 +151,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get drawers under a rack
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/racks/{rackId}/drawers")]
         public async Task<IActionResult> GetDrawers(string rackId)
         {
@@ -152,6 +162,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get boxes under a drawer (-80°C)
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/drawers/{drawerId}/boxes")]
         public async Task<IActionResult> GetBoxesByDrawer(string drawerId)
         {
@@ -162,6 +173,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get boxes under a rack (-150°C)
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/racks/{rackId}/boxes")]
         public async Task<IActionResult> GetBoxesByRack(string rackId)
         {
@@ -172,6 +184,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get full box details + all tubes (10×10 grid)
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/boxes/{boxId}")]
         public async Task<IActionResult> GetBoxDetails(string boxId)
         {
@@ -187,6 +200,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Search freezers by ID or barcode
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/search")]
         public async Task<IActionResult> Search([FromQuery] string q)
         {
@@ -202,6 +216,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Get calculated occupancy % for a freezer
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/freezers/{id}/occupancy")]
         public async Task<IActionResult> GetOccupancy(string id)
         {
@@ -214,6 +229,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Update a single tube (status + sample info)
         /// </summary>
+        [HasPermission(Permissions.BioBank.Edit)]
         [HttpPut("api/boxes/{boxId}/tubes/{position}")]
         public async Task<IActionResult> UpdateTube(string boxId, string position, [FromBody] Bio_UpdateTubeDto dto)
         {
@@ -237,6 +253,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Occupy a tube position with a sample
         /// </summary>
+        [HasPermission(Permissions.BioBank.Store)]
         [HttpPost("api/boxes/{boxId}/occupy")]
         public async Task<IActionResult> OccupyTube(string boxId, [FromBody] Bio_OccupyTubeDto dto)
         {
@@ -261,6 +278,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Occupy multiple tube positions at once
         /// </summary>
+        [HasPermission(Permissions.BioBank.Store)]
         [HttpPost("api/boxes/{boxId}/occupy-bulk")]
         public async Task<IActionResult> BulkOccupyTubes(string boxId, [FromBody] Bio_BulkOccupyTubesDto dto)
         {
@@ -285,6 +303,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Reserve a tube position
         /// </summary>
+        [HasPermission(Permissions.BioBank.Reserve)]
         [HttpPost("api/boxes/{boxId}/reserve")]
         public async Task<IActionResult> ReserveTube(string boxId, [FromBody] Bio_ReserveTubeDto dto)
         {
@@ -309,6 +328,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Clear / free a tube position (withdrawal)
         /// </summary>
+        [HasPermission(Permissions.BioBank.Withdraw)]
         [HttpDelete("api/boxes/{boxId}/tubes/{position}")]
         public async Task<IActionResult> ClearTube(string boxId, string position)
         {
@@ -322,6 +342,7 @@ namespace X_ChemicalStorage.Controllers
         
         // ========== SAMPLES ==========
 
+        [HasPermission(Permissions.BioBank.Store)]
         [HttpPost("api/samples/store")]
         public async Task<IActionResult> StoreSample([FromBody] StoreSampleDto dto)
         {
@@ -336,6 +357,7 @@ namespace X_ChemicalStorage.Controllers
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.Reserve)]
         [HttpPost("api/samples/reserve")]
         public async Task<IActionResult> ReserveSample([FromBody] ReserveSampleDto dto)
         {
@@ -350,6 +372,7 @@ namespace X_ChemicalStorage.Controllers
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.Withdraw)]
         [HttpPost("api/samples/withdraw")]
         public async Task<IActionResult> WithdrawSample([FromBody] WithdrawSampleDto dto)
         {
@@ -363,6 +386,7 @@ namespace X_ChemicalStorage.Controllers
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.Transfer)]
         [HttpPost("api/samples/transfer")]
         public async Task<IActionResult> TransferSample([FromBody] TransferSampleDto dto)
         {
@@ -377,6 +401,7 @@ namespace X_ChemicalStorage.Controllers
             catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.Reserve)]
         [HttpDelete("api/boxes/{boxId}/tubes/{position}/reserve")]
         public async Task<IActionResult> CancelReserve(string boxId, string position, [FromQuery] string? performedBy = null)
         {
@@ -386,6 +411,7 @@ namespace X_ChemicalStorage.Controllers
             return NoContent();
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/{id}")]
         public async Task<IActionResult> GetSample(string id)
         {
@@ -394,6 +420,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(s);
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/{id}/history")]
         public async Task<IActionResult> GetSampleHistory(string id)
         {
@@ -401,6 +428,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(history);
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/search")]
         public async Task<IActionResult> SearchSamples([FromQuery] string q)
         {
@@ -408,6 +436,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(results);
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/boxes/{boxId}/tubes/{position}")]
         public async Task<IActionResult> GetTubeDetails(string boxId, string position)
         {
@@ -418,6 +447,7 @@ namespace X_ChemicalStorage.Controllers
 
 
 
+        [HasPermission(Permissions.BioBank.ManageFreezers)]
         [HttpGet("api/seed")]
         public async Task<IActionResult> SeedDemoData()
         {
@@ -514,6 +544,7 @@ namespace X_ChemicalStorage.Controllers
         /// <param name="id">Freezer ID</param>
         /// <param name="boxesPerRack">Optional. Default = freezer.BoxesPerDrawer or 12</param>
         //[HttpPost("api/freezers/{id}/rebuild-boxes")]
+        [HasPermission(Permissions.BioBank.ManageFreezers)]
         [HttpGet("api/freezers/{id}/rebuild-boxes")]
         public async Task<IActionResult> RebuildBoxes(string id, [FromQuery] int? boxesPerRack = null)
         {
@@ -543,6 +574,7 @@ namespace X_ChemicalStorage.Controllers
         // CancelReserve endpoint, around the current line 342-354).
         // ============================================================================
 
+        [HasPermission(Permissions.BioBank.CheckInOut)]
         [HttpPost("api/samples/checkout")]
         public async Task<IActionResult> CheckOutSample([FromBody] CheckOutSampleDto dto)
         {
@@ -556,6 +588,7 @@ namespace X_ChemicalStorage.Controllers
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.CheckInOut)]
         [HttpPost("api/samples/checkin")]
         public async Task<IActionResult> CheckInSample([FromBody] CheckInSampleDto dto)
         {
@@ -572,6 +605,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Samples currently out for testing (drives the "checked-out" panel / badge).
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/checked-out")]
         public async Task<IActionResult> GetActiveCheckOuts()
         {
@@ -582,6 +616,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// Checked-out samples past their ExpectedReturnAt — for the overdue alert view.
         /// </summary>
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/checked-out/overdue")]
         public async Task<IActionResult> GetOverdueCheckOuts()
         {
@@ -592,6 +627,7 @@ namespace X_ChemicalStorage.Controllers
 
         // Add next to the other "SAMPLES" endpoints, e.g. right after GetSample():
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/next-id")]
         public async Task<IActionResult> GetNextSampleId()
         {
@@ -603,6 +639,7 @@ namespace X_ChemicalStorage.Controllers
 
         // Add next to the other "SAMPLES" endpoints:
 
+        [HasPermission(Permissions.BioBank.Edit)]
         [HttpPost("api/samples/update")]
         public async Task<IActionResult> UpdateSample([FromBody] UpdateSampleDto dto)
         {
@@ -616,6 +653,7 @@ namespace X_ChemicalStorage.Controllers
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/boxes/{boxId}/location")]
         public async Task<IActionResult> GetBoxLocation(string boxId)
         {
@@ -624,6 +662,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(loc);
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/tubes/next-available")]
         public async Task<IActionResult> GetNextAvailableSlot([FromQuery] string? freezerId = null)
         {
@@ -632,6 +671,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(slot);
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/sops")]
         public async Task<IActionResult> GetSOPs()
         {
@@ -639,6 +679,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(sops);
         }
 
+        [HasPermission(Permissions.BioBank.ManageSOPs)]
         [HttpPost("api/sops")]
         public async Task<IActionResult> CreateSOP([FromBody] CreateSOPDto dto)
         {
@@ -655,6 +696,7 @@ namespace X_ChemicalStorage.Controllers
 
         // ==================== ATTACHMENTS (NEW) ====================
 
+        [HasPermission(Permissions.BioBank.Attachments)]
         [HttpPost("api/samples/{sampleId}/attachments")]
         [RequestSizeLimit(105_000_000)] // ~100MB + small buffer for multipart overhead
         public async Task<IActionResult> UploadAttachment(string sampleId, [FromQuery] AttachmentCategory category, IFormFile file)
@@ -670,6 +712,7 @@ namespace X_ChemicalStorage.Controllers
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/samples/{sampleId}/attachments")]
         public async Task<IActionResult> GetAttachments(string sampleId, [FromQuery] AttachmentCategory? category = null)
         {
@@ -677,6 +720,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(list);
         }
 
+        [HasPermission(Permissions.BioBank.View)]
         [HttpGet("api/attachments/{id}/download")]
         public async Task<IActionResult> DownloadAttachment(string id)
         {
@@ -685,6 +729,7 @@ namespace X_ChemicalStorage.Controllers
             return File(result.Stream, result.ContentType, result.FileName);
         }
 
+        [HasPermission(Permissions.BioBank.Attachments)]
         [HttpDelete("api/attachments/{id}")]
         public async Task<IActionResult> DeleteAttachment(string id)
         {
@@ -706,6 +751,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(new { message = "Reading processed" });
         }
 
+        [HasPermission(Permissions.IoT.ManageDevices)]
         [HttpPost("api/iot/link")]
         public async Task<IActionResult> LinkDevice([FromBody] LinkIoTDeviceDto dto)
         {
@@ -721,6 +767,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.IoT.View, Permissions.BioBank.View)]
         [HttpGet("api/freezers/{id}/readings")]
         public async Task<IActionResult> GetReadings(string id, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
         {
@@ -730,6 +777,7 @@ namespace X_ChemicalStorage.Controllers
             return Ok(list);
         }
 
+        [HasPermission(Permissions.IoT.View, Permissions.BioBank.View)]
         [HttpGet("api/freezers/{id}/alarms")]
         public async Task<IActionResult> GetAlarms(string id)
         {
@@ -740,6 +788,7 @@ namespace X_ChemicalStorage.Controllers
 
         // ===== في BioBankController.cs: استبدل أكشن AcknowledgeAlarm =====
 
+        [HasPermission(Permissions.IoT.AcknowledgeAlarms)]
         [HttpPost("api/alarms/{id}/acknowledge")]
         public async Task<IActionResult> AcknowledgeAlarm(long id, [FromBody] AckAlarmDto? dto)
         {
@@ -761,6 +810,7 @@ namespace X_ChemicalStorage.Controllers
         /// <summary>
         /// تجربة سريعة من البراوزر — امسح بعد الاختبار
 
+        [HasPermission(Permissions.IoT.ManageDevices)]
         [HttpGet("api/iot/test-ingest")]
         [TestModeOnly]
         public async Task<IActionResult> TestIngest(
@@ -788,6 +838,7 @@ namespace X_ChemicalStorage.Controllers
 
         [HttpGet("api/iot/db-info")]
 
+        [HasPermission(Permissions.IoT.ManageDevices)]
         public async Task<IActionResult> DbInfo([FromServices] ApplicationDbContext db)
         {
             var c = db.Database.GetDbConnection();
@@ -807,6 +858,7 @@ namespace X_ChemicalStorage.Controllers
         /// ربط سريع من البراوزر — امسحه بعد الاختبار
         /// مثال: /biobank/api/iot/test-link?freezerId=FZ80-01&collector=GF5022315032881&serial=GF50222308030161
         /// </summary>
+        [HasPermission(Permissions.IoT.ManageDevices)]
         [HttpGet("api/iot/test-link")]
         public async Task<IActionResult> TestLink(
             [FromQuery] string freezerId = "FZ80-01",

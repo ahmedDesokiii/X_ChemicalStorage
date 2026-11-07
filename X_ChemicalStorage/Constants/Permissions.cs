@@ -1,236 +1,179 @@
-﻿using ERPWeb_v02.Constants;
+﻿using X_ChemicalStorage.Authorization;
 
 namespace X_ChemicalStorage.Constants
 {
-    public class Permissions
+    /// <summary>
+    /// The single source of truth for every permission in the system.
+    ///
+    /// Each nested class is a module, each <c>const</c> is one permission key ("Module.Action").
+    /// On startup <see cref="PermissionSeeder"/> reads these via reflection and syncs them into the
+    /// ERP_Permissions table, so the UI and the role/user assignments always see the full list.
+    ///
+    /// To add a new permission: add a const with a [Permission] attribute here, then use it in
+    /// [HasPermission(Permissions.Module.Action)] and in views (has-permission="..."). No migration needed.
+    /// </summary>
+    public static class Permissions
     {
-        public static List<string> GeneratePermissionsList(string module)
-        {
-            var permissionsList = GenerateAllPermissions();
-            return permissionsList;
-        }
-        public static List<string> Generate_Dashboard_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Dashboard",
-                 $"Permissions.{module}.View Dashboard"
-            };
-        }
-        public static List<string> Generate_Suppliers_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Suppliers",
-                 $"Permissions.{module}.View Suppliers List",
-                 $"Permissions.{module}.Create New Supplier",
-                 $"Permissions.{module}.Details Supplier",
-                 $"Permissions.{module}.Edit Supplier ",
-                 $"Permissions.{module}.Delete Supplier",
-            };
-        }
-        public static List<string> Generate_Categories_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Categories",
-                 $"Permissions.{module}.View Categories List",
-                 $"Permissions.{module}.Create New Category",
-                 $"Permissions.{module}.Details Category",
-                 $"Permissions.{module}.Edit Category ",
-                 $"Permissions.{module}.Delete Category",
-            };
-        }
-        public static List<string> Generate_Units_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Units",
-                 $"Permissions.{module}.View Units List",
-                 $"Permissions.{module}.Create New Unit",
-                 $"Permissions.{module}.Details Unit",
-                 $"Permissions.{module}.Edit Unit ",
-                 $"Permissions.{module}.Delete Unit",
-            };
-        }
-        public static List<string> Generate_Items_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Items",
-                 $"Permissions.{module}.View Items List",
-                 $"Permissions.{module}.Create New Item",
-                 $"Permissions.{module}.Details Item",
-                 $"Permissions.{module}.Edit Item ",
-                 $"Permissions.{module}.Delete Item",
-                 $"Permissions.{module}.Print Item Barcode",
-            };
-        }
-        public static List<string> Generate_Locations_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Locations",
-                 $"Permissions.{module}.View Locations List",
-                 $"Permissions.{module}.Create New Location",
-                 $"Permissions.{module}.Details Location",
-                 $"Permissions.{module}.Edit Location ",
-                 $"Permissions.{module}.Delete Location",
-            };
-        }
-        public static List<string> Generate_Manufacuters_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Manufacuters",
-                 $"Permissions.{module}.View Manufacuters List",
-                 $"Permissions.{module}.Create New Manufacuter",
-                 $"Permissions.{module}.Details Manufacuter",
-                 $"Permissions.{module}.Edit Manufacuter ",
-                 $"Permissions.{module}.Delete Manufacuter",
-            };
-        }
-        public static List<string> Generate_Lots_PermissionsList(string module)
-        {
-            return new List<string>()
-            {
-                 $"Permissions.{module}.Lots",
-                 $"Permissions.{module}.View Lots List",
-                 $"Permissions.{module}.View ExpieryLots List",
-                 $"Permissions.{module}.Create New Lot",
-                 $"Permissions.{module}.Exchange Lot",
-                 $"Permissions.{module}.Details Lot",
-                 $"Permissions.{module}.Edit Lot ",
-                 $"Permissions.{module}.Delete Lot",
-                 $"Permissions.{module}.Print Lot Barcode",
-
-            };
-        }
-
-        public static List<string> GenerateAllPermissions()
-        {
-            var allDashboardPermissions = new List<string>();
-            var allSuppliersPermissions = new List<string>();
-            var allCategoriesPermissions = new List<string>();
-            var allUnitsPermissions = new List<string>();
-            var allItemsPermissions = new List<string>();
-            var allLocationsPermissions = new List<string>();
-            var allManufacutersPermissions = new List<string>();
-            var allLotsPermissions = new List<string>();
-            var allPermissions = new List<string>();
-
-                allSuppliersPermissions.AddRange(Generate_Dashboard_PermissionsList(Modules.Dashboard.ToString()));
-                allSuppliersPermissions.AddRange(Generate_Suppliers_PermissionsList(Modules.Suppliers.ToString()));
-                allCategoriesPermissions.AddRange(Generate_Categories_PermissionsList(Modules.Categories.ToString()));
-                allUnitsPermissions.AddRange(Generate_Units_PermissionsList(Modules.Units.ToString()));
-                allItemsPermissions.AddRange(Generate_Items_PermissionsList(Modules.Items.ToString()));
-                allLocationsPermissions.AddRange(Generate_Locations_PermissionsList(Modules.Locations.ToString()));
-                allManufacutersPermissions.AddRange(Generate_Manufacuters_PermissionsList(Modules.Manufacuters.ToString()));
-                allLotsPermissions.AddRange(Generate_Lots_PermissionsList(Modules.Lots.ToString()));
-                allPermissions = allSuppliersPermissions
-                                .Concat(allDashboardPermissions)
-                                .Concat(allCategoriesPermissions)
-                                .Concat(allUnitsPermissions)
-                                .Concat(allItemsPermissions)
-                                .Concat(allManufacutersPermissions)
-                                .Concat(allLocationsPermissions)
-                                .Concat(allLotsPermissions)
-                                .ToList();
-        
-            return allPermissions;
-        }
-
-        #region Dashboard Modules
+        [PermissionModule("Dashboard", "لوحة التحكم", "bi-speedometer", 10)]
         public static class Dashboard
         {
-            public const string View = "Permissions.Dashboard.Dashboard";
-            public const string View_Dashboard = "Permissions.Dashboard.View Dashboard";
+            [Permission("View dashboard", "عرض لوحة التحكم")] public const string View = "Dashboard.View";
         }
-        #endregion
-        #region Suppliers Modules
-        public static class Suppliers
-        {
-            public const string View = "Permissions.Suppliers.Suppliers";
-            public const string View_Suppliers = "Permissions.Suppliers.View Suppliers List";
-            public const string Create_Suppliers = "Permissions.Suppliers.Create New Supplier";
-            public const string Details_Suppliers = "Permissions.Suppliers.Details Supplier";
-            public const string Edit_Suppliers = "Permissions.Suppliers.Edit Supplier ";
-            public const string Delete_Suppliers = "Permissions.Suppliers.Delete Supplier";
-        }
-        #endregion
-        #region Categories Modules
-        public static class Categories
-        {
-            public const string View = "Permissions.Categories.Categories";
-            public const string View_Categories = "Permissions.Categories.View Categories List";
-            public const string Create_Categories = "Permissions.Categories.Create New Category";
-            public const string Details_Categories = "Permissions.Categories.Details Category";
-            public const string Edit_Categories = "Permissions.Categories.Edit Category ";
-            public const string Delete_Categories = "Permissions.Categories.Delete Category";
-        }
-        #endregion
-        #region Units Modules
-        public static class Units
-        {
-            public const string View = "Permissions.Units.Units";
-            public const string View_Units = "Permissions.Units.View Units List";
-            public const string Create_Units = "Permissions.Units.Create New Unit";
-            public const string Details_Units = "Permissions.Units.Details Unit";
-            public const string Edit_Units = "Permissions.Units.Edit Unit ";
-            public const string Delete_Units = "Permissions.Units.Delete Unit";
-        }
-        #endregion
-        #region Items Modules
+
+        [PermissionModule("Items", "الأصناف", "bi-boxes", 20)]
         public static class Items
         {
-            public const string View = "Permissions.Items.Items";
-            public const string View_Items = "Permissions.Items.View Items List";
-            public const string Create_Items = "Permissions.Items.Create New Item";
-            public const string Details_Items = "Permissions.Items.Details Item";
-            public const string Edit_Items = "Permissions.Items.Edit Item ";
-            public const string Delete_Items = "Permissions.Items.Delete Item";
-            public const string Print_ItemBarcode = "Permissions.Items.Print Item Barcode";
+            [Permission("View list", "عرض قائمة الأصناف")] public const string View = "Items.View";
+            [Permission("Details", "عرض تفاصيل الصنف")] public const string Details = "Items.Details";
+            [Permission("Create", "إضافة صنف")] public const string Create = "Items.Create";
+            [Permission("Edit", "تعديل صنف")] public const string Edit = "Items.Edit";
+            [Permission("Delete", "حذف صنف")] public const string Delete = "Items.Delete";
+            [Permission("Print barcode", "طباعة باركود الصنف")] public const string PrintBarcode = "Items.PrintBarcode";
+        }
 
-        }
-        #endregion
-        #region Locations Modules
-        public static class Locations
-        {
-            public const string View = "Permissions.Locations.Locations";
-            public const string View_Locations = "Permissions.Locations.View Locations List";
-            public const string Create_Locations = "Permissions.Locations.Create New Location";
-            public const string Details_Locations = "Permissions.Locations.Details Location";
-            public const string Edit_Locations = "Permissions.Locations.Edit Location ";
-            public const string Delete_Locations = "Permissions.Locations.Delete Location";
-        }
-        #endregion
-        #region Manufacuters Modules
-        public static class Manufacuters
-        {
-            public const string View = "Permissions.Manufacuters.Manufacuters";
-            public const string View_Manufacuters = "Permissions.Manufacuters.View Manufacuters List";
-            public const string Create_Manufacuters = "Permissions.Manufacuters.Create New Manufacuter";
-            public const string Details_Manufacuters = "Permissions.Manufacuters.Details Manufacuter";
-            public const string Edit_Manufacuters = "Permissions.Manufacuters.Edit Manufacuter ";
-            public const string Delete_Manufacuters = "Permissions.Manufacuters.Delete Manufacuter";
-        }
-        #endregion
-        #region Lots Modules
+        [PermissionModule("Lots", "التشغيلات (Lots)", "bi-archive-fill", 30)]
         public static class Lots
         {
-            public const string View = "Permissions.Lots.Lots";
-            public const string View_Lots = "Permissions.Lots.View Lots List";
-            public const string View_ExpieryLots = "Permissions.Lots.View ExpieryLots List";
-            public const string Create_Lots = "Permissions.Lots.Create New Lot";
-            public const string Exchange_Lots = "Permissions.Lots.Exchange Lot";
-            public const string Details_Lots = "Permissions.Lots.Details Lot";
-            public const string Edit_Lots = "Permissions.Lots.Edit Lot ";
-            public const string Delete_Lots = "Permissions.Lots.Delete Lot";
-            public const string Print_LotBarcode = "Permissions.Lots.Print Lot Barcode";
-
-
+            [Permission("View list", "عرض قائمة التشغيلات")] public const string View = "Lots.View";
+            [Permission("View expiring lots", "عرض التشغيلات قاربت على الانتهاء")] public const string ViewExpiry = "Lots.ViewExpiry";
+            [Permission("Details", "عرض تفاصيل التشغيلة")] public const string Details = "Lots.Details";
+            [Permission("Create", "إضافة تشغيلة")] public const string Create = "Lots.Create";
+            [Permission("Edit", "تعديل تشغيلة")] public const string Edit = "Lots.Edit";
+            [Permission("Delete", "حذف تشغيلة")] public const string Delete = "Lots.Delete";
+            [Permission("Exchange (issue)", "صرف من التشغيلة")] public const string Exchange = "Lots.Exchange";
+            [Permission("Print barcode", "طباعة باركود التشغيلة")] public const string PrintBarcode = "Lots.PrintBarcode";
         }
 
-        #endregion
+        [PermissionModule("Rooms", "الغرف وأماكن التخزين", "bi-building", 40)]
+        public static class Rooms
+        {
+            [Permission("View", "عرض الغرف وأماكن التخزين")] public const string View = "Rooms.View";
+            [Permission("Create", "إضافة غرفة / وحدة / رف / صندوق")] public const string Create = "Rooms.Create";
+            [Permission("Edit", "تعديل الغرف وأماكن التخزين")] public const string Edit = "Rooms.Edit";
+            [Permission("Delete", "حذف الغرف وأماكن التخزين")] public const string Delete = "Rooms.Delete";
+            [Permission("Storage generation wizard", "معالج إنشاء أماكن التخزين")] public const string Generate = "Rooms.Generate";
+        }
+
+        [PermissionModule("TempSamples", "العينات المؤقتة (العهدة)", "bi-hourglass-split", 50)]
+        public static class TempSamples
+        {
+            [Permission("View register", "عرض سجل العينات")] public const string View = "TempSamples.View";
+            [Permission("Details", "عرض ملف العينة")] public const string Details = "TempSamples.Details";
+            [Permission("Receive", "استلام عينة جديدة")] public const string Receive = "TempSamples.Receive";
+            [Permission("Edit", "تعديل بيانات العينة")] public const string Edit = "TempSamples.Edit";
+            [Permission("Place in storage", "وضع العينة في مكان التخزين")] public const string Place = "TempSamples.Place";
+            [Permission("Check out", "إخراج العينة (Check out)")] public const string CheckOut = "TempSamples.CheckOut";
+            [Permission("Return", "إرجاع العينة")] public const string Return = "TempSamples.Return";
+            [Permission("Withdraw", "سحب العينة")] public const string Withdraw = "TempSamples.Withdraw";
+            [Permission("Dispose", "إعدام العينة")] public const string Dispose = "TempSamples.Dispose";
+            [Permission("Add note", "إضافة ملاحظة")] public const string AddNote = "TempSamples.AddNote";
+            [Permission("Attachments", "رفع وعرض المرفقات")] public const string Attachments = "TempSamples.Attachments";
+            [Permission("Print label / report", "طباعة الملصق وتقرير العهدة")] public const string Print = "TempSamples.Print";
+            [Permission("Verify custody chain", "التحقق من سلسلة العهدة")] public const string VerifyChain = "TempSamples.VerifyChain";
+        }
+
+        [PermissionModule("BioBank", "بنك العينات الحيوية", "bi-droplet", 60)]
+        public static class BioBank
+        {
+            [Permission("View", "عرض بنك العينات")] public const string View = "BioBank.View";
+            [Permission("Manage freezers", "إدارة الفريزرات (إضافة/حذف/إعادة بناء)")] public const string ManageFreezers = "BioBank.ManageFreezers";
+            [Permission("Store samples", "تخزين العينات وشغل الأنابيب")] public const string Store = "BioBank.Store";
+            [Permission("Reserve", "حجز أماكن / عينات")] public const string Reserve = "BioBank.Reserve";
+            [Permission("Edit samples", "تعديل بيانات العينات")] public const string Edit = "BioBank.Edit";
+            [Permission("Withdraw / clear", "سحب العينات وتفريغ الأنابيب")] public const string Withdraw = "BioBank.Withdraw";
+            [Permission("Transfer", "نقل العينات")] public const string Transfer = "BioBank.Transfer";
+            [Permission("Check out / in", "إخراج وإرجاع العينات")] public const string CheckInOut = "BioBank.CheckInOut";
+            [Permission("Attachments", "مرفقات العينات")] public const string Attachments = "BioBank.Attachments";
+            [Permission("Manage SOPs", "إدارة إجراءات التشغيل (SOP)")] public const string ManageSOPs = "BioBank.ManageSOPs";
+        }
+
+        [PermissionModule("IoT", "مراقبة الفريزرات (IoT)", "bi-thermometer-half", 70)]
+        public static class IoT
+        {
+            [Permission("View monitoring", "عرض لوحة المراقبة والقراءات")] public const string View = "IoT.View";
+            [Permission("Acknowledge alarms", "تأكيد الإنذارات")] public const string AcknowledgeAlarms = "IoT.AcknowledgeAlarms";
+            [Permission("Freezer settings", "تعديل إعدادات الفريزر")] public const string ManageSettings = "IoT.ManageSettings";
+            [Permission("Link devices", "ربط أجهزة IoT")] public const string ManageDevices = "IoT.ManageDevices";
+            [Permission("Alarm contacts", "إدارة جهات اتصال الإنذار")] public const string ManageAlarmContacts = "IoT.ManageAlarmContacts";
+            [Permission("Notifications log", "عرض سجل الإشعارات")] public const string ViewNotifications = "IoT.ViewNotifications";
+        }
+
+        [PermissionModule("Suppliers", "الموردين", "bi-truck", 80)]
+        public static class Suppliers
+        {
+            [Permission("View list", "عرض قائمة الموردين")] public const string View = "Suppliers.View";
+            [Permission("Details", "عرض تفاصيل المورد")] public const string Details = "Suppliers.Details";
+            [Permission("Create", "إضافة مورد")] public const string Create = "Suppliers.Create";
+            [Permission("Edit", "تعديل مورد")] public const string Edit = "Suppliers.Edit";
+            [Permission("Delete", "حذف مورد")] public const string Delete = "Suppliers.Delete";
+        }
+
+        [PermissionModule("Categories", "التصنيفات", "bi-tags", 90)]
+        public static class Categories
+        {
+            [Permission("View list", "عرض التصنيفات")] public const string View = "Categories.View";
+            [Permission("Details", "عرض تفاصيل التصنيف")] public const string Details = "Categories.Details";
+            [Permission("Create", "إضافة تصنيف / تصنيف فرعي")] public const string Create = "Categories.Create";
+            [Permission("Edit", "تعديل تصنيف / تصنيف فرعي")] public const string Edit = "Categories.Edit";
+            [Permission("Delete", "حذف تصنيف / تصنيف فرعي")] public const string Delete = "Categories.Delete";
+        }
+
+        [PermissionModule("Units", "الوحدات", "bi-rulers", 100)]
+        public static class Units
+        {
+            [Permission("View list", "عرض الوحدات")] public const string View = "Units.View";
+            [Permission("Details", "عرض تفاصيل الوحدة")] public const string Details = "Units.Details";
+            [Permission("Create", "إضافة وحدة")] public const string Create = "Units.Create";
+            [Permission("Edit", "تعديل وحدة")] public const string Edit = "Units.Edit";
+            [Permission("Delete", "حذف وحدة")] public const string Delete = "Units.Delete";
+        }
+
+        [PermissionModule("Manufacturers", "الشركات المصنعة", "bi-buildings", 110)]
+        public static class Manufacturers
+        {
+            [Permission("View list", "عرض الشركات المصنعة")] public const string View = "Manufacturers.View";
+            [Permission("Details", "عرض تفاصيل الشركة")] public const string Details = "Manufacturers.Details";
+            [Permission("Create", "إضافة شركة")] public const string Create = "Manufacturers.Create";
+            [Permission("Edit", "تعديل شركة")] public const string Edit = "Manufacturers.Edit";
+            [Permission("Delete", "حذف شركة")] public const string Delete = "Manufacturers.Delete";
+        }
+
+        [PermissionModule("Locations", "المواقع", "bi-geo-alt", 120)]
+        public static class Locations
+        {
+            [Permission("View list", "عرض المواقع")] public const string View = "Locations.View";
+            [Permission("Details", "عرض تفاصيل الموقع")] public const string Details = "Locations.Details";
+            [Permission("Create", "إضافة موقع")] public const string Create = "Locations.Create";
+            [Permission("Edit", "تعديل موقع")] public const string Edit = "Locations.Edit";
+            [Permission("Delete", "حذف موقع")] public const string Delete = "Locations.Delete";
+        }
+
+        [PermissionModule("Users", "المستخدمين", "bi-people-fill", 130)]
+        public static class Users
+        {
+            [Permission("View list", "عرض المستخدمين")] public const string View = "Users.View";
+            [Permission("Create", "إضافة مستخدم")] public const string Create = "Users.Create";
+            [Permission("Edit", "تعديل مستخدم")] public const string Edit = "Users.Edit";
+            [Permission("Delete", "حذف مستخدم")] public const string Delete = "Users.Delete";
+            [Permission("Assign roles", "تعيين أدوار المستخدم")] public const string ManageRoles = "Users.ManageRoles";
+            [Permission("User-specific permissions", "صلاحيات خاصة بالمستخدم")] public const string ManagePermissions = "Users.ManagePermissions";
+        }
+
+        [PermissionModule("Roles", "الأدوار والصلاحيات", "bi-shield-lock", 140)]
+        public static class Roles
+        {
+            [Permission("View list", "عرض الأدوار")] public const string View = "Roles.View";
+            [Permission("Create", "إضافة دور")] public const string Create = "Roles.Create";
+            [Permission("Edit", "تعديل دور")] public const string Edit = "Roles.Edit";
+            [Permission("Delete", "حذف دور")] public const string Delete = "Roles.Delete";
+            [Permission("Manage role permissions", "إدارة صلاحيات الدور")] public const string ManagePermissions = "Roles.ManagePermissions";
+        }
+
+        [PermissionModule("Backup", "النسخ الاحتياطي", "bi-cloud-arrow-up", 150)]
+        public static class Backup
+        {
+            [Permission("View status", "عرض حالة النسخ الاحتياطي")] public const string View = "Backup.View";
+            [Permission("Run backup", "تشغيل نسخة احتياطية")] public const string Run = "Backup.Run";
+        }
     }
 }

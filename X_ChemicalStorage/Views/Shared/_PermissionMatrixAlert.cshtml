@@ -1,0 +1,16 @@
+@* SweetAlert toast for messages saved in Session by the controller (same pattern as the other screens) *@
+@{
+    var msgType = Context.Session.GetString(Helper.MsgType);
+}
+@if (!string.IsNullOrEmpty(msgType))
+{
+    <script>
+        Swal.fire({
+            toast: true, position: 'top-start', timer: 3500, showConfirmButton: false, timerProgressBar: true,
+            icon: '@(msgType == Helper.Success ? "success" : msgType == Helper.Warning ? "warning" : "error")',
+            title: @Json.Serialize(Context.Session.GetString(Helper.Title)),
+            text: @Json.Serialize(Context.Session.GetString(Helper.Msg))
+        });
+    </script>
+    Context.Session.SetString(Helper.MsgType, "");
+}

@@ -27,7 +27,6 @@ namespace X_ChemicalStorage.Seeds
                     await userManager.CreateAsync(defaultUser, "$Aa123123");
                     await userManager.AddToRoleAsync(defaultUser, Roles.User.ToString());
                 }
-                //await roleManager.SeedClaimsForUser();
             }
         }
 
@@ -52,32 +51,6 @@ namespace X_ChemicalStorage.Seeds
                 {
                     await userManager.CreateAsync(defaultUser, "$Aa123123");
                     await userManager.AddToRoleAsync(defaultUser, Roles.Admin.ToString());
-                }
-                //await roleManager.SeedClaimsForAdmin();
-            }
-        }
-
-
-        private async static Task SeedClaimsForAdmin(this RoleManager<IdentityRole> roleManager)
-        {
-            var adminRole = await roleManager.FindByNameAsync("Admin");
-            await roleManager.AddPermissionClaim(adminRole, "");
-        }
-        private async static Task SeedClaimsForUser(this RoleManager<IdentityRole> roleManager)
-        {
-            var userRole = await roleManager.FindByNameAsync("User");
-            await roleManager.AddPermissionClaim(userRole, "");
-        }
-
-        public static async Task AddPermissionClaim(this RoleManager<IdentityRole> roleManager, IdentityRole role, string module)
-        {
-            var allClaims = await roleManager.GetClaimsAsync(role);
-            var allPermissions = Permissions.GeneratePermissionsList(module);
-            foreach (var permission in allPermissions)
-            {
-                if (!allClaims.Any(a => a.Type == "Permission" && a.Value == permission))
-                {
-                    await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
                 }
             }
         }

@@ -4,6 +4,7 @@ using X_ChemicalStorage.IRepository;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class SuppliersController : Controller
     {
         private readonly IServicesRepository<Supplier> _servicesSupplier ;
@@ -25,6 +26,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of Suppliers
+        [HasPermission(Permissions.Suppliers.View)]
         public IActionResult Index()
         {
             var suppliers = new SupplierViewModel
@@ -38,7 +40,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Delete Center [Delete & Delete Log]
         //Delete
-        [Authorize(Permissions.Suppliers.Delete_Suppliers)]
+        [HasPermission(Permissions.Suppliers.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -60,11 +62,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit Center [Create & Update]
-        [Authorize(Permissions.Suppliers.Create_Suppliers), Authorize(Permissions.Suppliers.Edit_Suppliers)]
+        [HasPermission(Permissions.Suppliers.Create, Permissions.Suppliers.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(SupplierViewModel model)
+        public async Task<IActionResult> Save(SupplierViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewSupplier?.Id ?? 0) == 0 ? Permissions.Suppliers.Create : Permissions.Suppliers.Edit))
+                return Forbid();
+
             if (ModelState.IsValid)
             {
                 var userId = _userManager.GetUserId(User);
@@ -97,6 +103,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of Supplier 
+        [HasPermission(Permissions.Suppliers.Details, Permissions.Suppliers.Edit)]
         [HttpGet]
         public IActionResult SelectedSupplier(int id)
         {

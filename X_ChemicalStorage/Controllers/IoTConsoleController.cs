@@ -21,11 +21,13 @@ namespace X_ChemicalStorage.Controllers
 
         private bool Enabled => string.Equals(_cfg["IoT:TestConsole"], "true", StringComparison.OrdinalIgnoreCase);
 
+        [HasPermission(Permissions.IoT.View)]
         [HttpGet("biobank/iot-console")]
         public IActionResult Index()
             => Enabled ? Content(Html, "text/html; charset=utf-8") : NotFound();
 
         /// كل الإنذارات المفتوحة (كل الفريزرات)
+        [HasPermission(Permissions.IoT.View)]
         [HttpGet("biobank/api/iot/alarms")]
         public async Task<IActionResult> OpenAlarms()
             => Enabled ? Ok(await _iot.GetActiveAlarmsAsync(null)) : NotFound();

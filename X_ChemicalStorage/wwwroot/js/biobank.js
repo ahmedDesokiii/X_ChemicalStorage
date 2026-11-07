@@ -620,7 +620,7 @@
             ${freezer.hasActiveAlarm ? '<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>' : ""}
         </div>
         <button type="button" class="bb-btn-add" style="padding:6px 12px;font-size:0.8rem;"
-                data-action="link-iot" data-freezer-id="${freezer.id}">
+                data-action="link-iot" data-perm="IoT.ManageDevices" data-freezer-id="${freezer.id}">
             🔗 Link Device
         </button>
     </div>
@@ -740,7 +740,7 @@
         const actions = $("modalActions");
         actions.innerHTML = `
         <button type="button" class="bb-btn-cancel" id="bbLinkIoTCancel">Cancel</button>
-        <button type="button" class="bb-modal-btn" id="bbLinkIoTSubmit">Link Device</button>
+        <button type="button" class="bb-modal-btn" id="bbLinkIoTSubmit" data-perm="IoT.ManageDevices">Link Device</button>
     `;
 
         $("bbModal").classList.add("show");
@@ -1312,9 +1312,9 @@
     `;
             actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
-        <button class="bb-modal-btn" id="btnEditSample">Edit</button>
-        <button class="bb-modal-btn" style="background:linear-gradient(135deg,#a78bfa,var(--bb-primary))" id="btnCheckOut">Check Out</button>
-        <button class="bb-modal-btn" style="background:linear-gradient(135deg,#f59e0b,#ef4444)" id="btnWithdraw">Withdraw</button>
+        <button class="bb-modal-btn" id="btnEditSample" data-perm="BioBank.Edit">Edit</button>
+        <button class="bb-modal-btn" style="background:linear-gradient(135deg,#a78bfa,var(--bb-primary))" id="btnCheckOut" data-perm="BioBank.CheckInOut">Check Out</button>
+        <button class="bb-modal-btn" style="background:linear-gradient(135deg,#f59e0b,#ef4444)" id="btnWithdraw" data-perm="BioBank.Withdraw">Withdraw</button>
         <button class="bb-modal-btn" id="btnHistory">History</button>
     `;
             $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
@@ -1347,7 +1347,7 @@
     `;
             actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
-        <button class="bb-modal-btn" style="background:linear-gradient(135deg,var(--bb-success),var(--bb-accent))" id="btnCheckIn">Check In</button>
+        <button class="bb-modal-btn" style="background:linear-gradient(135deg,var(--bb-success),var(--bb-accent))" id="btnCheckIn" data-perm="BioBank.CheckInOut">Check In</button>
         <button class="bb-modal-btn" id="btnHistory">History</button>
     `;
             $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
@@ -1365,8 +1365,8 @@
     `;
             actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
-        <button class="bb-btn-cancel" id="btnCancelReserve">Cancel Reserve</button>
-        <button class="bb-modal-btn" id="btnConfirmStore">Confirm Store</button>
+        <button class="bb-btn-cancel" id="btnCancelReserve" data-perm="BioBank.Reserve">Cancel Reserve</button>
+        <button class="bb-modal-btn" id="btnConfirmStore" data-perm="BioBank.Store">Confirm Store</button>
     `;
             $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
             $("btnCancelReserve").onclick = () => doCancelReserve();
@@ -1415,8 +1415,8 @@
     `;
             actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
-        <button class="bb-btn-cancel" id="btnReserve">Reserve</button>
-        <button class="bb-modal-btn" id="btnStore">Store Sample</button>
+        <button class="bb-btn-cancel" id="btnReserve" data-perm="BioBank.Reserve">Reserve</button>
+        <button class="bb-modal-btn" id="btnStore" data-perm="BioBank.Store">Store Sample</button>
     `;
             $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
             $("btnStore").onclick = () => doStore();
@@ -1499,7 +1499,7 @@
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;">
             ${located ? `<button class="bb-btn-cancel" id="viewBtn-${s.id}" style="padding:6px 12px;">View</button>` : ""}
-            <button class="bb-modal-btn" id="editBtn-${s.id}" style="margin-top:0;padding:6px 12px;">Edit</button>
+            <button class="bb-modal-btn" id="editBtn-${s.id}" data-perm="BioBank.Edit" style="margin-top:0;padding:6px 12px;">Edit</button>
         </div>
     </div>`;
     }
@@ -1570,7 +1570,7 @@
     `;
         actions.innerHTML = `
         <button class="bb-btn-cancel" id="btnCloseModal">Close</button>
-        <button class="bb-modal-btn" id="btnSaveEdit">Save Changes</button>
+        <button class="bb-modal-btn" id="btnSaveEdit" data-perm="BioBank.Edit">Save Changes</button>
     `;
         $("btnCloseModal").onclick = () => $("bbModal").classList.remove("show");
         $("btnSaveEdit").onclick = () => doUpdateSample(sample.id);
@@ -1968,6 +1968,7 @@
     }
 
     async function loadAttachmentList(sampleId, category, containerId, allowDelete) {
+        allowDelete = allowDelete && (!window.can || window.can("BioBank.Attachments"));
         const container = $(containerId);
         if (!container) return;
         container.innerHTML = `<div style="font-size:0.75rem;color:var(--bb-text-muted);">Loading…</div>`;

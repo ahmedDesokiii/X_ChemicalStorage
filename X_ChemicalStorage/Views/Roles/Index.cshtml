@@ -44,7 +44,7 @@
             <div class="card p-0">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
                     <!-- Button trigger modal -->
-                    <a class="btn fw-bold btn-outline-warning bg-transparent border-0 p-0 mx-1 fs-2" title="Add New Role" onclick="ResetRole()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
+                    <a has-permission="@Permissions.Roles.Create" class="btn fw-bold btn-outline-warning bg-transparent border-0 p-0 mx-1 fs-2" title="Add New Role" onclick="ResetRole()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
 
                 </div>
                 <!-- /.card-header -->
@@ -83,9 +83,12 @@
                                             <td class="text-center" style="width:150px;"><span class="bg-success-subtle fw-bold p-2 link-success rounded-5">@role.Name</span></td>
                                             <td class="text-center" style="width:250px;">@role.Details</td>
                                             <td class="text-center py-1">
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Manage Role Permissions" asp-controller="Roles" asp-action="ManagePermissions" asp-route-roleId="@role.Id"><i class="bi bi-shield-lock"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" Edit" onclick="Edit('@role.Id','@role.Name','@role.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
-                                                <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" Delete" onclick="DeleteRole('@role.Id')"> <i class="bi bi-trash3-fill"></i></a>
+                                                <a has-permission="@Permissions.Roles.ManagePermissions" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Manage Role Permissions" asp-controller="Roles" asp-action="ManagePermissions" asp-route-roleId="@role.Id"><i class="bi bi-shield-lock"></i></a>
+                                                <a has-permission="@Permissions.Roles.Edit" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" Edit" onclick="Edit('@role.Id','@role.Name','@role.Details')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
+                                                @if (role.Name != PermissionService.AdminRole)
+                                                {
+                                                    <a has-permission="@Permissions.Roles.Delete" class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title=" Delete" onclick="DeleteRole('@role.Id')"> <i class="bi bi-trash3-fill"></i></a>
+                                                }
                                             </td>
                                         </tr>
                                     }

@@ -1,7 +1,7 @@
 @model LotViewModel
 @{
-    var canItem = AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details_Items).Result.Succeeded;
-    var canLot = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details_Lots).Result.Succeeded;
+    var canItem = AuthorizationService.AuthorizeAsync(User, Permissions.Items.Details).Result.Succeeded;
+    var canLot = AuthorizationService.AuthorizeAsync(User, Permissions.Lots.Details).Result.Succeeded;
     var today = DateTime.Today;
     int n = 0;
 }

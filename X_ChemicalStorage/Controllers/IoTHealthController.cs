@@ -21,6 +21,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         /// سلامة نظام المراقبة نفسه + آخر مرة كل Gateway بعت بيانات + طابور الإشعارات.
+        [HasPermission(Permissions.IoT.View)]
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {

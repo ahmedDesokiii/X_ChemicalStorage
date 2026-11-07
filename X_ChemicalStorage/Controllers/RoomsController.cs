@@ -8,6 +8,7 @@ using X_ChemicalStorage.Models.ViewModels;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class RoomsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -127,6 +128,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region List / Tree View
+        [HasPermission(Permissions.Rooms.View)]
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -171,10 +173,14 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Room CRUD
+        [HasPermission(Permissions.Rooms.Create, Permissions.Rooms.Edit)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveRoom(Room model)
         {
+            if (!await HttpContext.HasPermissionAsync(model.Id == 0 ? Permissions.Rooms.Create : Permissions.Rooms.Edit))
+                return Forbid();
+
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please provide a valid room name.";
@@ -223,6 +229,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Delete)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteRoom(int id)
@@ -274,6 +281,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Auto-Generation Wizard
+        [HasPermission(Permissions.Rooms.Generate)]
         [HttpGet]
         public async Task<IActionResult> GenerateWizard()
         {
@@ -284,6 +292,7 @@ namespace X_ChemicalStorage.Controllers
             return View(model);
         }
 
+        [HasPermission(Permissions.Rooms.Generate)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateWizard(GenerateStorageViewModel model)
@@ -387,6 +396,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Manual Add Operations
+        [HasPermission(Permissions.Rooms.Create)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddStorageUnit(int roomId, int storageUnitTypeId, string name, bool isHazardous,
@@ -442,6 +452,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Create)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddShelf(int storageUnitId, string name)
@@ -479,6 +490,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Create)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddBox(int shelfId, string name, int rowsCount, int columnsCount)
@@ -520,6 +532,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Edit Operations
+        [HasPermission(Permissions.Rooms.Edit)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditStorageUnit(int id, int storageUnitTypeId, string name, bool isHazardous,
@@ -591,6 +604,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Edit)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditShelf(int id, string name)
@@ -632,6 +646,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Edit)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditBox(int id, string name, int rowsCount, int columnsCount)
@@ -692,6 +707,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Delete Operations
+        [HasPermission(Permissions.Rooms.Delete)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteStorageUnit(int id)
@@ -730,6 +746,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Delete)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteShelf(int id)
@@ -766,6 +783,7 @@ namespace X_ChemicalStorage.Controllers
             }
         }
 
+        [HasPermission(Permissions.Rooms.Delete)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteBox(int id)

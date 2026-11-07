@@ -9,6 +9,7 @@ using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class LotsController : Controller
     {
         private readonly IServicesRepository<Lot> _servicesLot;
@@ -39,7 +40,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of Lots
-        [Authorize(Permissions.Lots.View_Lots)]
+        [HasPermission(Permissions.Lots.View)]
         public async Task<IActionResult> Index()
         {
 
@@ -77,27 +78,27 @@ namespace X_ChemicalStorage.Controllers
 
             };
             Lots.CanCreateLot = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.Create_Lots)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.Create)).Succeeded;
 
             Lots.CanViewExpiryLots = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.View_ExpieryLots)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.ViewExpiry)).Succeeded;
 
             Lots.CanViewDetails = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.Details_Lots)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.Details)).Succeeded;
             Lots.CanViewDetails = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Items.Details_Items)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Items.Details)).Succeeded;
 
             Lots.CanEditLot = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.Edit_Lots)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.Edit)).Succeeded;
 
             Lots.CanDeleteLot = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.Delete_Lots)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.Delete)).Succeeded;
 
             Lots.CanExchangeLot = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.Exchange_Lots)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.Exchange)).Succeeded;
 
             Lots.CanPrintBarcode = (await _authorizationService
-                .AuthorizeAsync(User, Permissions.Lots.Print_LotBarcode)).Succeeded;
+                .AuthorizeAsync(User, Permissions.Lots.PrintBarcode)).Succeeded;
 
             return View(Lots);
         }
@@ -105,7 +106,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Delete Lot [Delete & Delete Log]
         //Delete
-        [Authorize(Permissions.Lots.Delete_Lots)]
+        [HasPermission(Permissions.Lots.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -127,11 +128,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit Lot [Create & Update]
-        [Authorize(Permissions.Lots.Create_Lots), Authorize(Permissions.Lots.Edit_Lots)]
+        [HasPermission(Permissions.Lots.Create, Permissions.Lots.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(ItemViewModel model)
+        public async Task<IActionResult> Save(ItemViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewLot?.Id ?? 0) == 0 ? Permissions.Lots.Create : Permissions.Lots.Edit))
+                return Forbid();
+
             var userId = _userManager.GetUserId(User);
             // model.NewLot.ItemId = model.NewItem.Id;
             // model.NewLot.Item = model.NewItem;
@@ -164,7 +169,7 @@ namespace X_ChemicalStorage.Controllers
         }
         #endregion
         #region Save & Print (Receive Lot screen → "Save & print label")
-        [Authorize(Permissions.Lots.Create_Lots)]
+        [HasPermission(Permissions.Lots.Create)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult SaveAndPrint(ItemViewModel model)
@@ -196,6 +201,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of Lot 
+        [HasPermission(Permissions.Lots.Details, Permissions.Lots.Edit)]
         [HttpGet]
         public IActionResult SelectedLot(int id)
         {
@@ -216,6 +222,7 @@ namespace X_ChemicalStorage.Controllers
         [HttpGet]
 
 
+        [HasPermission(Permissions.Lots.Create)]
         public IActionResult CreateLot(int id)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -259,6 +266,7 @@ namespace X_ChemicalStorage.Controllers
         //}
         #endregion
         #region Disbursing → Lot Exchange 
+        [HasPermission(Permissions.Lots.Exchange)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult Exchange(ItemViewModel model)
@@ -303,7 +311,7 @@ namespace X_ChemicalStorage.Controllers
 
         #region Print Lot Barcode
         // Legacy entry point (route values) — kept so old links keep working
-        [Authorize(Permissions.Lots.Print_LotBarcode)]
+        [HasPermission(Permissions.Lots.PrintBarcode)]
         public IActionResult PrintLotBarcode(string barcodeFile, string itemName, string lotNumber, string expiryDate)
         {
             ViewBag.BarcodePath = barcodeFile;
@@ -314,7 +322,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         // New entry point: everything loaded from the DB by id (name, storage, location, dates)
-        [Authorize(Permissions.Lots.Print_LotBarcode)]
+        [HasPermission(Permissions.Lots.PrintBarcode)]
         public IActionResult PrintLot(int id)
         {
             var lot = _context.Lots

@@ -12,6 +12,7 @@ using static X_ChemicalStorage.Constants.Permissions;
 
 namespace X_ChemicalStorage.Controllers
 {
+    [Authorize]
     public class ItemsController : Controller
     {
         private readonly IWebHostEnvironment _env;
@@ -42,7 +43,7 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region List of Items
-        [Authorize(Permissions.Items.View_Items)]
+        [HasPermission(Permissions.Items.View)]
         public IActionResult Index()
         {
             var Items = new ItemViewModel();
@@ -87,7 +88,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Delete Item [Delete & Delete Log]
-        [Authorize(Permissions.Items.Delete_Items)]
+        [HasPermission(Permissions.Items.Delete)]
         public IActionResult Delete(int Id)
         {
             var userId = _userManager.GetUserId(User);
@@ -99,12 +100,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add|Edit Item [Create & Update] without print
-        [Authorize(Permissions.Items.Create_Items),
-         Authorize(Permissions.Items.Edit_Items)]
+        [HasPermission(Permissions.Items.Create, Permissions.Items.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(ItemViewModel model)
+        public async Task<IActionResult> Save(ItemViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewItem?.Id ?? 0) == 0 ? Permissions.Items.Create : Permissions.Items.Edit))
+                return Forbid();
+
             var userId = _userManager.GetUserId(User);
 
             // ===== NEW — server-side SubCategory/Category integrity check =====
@@ -148,12 +152,15 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Add with print |Edit Item [Create with print & Update]
-        [Authorize(Permissions.Items.Create_Items),
-         Authorize(Permissions.Items.Edit_Items)]
+        [HasPermission(Permissions.Items.Create, Permissions.Items.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult SaveAndPrint(ItemViewModel model)
+        public async Task<IActionResult> SaveAndPrint(ItemViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewItem?.Id ?? 0) == 0 ? Permissions.Items.Create : Permissions.Items.Edit))
+                return Forbid();
+
             var userId = _userManager.GetUserId(User);
 
             // Same server-side SubCategory/Category integrity check as Save()
@@ -201,6 +208,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Details Of Item
+        [HasPermission(Permissions.Items.Details, Permissions.Items.Edit)]
         [HttpGet]
         public IActionResult SelectedItem(int id)
         {
@@ -251,6 +259,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Receiving → Lot Creation
+        [HasPermission(Permissions.Lots.Create)]
         [HttpGet]
         public IActionResult CreateLot(int id)
         {
@@ -284,6 +293,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Disbursing → Lot Exchange
+        [HasPermission(Permissions.Lots.Exchange)]
         [HttpGet]
         public IActionResult ExchangeLot(int id)
         {
@@ -321,6 +331,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Print Barcode
+        [HasPermission(Permissions.Items.PrintBarcode)]
         public IActionResult PrintItemBarcode(string barcodeFile, string code)
         {
             var item = _context.Items

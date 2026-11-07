@@ -53,17 +53,17 @@
                 </div>
             </div>
             <div class="d-flex gap-2 flex-wrap">
-                @if (can(Permissions.Items.Print_ItemBarcode))
+                @if (can(Permissions.Items.PrintBarcode))
                 {
                     <a class="iv-btn iv-btn-light" target="_blank" asp-controller="Items" asp-action="PrintItemBarcode" asp-route-barcodeFile="@item?.BarcodeImage" asp-route-Code="@item?.Code">
                         <i class="bi bi-printer-fill"></i> Print label
                     </a>
                 }
-                @if (can(Permissions.Lots.Exchange_Lots) && avail > 0)
+                @if (can(Permissions.Lots.Exchange) && avail > 0)
                 {
                     <a class="iv-btn iv-btn-light" asp-controller="Items" asp-action="ExchangeLot" asp-route-Id="@item?.Id"><i class="bi bi-cart-dash-fill"></i> Exchange</a>
                 }
-                @if (can(Permissions.Lots.Create_Lots))
+                @if (can(Permissions.Lots.Create))
                 {
                     <a class="iv-btn iv-btn-gold" asp-controller="Items" asp-action="CreateLot" asp-route-Id="@item?.Id"><i class="bi bi-cart-plus-fill"></i> Receive new lot</a>
                 }
@@ -149,7 +149,7 @@
                                             <td><span class="iv-pill @(lot.SDS == true ? "ok" : "bad")">@(lot.SDS == true ? "Valid" : "Invalid")</span></td>
                                             <td class="iv-sub fw-bold">@lot.ManufactureDate?.ToString("dd MMM yyyy")</td>
                                             <td>
-                                                @if (can(Permissions.Lots.Details_Lots))
+                                                @if (can(Permissions.Lots.Details))
                                                 {
                                                     <a class="iv-icon-btn" data-tip="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill"></i></a>
                                                 }
@@ -185,7 +185,7 @@
                                             <td><span class="iv-qty">@lot.TotalQuantity</span></td>
                                             <td><span class="iv-pill @(lot.SDS == true ? "ok" : "bad")">@(lot.SDS == true ? "Valid" : "Invalid")</span></td>
                                             <td>
-                                                @if (can(Permissions.Lots.Details_Lots))
+                                                @if (can(Permissions.Lots.Details))
                                                 {
                                                     <a class="iv-icon-btn" data-tip="Details" asp-controller="Lots" asp-action="SelectedLot" asp-route-Id="@lot.Id"><i class="bi bi-eye-fill"></i></a>
                                                 }

@@ -1,0 +1,166 @@
+@model PermissionMatrixViewModel
+@*
+    Shared permission grid.
+    ViewData["Mode"]        = "role" (checkboxes) | "user" (inherit / grant / deny)
+    ViewData["Action"]      = POST action name
+    ViewData["IdField"]     = name of the hidden id field ("roleId" | "userId")
+    ViewData["BackController"], ViewData["BackTitle"], ViewData["SubjectLabel"]
+*@
+@{
+    var mode = (ViewData["Mode"] as string) ?? "role";
+    var isUser = mode == "user";
+    var readOnly = Model.IsAdmin;
+    var pct = Model.TotalCount == 0 ? 0 : Model.GrantedCount * 100 / Model.TotalCount;
+}
+
+<div class="perm-page" dir="rtl">
+    <div class="perm-hero d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <div class="crumb small mb-1">
+                <a asp-controller="@(ViewData["BackController"] as string)" asp-action="Index">@ViewData["BackTitle"]</a>
+                <i class="bi bi-chevron-left mx-1"></i>
+                <span>@ViewData["Title"]</span>
+            </div>
+            <h1><i class="bi bi-shield-lock ms-2"></i>@ViewData["Title"]</h1>
+        </div>
+    </div>
+
+    <form id="permForm" method="post" asp-action="@(ViewData["Action"] as string)"
+          data-mode="@mode" data-readonly="@(readOnly ? "true" : "false")"
+          class="container-fluid px-3 px-md-4 my-3">
+        <input type="hidden" name="@ViewData["IdField"]" value="@Model.SubjectId" />
+
+        <!-- Summary / toolbar -->
+        <div class="card perm-summary mb-4" id="permSummary">
+            <div class="card-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-4">
+                        <div class="text-muted small">@ViewData["SubjectLabel"]</div>
+                        <div class="subject">@Model.SubjectName</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Details))
+                        {
+                            <div class="text-muted small">@Model.Details</div>
+                        }
+                        @if (isUser && Model.SubjectRoles.Any())
+                        {
+                            <div class="mt-1">
+                                @foreach (var r in Model.SubjectRoles)
+                                {
+                                    <span class="badge bg-info-subtle text-info-emphasis border me-1">@r</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-lg-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>الصلاحيات الفعلية</span>
+                            <span class="fw-bold" id="permCount">@Model.GrantedCount / @Model.TotalCount</span>
+                        </div>
+                        <div class="progress"><div class="progress-bar bg-success" id="permBar" style="width:@pct%"></div></div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                            <input type="search" id="permSearch" class="form-control form-control-sm" style="max-width:230px"
+                                   placeholder="ابحث باسم الموديول أو الصلاحية..." />
+                            @if (!readOnly)
+                            {
+                                <button type="button" id="permAll" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-check2-all"></i> @(isUser ? "منح الكل" : "تحديد الكل")
+                                </button>
+                                <button type="button" id="permNone" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eraser"></i> @(isUser ? "رجوع للوراثة" : "إلغاء الكل")
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-success px-3">
+                                    <i class="bi bi-floppy2-fill"></i> حفظ
+                                    <span class="dirty-dot badge rounded-pill bg-warning text-dark ms-1">غير محفوظ</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (readOnly)
+                {
+                    <div class="alert alert-info mt-3 mb-0 py-2">
+                        <i class="bi bi-stars ms-1"></i>
+                        @(isUser ? "المستخدم ده عنده دور Admin، يعني كل الصلاحيات مفتوحة له تلقائيًا." : "دور الـ Admin عنده كل الصلاحيات تلقائيًا (حتى الجديدة)، ومينفعش يتقفل عشان محدش يتقفل برة السيستم.")
+                    </div>
+                }
+                else if (isUser)
+                {
+                    <div class="perm-legend small text-muted mt-3">
+                        <span class="ms-3"><span class="badge bg-secondary">وراثة</span> حسب أدوار المستخدم</span>
+                        <span class="ms-3"><span class="badge bg-success">منح</span> يديله الصلاحية حتى لو الدور مش فيه</span>
+                        <span><span class="badge bg-danger">منع</span> يمنعه حتى لو الدور فيه الصلاحية</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Modules -->
+        <div class="row g-4">
+            @foreach (var module in Model.Modules)
+            {
+                var allOn = module.Items.All(i => i.IsEffective);
+                <div class="col-xxl-3 col-xl-4 col-md-6 perm-col"
+                     data-search="@($"{module.ArabicName} {module.DisplayName} {module.Module}".ToLowerInvariant())">
+                    <div class="card perm-card">
+                        <div class="card-header">
+                            <span class="mod-icon"><i class="bi @module.Icon"></i></span>
+                            <div class="flex-grow-1">
+                                <div class="mod-name">@module.ArabicName</div>
+                                <small>@module.DisplayName</small>
+                            </div>
+                            <span class="badge mod-count">@module.Items.Count(i => i.IsEffective)/@module.Items.Count</span>
+                            @if (!readOnly)
+                            {
+                                <div class="form-check form-switch m-0" title="@(isUser ? "منح كل صلاحيات الموديول" : "تحديد كل صلاحيات الموديول")">
+                                    <input class="form-check-input mod-toggle" type="checkbox" @(allOn ? "checked" : "") />
+                                </div>
+                            }
+                        </div>
+                        <div class="card-body p-0">
+                            @foreach (var item in module.Items)
+                            {
+                                <div class="perm-row" data-from-role="@(item.FromRole ? "true" : "false")"
+                                     data-search="@($"{item.ArabicName} {item.DisplayName} {item.Key}".ToLowerInvariant())">
+                                    <div class="min-w-0">
+                                        <div class="perm-name">@item.ArabicName</div>
+                                        <div class="perm-key">@item.Key</div>
+                                    </div>
+
+                                    @if (!isUser)
+                                    {
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" name="selected" value="@item.Id"
+                                                   @(item.IsSelected ? "checked" : "") @(readOnly ? "disabled" : "") />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                            <div class="btn-group perm-tri" role="group" dir="ltr">
+                                                @{ var n = $"overrides[{item.Id}]"; var idp = $"p{item.Id}"; }
+                                                <input type="radio" class="btn-check" name="@n" id="@(idp)d" value="deny" @(item.Override == "deny" ? "checked" : "") @(readOnly ? "disabled" : "") />
+                                                <label class="btn btn-outline-danger" for="@(idp)d" title="منع">منع</label>
+                                                <input type="radio" class="btn-check" name="@n" id="@(idp)i" value="inherit" @(item.Override == "inherit" ? "checked" : "") @(readOnly ? "disabled" : "") />
+                                                <label class="btn btn-outline-secondary" for="@(idp)i" title="@(item.FromRole ? "الدور بيدي الصلاحية دي" : "الدور مش بيدي الصلاحية دي")">
+                                                    وراثة <i class="bi @(item.FromRole ? "bi-check-lg" : "bi-dash")"></i>
+                                                </label>
+                                                <input type="radio" class="btn-check" name="@n" id="@(idp)g" value="grant" @(item.Override == "grant" ? "checked" : "") @(readOnly ? "disabled" : "") />
+                                                <label class="btn btn-outline-success" for="@(idp)g" title="منح">منح</label>
+                                            </div>
+                                            <span class="perm-effective" title="النتيجة النهائية"><i class="bi @(item.IsEffective ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i></span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </form>
+</div>

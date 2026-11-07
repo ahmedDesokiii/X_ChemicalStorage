@@ -14,6 +14,7 @@ namespace X_ChemicalStorage.Controllers
     // reuses the existing Permissions.Categories.* constants rather than
     // introducing a brand-new permission module the admin would have to
     // re-assign to every role.
+    [Authorize]
     public class SubCategoriesController : Controller
     {
         private readonly IServicesRepository<SubCategory> _servicesSubCategory;
@@ -44,12 +45,15 @@ namespace X_ChemicalStorage.Controllers
         }
 
         #region Add|Edit SubCategory  [Create & Update]
-        [Authorize(Permissions.Categories.Create_Categories),
-         Authorize(Permissions.Categories.Edit_Categories)]
+        [HasPermission(Permissions.Categories.Create, Permissions.Categories.Edit)]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult Save(SubCategoryViewModel model)
+        public async Task<IActionResult> Save(SubCategoryViewModel model)
         {
+            // Same form creates and edits → check the specific permission
+            if (!await HttpContext.HasPermissionAsync((model?.NewSubCategory?.Id ?? 0) == 0 ? Permissions.Categories.Create : Permissions.Categories.Edit))
+                return Forbid();
+
             if (ModelState.IsValid && model?.NewSubCategory != null)
             {
                 // Server-side truth: the parent Category must actually exist.
@@ -88,7 +92,7 @@ namespace X_ChemicalStorage.Controllers
         #endregion
 
         #region Delete SubCategory (blocked if Items still depend on it)
-        [Authorize(Permissions.Categories.Delete_Categories)]
+        [HasPermission(Permissions.Categories.Delete)]
         public IActionResult Delete(int Id)
         {
             if (_servicesSubCategory.Delete(Id))

@@ -46,7 +46,7 @@
         <div class="col-md-10">
             <div class="card px-0">
                 <div class="card-header d-flex align-items-center justify-content-start bg-info-subtle">
-                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Create_Suppliers).Result.Succeeded )
+                    @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Create).Result.Succeeded )
                     {
                         <a class="btn fw-bold btn-outline-warning bg-transparent border-0 text-center p-0 mx-1 fs-2" title="Add New Supplier" onclick="ResetSupplier()" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-plus-square-fill"></i></a>
                     }
@@ -94,15 +94,15 @@
                                             <td class="fs-6 text-center px-1">@supp.Email</td>
                                             
                                             <td class="py-1">
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Details_Suppliers).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Details).Result.Succeeded)
                                                 {
                                                     <a class="btn fw-bold btn-outline-dark bg-transparent border-0 text-center p-0 mx-1 fs-5" title="Details" asp-controller="Suppliers" asp-action="SelectedSupplier" asp-route-Id="@supp.Id"><i class="bi bi-eye-fill fs-4"></i><br></a>
                                                 }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Edit_Suppliers).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Edit).Result.Succeeded)
                                                     {
                                                         <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Edit" onclick="EditSupplier('@supp.Id','@supp.Name','@supp.Phone','@supp.Adress','@supp.Email')" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i></a>
                                                     }
-                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Delete_Suppliers).Result.Succeeded)
+                                                @if (AuthorizationService.AuthorizeAsync(User, Permissions.Suppliers.Delete).Result.Succeeded)
                                                 {
                                                     @* <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="حذف مورد" asp-controller="Suppliers" asp-action="Delete" asp-route-Id="@supp.Id"> <i class="bi bi-trash3-fill"></i></a>*@
                                                     <a class="btn fw-bold btn-outline-dark bg-transparent border-0 p-0 mx-1 fs-4" title="Delete" onclick="DeleteSupplier('@supp.Id')" ><i class="bi bi-trash3-fill"></i></a>

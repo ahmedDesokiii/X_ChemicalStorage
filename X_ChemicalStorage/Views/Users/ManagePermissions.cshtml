@@ -1,0 +1,18 @@
+@model PermissionMatrixViewModel
+@{
+    ViewData["Title"] = "صلاحيات خاصة بالمستخدم";
+    ViewData["Mode"] = "user";
+    ViewData["Action"] = "ManagePermissions";
+    ViewData["IdField"] = "userId";
+    ViewData["BackController"] = "Users";
+    ViewData["BackTitle"] = "المستخدمين";
+    ViewData["SubjectLabel"] = "المستخدم";
+}
+<link rel="stylesheet" href="~/css/permissions.css" asp-append-version="true" />
+
+<partial name="_PermissionMatrix" model="Model" view-data="ViewData" />
+
+@section Scripts {
+    <script src="~/js/permissions.js" asp-append-version="true"></script>
+    <partial name="_PermissionMatrixAlert" />
+}
