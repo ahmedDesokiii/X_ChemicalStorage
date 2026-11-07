@@ -1,9 +1,10 @@
-﻿*@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&display=swap');*/
+﻿/* Beiruti (Arabic) - served locally. The variable font covers weights 200..900. */
 @font-face {
     font-family: 'Beiruti';
-    src: url('../fonts/Beiruti/Beiruti-Regular.ttf') format('truetype');
-    font-weight: normal;
+    src: url('../fonts/Beiruti/Beiruti-VariableFont_wght.ttf') format('truetype');
+    font-weight: 200 900;
     font-style: normal;
+    font-display: swap;
 }
 
 body {
