@@ -38,7 +38,7 @@ log_type notice
 if ($LASTEXITCODE -ne 0) { throw 'فشل إنشاء ملف الباسورد' }
 
 if (-not (Get-NetFirewallRule -DisplayName 'BioBank MQTT 1883' -ErrorAction SilentlyContinue)) {
-    New-NetFirewallRule -DisplayName 'BioBank MQTT 1883' -Direction Inbound -Protocol TCP -LocalPort 1883 -Profile Private,Domain -Action Allow | Out-Null
+    New-NetFirewallRule -DisplayName 'BioBank MQTT 1883' -Direction Inbound -Protocol TCP -LocalPort 1883 -Profile Any -RemoteAddress LocalSubnet -Action Allow | Out-Null
 }
 
 Restart-Service mosquitto

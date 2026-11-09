@@ -70,7 +70,7 @@ if ($sqlcmd) {
 } else { Write-Host 'sqlcmd مش موجود: اتأكدي إن NT AUTHORITY\SYSTEM ليه dbcreator على SQL Express (DEPLOYMENT.md).' -ForegroundColor Yellow }
 
 if (-not (Get-NetFirewallRule -DisplayName "BioBank Web $Port" -ErrorAction SilentlyContinue)) {
-    New-NetFirewallRule -DisplayName "BioBank Web $Port" -Direction Inbound -Protocol TCP -LocalPort $Port -Profile Private,Domain -Action Allow | Out-Null
+    New-NetFirewallRule -DisplayName "BioBank Web $Port" -Direction Inbound -Protocol TCP -LocalPort $Port -Profile Any -RemoteAddress LocalSubnet -Action Allow | Out-Null
 }
 
 Start-Service $svc

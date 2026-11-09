@@ -365,3 +365,4 @@ FodyWeavers.xsd
 appsettings.Local.json
 **/appsettings.Local.json
 deploy/out/
+*.patch
