@@ -2,7 +2,24 @@
 using X_ChemicalStorage.BioBank.Services;
 
 
-var builder = WebApplication.CreateBuilder(args);
+// ===== Hosting: يشتغل عادي من Visual Studio، أو كـ Windows Service على جهاز المعمل =====
+var isWindowsService = Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService();
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    // الـ Service بيبدأ من C:\Windows\System32، فلازم نثبت المسار على فولدر البرنامج
+    ContentRootPath = isWindowsService ? AppContext.BaseDirectory : default
+});
+
+// الأسرار الخاصة بكل موقع (باسورد الأدمن، Telegram token، MQTT...) في ملف متجاهَل من git
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddEnvironmentVariables();
+
+builder.Host.UseWindowsService(o => o.ServiceName = "XChemicalStorage");
+
+var hostingUrls = builder.Configuration["Hosting:Urls"];
+if (!string.IsNullOrWhiteSpace(hostingUrls))
+    builder.WebHost.UseUrls(hostingUrls);
 
 //builder.Services.AddHangfire(config =>
 //{
@@ -31,7 +48,6 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
     var selectedConn = httpContextAccessor.HttpContext?.Session?.GetString("SelectedConnection") ?? "DefaultConnection";
     var connectionString = configuration.GetConnectionString(selectedConn);
 
-    options.UseSqlServer(connectionString);
     options.UseSqlServer(connectionString)
        .AddInterceptors(new ReadingImmutabilityInterceptor());
 });
@@ -180,15 +196,26 @@ using (var scope = app.Services.CreateScope())
     var logger = loggerFactory.CreateLogger("app");
     try
     {
-        // 🔥 Auto Apply Migrations
-        //var db = services.GetRequiredService<ApplicationDbContext>();
-        //db.Database.Migrate();
+        // تطبيق الـ Migrations أوتوماتيك (Startup:AutoMigrate) — بيعمل الداتابيز لو مش موجودة
+        if (app.Configuration.GetValue("Startup:AutoMigrate", true))
+        {
+            var migrateDb = services.GetRequiredService<ApplicationDbContext>();
+            await migrateDb.Database.MigrateAsync();
+            logger.LogInformation("Database migrations applied");
+        }
 
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
         await X_ChemicalStorage.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);
-        await X_ChemicalStorage.Seeds.DefaultUsers.SeedUserAsync(userManager, roleManager);
-        await X_ChemicalStorage.Seeds.DefaultUsers.SeedAdminAsync(userManager, roleManager);
+        // مستخدمين التجربة (باسورد معروف) بيتعملوا في التطوير بس
+        if (app.Configuration.GetValue("Startup:SeedDemoUsers", false))
+        {
+            await X_ChemicalStorage.Seeds.DefaultUsers.SeedUserAsync(userManager, roleManager);
+            await X_ChemicalStorage.Seeds.DefaultUsers.SeedAdminAsync(userManager, roleManager);
+        }
+        // أدمن الموقع: الباسورد من appsettings.Local.json (AdminSeed:Password)
+        await X_ChemicalStorage.Seeds.DefaultUsers.SeedConfiguredAdminAsync(
+            userManager, app.Configuration.GetSection("AdminSeed"), logger);
 
         // Sync the permission catalog into ERP_Permissions (+ migrate old role claims).
         // Never block startup: if the migration isn't applied yet, Admin still has full access.
@@ -226,7 +253,8 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (app.Configuration.GetValue("Hosting:UseHttpsRedirection", false))
+    app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -239,11 +267,13 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-using (var scope = app.Services.CreateScope())
+// فحص سريع بدون تسجيل دخول (للسكريبتات والمراقبة الخارجية). الحالة بس، من غير أي تفاصيل.
+app.MapGet("/healthz", (IoTHealth health) =>
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //db.Database.Migrate();
-}
+    var report = health.Evaluate(DateTime.UtcNow);
+    return Results.Json(new { status = report.Status });
+}).AllowAnonymous();
+
 //app.Urls.Add("http://localhost:5000");
 
 //var url = "http://localhost:5000";

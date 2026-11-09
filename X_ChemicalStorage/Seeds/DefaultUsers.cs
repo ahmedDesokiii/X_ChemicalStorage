@@ -30,6 +30,41 @@ namespace X_ChemicalStorage.Seeds
             }
         }
 
+        /// أدمن الموقع من الإعدادات (AdminSeed). لو الباسورد فاضي مبيعملش حاجة.
+        /// بيتعمل مرة واحدة بس: لو الإيميل موجود مبيغيرش الباسورد.
+        public static async Task SeedConfiguredAdminAsync(UserManager<ApplicationUser> userManager,
+            Microsoft.Extensions.Configuration.IConfiguration section, Microsoft.Extensions.Logging.ILogger logger)
+        {
+            var email = section["Email"];
+            var password = section["Password"];
+            var userName = string.IsNullOrWhiteSpace(section["UserName"]) ? "admin" : section["UserName"]!;
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                if (!userManager.Users.Any())
+                    logger.LogWarning("No users exist and AdminSeed:Password is empty. Set it in appsettings.Local.json to create the first admin.");
+                return;
+            }
+            if (await userManager.FindByEmailAsync(email) != null || await userManager.FindByNameAsync(userName) != null)
+                return;
+
+            var admin = new ApplicationUser
+            {
+                UserName = userName,
+                Email = email,
+                EmailConfirmed = true,
+                FullName = "Administrator",
+            };
+            var result = await userManager.CreateAsync(admin, password);
+            if (!result.Succeeded)
+            {
+                logger.LogError("Could not create site admin: {Errors}",
+                    string.Join("; ", result.Errors.Select(e => e.Description)));
+                return;
+            }
+            await userManager.AddToRoleAsync(admin, Roles.Admin.ToString());
+            logger.LogInformation("Site admin '{UserName}' created from AdminSeed", userName);
+        }
+
         //Default Admin
         public static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
