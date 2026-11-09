@@ -43,7 +43,7 @@ New-Item -ItemType Directory -Path (Join-Path $AppDir 'App_Data') -Force | Out-N
 $local = Join-Path $AppDir 'appsettings.Local.json'
 if (-not (Test-Path $local)) {
     Copy-Item (Join-Path $AppDir 'appsettings.Local.example.json') $local
-    Write-Host "`nاتعمل $local من النموذج. املي القيم (باسورد الأدمن، Telegram، MQTT) وبعدين شغّلي السكريبت تاني." -ForegroundColor Yellow
+    Write-Host "`nاتعمل $local من النموذج. اكتبي باسورد الأدمن واحفظي، وبعدين شغّلي السكريبت تاني. الباقي من صفحة Settings في البرنامج." -ForegroundColor Yellow
     notepad $local
     return
 }

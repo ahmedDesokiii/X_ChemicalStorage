@@ -1,0 +1,248 @@
+@{
+    ViewData["Title"] = "Alarm settings";
+}
+<link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
+
+<div class="ss-page" dir="ltr">
+<div class="ss-wrap">
+    <div class="ss-head">
+        <div>
+            <h1>Settings</h1>
+            <p class="ss-sub">When each freezer raises an alarm, and who gets told.</p>
+        </div>
+    </div>
+    <nav class="ss-tabs">
+        <a href="/biobank/settings">System</a>
+        <a href="/biobank/alarm-settings" class="active">Alarms and contacts</a>
+    </nav>
+
+    <div class="ss-banner" id="ssRestartBanner" hidden>
+        <i class="bi bi-arrow-repeat"></i>
+        <span id="ssRestartText"></span>
+        <button type="button" class="ss-btn" id="ssRestartBtn"><i class="bi bi-power"></i> Restart now</button>
+    </div>
+
+    <!-- Per-freezer -->
+    <section class="ss-card">
+        <h2><i class="bi bi-thermometer-snow"></i> Freezer alarm limits</h2>
+        <p class="ss-hint">Changes apply right away (no restart). Every change is recorded with your name. Temperature delay = how long the reading must stay outside the limits before the alarm. Escalation = minutes with nobody acknowledging before tier-2 contacts are told.</p>
+        <div class="ss-tools">
+            <button type="button" class="ss-btn" id="fzTest"><i class="bi bi-stopwatch"></i> Testing mode: all delays 1 min</button>
+            <button type="button" class="ss-btn" id="fzNormal"><i class="bi bi-shield-check"></i> Normal delays (10 / 5 / 2 / 10 min)</button>
+            <span class="grow"></span>
+            <button type="button" class="ss-btn primary" id="fzSaveAll"><i class="bi bi-save"></i> Save changed rows</button>
+        </div>
+        <div class="ss-test" id="fzTestWarn" hidden><i class="bi bi-exclamation-triangle"></i> Some freezers use 1-minute delays (testing). Set normal delays before handing over to the lab.</div>
+        <div class="ss-table-wrap">
+            <table class="ss-table">
+                <thead>
+                    <tr>
+                        <th>Freezer</th><th>Low limit</th><th>High limit</th><th>Temp delay</th><th>Door open</th>
+                        <th>No data (offline)</th><th>Escalation</th><th title="No alarms until the first reading inside the limits">Commissioning</th><th></th>
+                    </tr>
+                </thead>
+                <tbody id="fzRows"><tr><td colspan="9">Loading…</td></tr></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Reminders -->
+    <section class="ss-card">
+        <h2><i class="bi bi-alarm"></i> Reminders</h2>
+        <p class="ss-hint">While an alarm is open and nobody has acknowledged it, the message is sent again. Needs a restart to apply.</p>
+        <label class="ss-check"><input type="checkbox" id="remEnabled" /> Repeat the message until someone acknowledges</label>
+        <div class="ss-grid">
+            <div class="ss-field"><label for="remInterval">Every (minutes)</label><input class="form-control" id="remInterval" type="number" min="1" max="1440" /></div>
+            <div class="ss-field"><label for="remMax">Stop after (reminders, 0 = never)</label><input class="form-control" id="remMax" type="number" min="0" max="500" /></div>
+        </div>
+        <label class="ss-check"><input type="checkbox" id="remCleared" /> Send a message when the alarm clears</label>
+        <div><button type="button" class="ss-btn primary" id="remSave"><i class="bi bi-save"></i> Save reminders</button></div>
+    </section>
+
+    <!-- Contacts -->
+    <section class="ss-card">
+        <h2><i class="bi bi-people"></i> Who gets the alarm</h2>
+        <p class="ss-hint">Tier 1 is told immediately. Tier 2 is told only if nobody acknowledges within the escalation time. To get a Telegram chat ID: the person sends any message to the bot, then open https://api.telegram.org/bot&lt;token&gt;/getUpdates and copy the number after "chat":{"id":</p>
+        <div class="ss-table-wrap">
+            <table class="ss-table">
+                <thead><tr><th>Name</th><th>Telegram chat ID</th><th>Phone (SMS)</th><th>E-mail</th><th>Tier</th><th>Freezer</th><th>Active</th><th></th></tr></thead>
+                <tbody id="ctRows"><tr><td colspan="8">Loading…</td></tr></tbody>
+            </table>
+        </div>
+        <div><button type="button" class="ss-btn" id="ctAdd"><i class="bi bi-person-plus"></i> Add contact</button></div>
+    </section>
+</div>
+</div>
+
+@section Scripts {
+<script src="~/js/site-settings.js" asp-append-version="true"></script>
+<script>
+(() => {
+    const { $, esc, api, toast, fail, showRestart, wireRestart } = window.SiteSettings;
+    const PRESET = { 1: { low: -90, high: -70 }, 2: { low: -160, high: -140 } };      // Minus80, Minus150
+    const NORMAL = { delay: 10, door: 5, offline: 2, esc: 10 };
+    let freezers = [];
+
+    // ---------------------------------------------------------------- freezers
+    const fields = ["low", "high", "delay", "door", "offline", "esc"];
+    const n = (v, step) => `<input type="number" class="form-control form-control-sm" step="${step}" value="${esc(v)}">`;
+
+    async function loadFreezers() {
+        const list = await api("GET", "/biobank/api/freezers");
+        const settings = await Promise.all(list.map(f => api("GET", `/biobank/api/freezers/${encodeURIComponent(f.id)}/settings`).catch(() => null)));
+        freezers = list.map((f, i) => ({ f, s: settings[i] })).filter(x => x.s);
+        $("fzRows").innerHTML = freezers.length ? freezers.map(({ f, s }) => `
+            <tr data-id="${esc(f.id)}" data-type="${f.type}">
+                <td class="fz">${esc(f.id)}<small>${esc(f.typeDisplay || "")}</small></td>
+                <td data-k="low">${n(s.lowTempLimit, 0.5)}<span class="ss-unit">°C</span></td>
+                <td data-k="high">${n(s.highTempLimit, 0.5)}<span class="ss-unit">°C</span></td>
+                <td data-k="delay">${n(s.tempAlarmDelayMinutes, 1)}<span class="ss-unit">min</span></td>
+                <td data-k="door">${n(s.doorOpenMinutes, 1)}<span class="ss-unit">min</span></td>
+                <td data-k="offline">${n(s.offlineAfterMinutes, 1)}<span class="ss-unit">min</span></td>
+                <td data-k="esc">${n(s.escalationMinutes, 1)}<span class="ss-unit">min</span></td>
+                <td data-k="comm"><input type="checkbox" ${s.isCommissioning ? "checked" : ""} aria-label="Commissioning"></td>
+                <td style="white-space:nowrap">
+                    <button type="button" class="ss-btn sm" data-act="preset" title="Standard limits for this freezer type">Type limits</button>
+                    <button type="button" class="ss-btn sm" data-act="save">Save</button>
+                </td>
+            </tr>`).join("") : `<tr><td colspan="9">No freezers yet. Create them in Bio Bank first.</td></tr>`;
+        updateTestWarn();
+    }
+
+    const cell = (tr, k) => tr.querySelector(`td[data-k="${k}"] input`);
+    function rowBody(tr) {
+        const v = k => { const x = cell(tr, k).value.trim(); return x === "" ? null : Number(x); };
+        return {
+            lowTempLimit: v("low"), highTempLimit: v("high"), tempAlarmDelayMinutes: v("delay"),
+            doorOpenMinutes: v("door"), offlineAfterMinutes: v("offline"), escalationMinutes: v("esc"),
+            isCommissioning: cell(tr, "comm").checked
+        };
+    }
+    async function saveRow(tr) {
+        await api("PUT", `/biobank/api/freezers/${encodeURIComponent(tr.dataset.id)}/settings`, rowBody(tr));
+        tr.classList.remove("dirty");
+    }
+    function updateTestWarn() {
+        const any = [...document.querySelectorAll("#fzRows tr[data-id]")].some(tr =>
+            ["delay", "door"].some(k => Number(cell(tr, k).value) <= 1));
+        $("fzTestWarn").hidden = !any;
+    }
+    function setDelays(d) {
+        document.querySelectorAll("#fzRows tr[data-id]").forEach(tr => {
+            cell(tr, "delay").value = d.delay; cell(tr, "door").value = d.door;
+            cell(tr, "offline").value = d.offline; cell(tr, "esc").value = d.esc;
+            tr.classList.add("dirty");
+        });
+        updateTestWarn();
+    }
+
+    $("fzRows").addEventListener("input", e => { const tr = e.target.closest("tr[data-id]"); if (tr) tr.classList.add("dirty"); updateTestWarn(); });
+    $("fzRows").addEventListener("change", e => { const tr = e.target.closest("tr[data-id]"); if (tr) tr.classList.add("dirty"); });
+    $("fzRows").addEventListener("click", async e => {
+        const b = e.target.closest("button[data-act]"); if (!b) return;
+        const tr = b.closest("tr");
+        if (b.dataset.act === "preset") {
+            const p = PRESET[tr.dataset.type]; if (!p) return;
+            cell(tr, "low").value = p.low; cell(tr, "high").value = p.high; tr.classList.add("dirty");
+            return;
+        }
+        try { b.disabled = true; await saveRow(tr); toast(`${tr.dataset.id} saved`); updateTestWarn(); }
+        catch (err) { fail(err); } finally { b.disabled = false; }
+    });
+    $("fzTest").addEventListener("click", () => setDelays({ delay: 1, door: 1, offline: 1, esc: 2 }));
+    $("fzNormal").addEventListener("click", () => setDelays(NORMAL));
+    $("fzSaveAll").addEventListener("click", async () => {
+        const rows = [...document.querySelectorAll("#fzRows tr.dirty")];
+        if (!rows.length) { toast("Nothing changed"); return; }
+        $("fzSaveAll").disabled = true;
+        const errors = [];
+        for (const tr of rows) { try { await saveRow(tr); } catch (err) { errors.push(`${tr.dataset.id}: ${err.message}`); } }
+        $("fzSaveAll").disabled = false;
+        updateTestWarn();
+        if (errors.length) fail(new Error(errors.join("\n"))); else toast(`${rows.length} freezer(s) saved`);
+    });
+
+    // ---------------------------------------------------------------- reminders
+    async function loadReminders() {
+        const c = await api("GET", "/biobank/api/site-config");
+        $("remEnabled").checked = c.alarms.reminderEnabled;
+        $("remInterval").value = c.alarms.reminderIntervalMinutes;
+        $("remMax").value = c.alarms.maxReminders;
+        $("remCleared").checked = c.alarms.notifyOnCleared;
+    }
+    $("remSave").addEventListener("click", async () => {
+        try {
+            const r = await api("PUT", "/biobank/api/site-config", {
+                reminderEnabled: $("remEnabled").checked, reminderIntervalMinutes: Number($("remInterval").value),
+                maxReminders: Number($("remMax").value), notifyOnCleared: $("remCleared").checked
+            });
+            showRestart(r.canRestart); toast("Reminders saved");
+        } catch (e) { fail(e); }
+    });
+
+    // ---------------------------------------------------------------- contacts
+    const freezerOptions = sel => `<option value="">All freezers</option>` +
+        freezers.map(({ f }) => `<option value="${esc(f.id)}" ${f.id === sel ? "selected" : ""}>${esc(f.id)}</option>`).join("");
+    const txt = (v, ph) => `<input type="text" class="form-control form-control-sm" value="${esc(v)}" placeholder="${ph || ""}">`;
+
+    function contactRow(c) {
+        return `<tr data-cid="${c.id ?? ""}">
+            <td data-k="name">${txt(c.name, "Name")}</td>
+            <td data-k="tg">${txt(c.telegramChatId, "123456789")}</td>
+            <td data-k="phone">${txt(c.phone, "+2010…")}</td>
+            <td data-k="email">${txt(c.email, "name.lab.org")}</td>
+            <td data-k="tier"><select class="form-select form-select-sm"><option value="1" ${c.tier !== 2 ? "selected" : ""}>1 · immediately</option><option value="2" ${c.tier === 2 ? "selected" : ""}>2 · if no one responds</option></select></td>
+            <td data-k="fz"><select class="form-select form-select-sm">${freezerOptions(c.freezerId)}</select></td>
+            <td data-k="active"><input type="checkbox" ${c.isActive !== false ? "checked" : ""} aria-label="Active"></td>
+            <td style="white-space:nowrap">
+                <button type="button" class="ss-btn sm" data-act="save">Save</button>
+                <button type="button" class="ss-btn sm" data-act="test" ${c.id ? "" : "disabled"} title="Send a real test message">Test</button>
+                <button type="button" class="ss-btn sm danger" data-act="del" aria-label="Delete"><i class="bi bi-trash"></i></button>
+            </td></tr>`;
+    }
+    async function loadContacts() {
+        const list = await api("GET", "/biobank/api/alarm-contacts");
+        $("ctRows").innerHTML = list.length ? list.map(contactRow).join("") : `<tr><td colspan="8">Nobody yet. Add at least one tier-1 contact.</td></tr>`;
+    }
+    function contactBody(tr) {
+        const q = k => tr.querySelector(`td[data-k="${k}"] input, td[data-k="${k}"] select`);
+        const s = k => q(k).value.trim() || null;
+        return { name: s("name"), telegramChatId: s("tg"), phone: s("phone"), email: s("email"),
+                 tier: Number(q("tier").value), freezerId: s("fz"), isActive: q("active").checked };
+    }
+    $("ctAdd").addEventListener("click", () => {
+        const body = $("ctRows");
+        if (!body.querySelector("tr[data-cid]")) body.innerHTML = "";
+        body.insertAdjacentHTML("beforeend", contactRow({ tier: 1, isActive: true }));
+    });
+    $("ctRows").addEventListener("click", async e => {
+        const b = e.target.closest("button[data-act]"); if (!b) return;
+        const tr = b.closest("tr"); const id = tr.dataset.cid;
+        try {
+            b.disabled = true;
+            if (b.dataset.act === "save") {
+                const body = contactBody(tr);
+                if (!body.name) throw new Error("Enter a name.");
+                if (id) await api("PUT", `/biobank/api/alarm-contacts/${id}`, body);
+                else await api("POST", "/biobank/api/alarm-contacts", body);
+                toast("Contact saved"); await loadContacts();
+            } else if (b.dataset.act === "test") {
+                const r = await api("POST", `/biobank/api/alarm-contacts/${id}/test`);
+                const lines = (Array.isArray(r) ? r : []).map(x => `${x.channel}: ${x.error ? "failed (" + x.error + ")" : "sent"}`);
+                Swal.fire({ icon: lines.some(l => l.includes("failed")) ? "warning" : "success", title: "Test message",
+                            text: lines.join(" · ") || "Queued. It goes out as soon as there is internet." });
+            } else if (b.dataset.act === "del") {
+                if (!id) { tr.remove(); return; }
+                const ok = await Swal.fire({ icon: "warning", title: "Delete this contact?", showCancelButton: true, confirmButtonText: "Delete" });
+                if (!ok.isConfirmed) return;
+                await api("DELETE", `/biobank/api/alarm-contacts/${id}`); toast("Deleted"); await loadContacts();
+            }
+        } catch (err) { fail(err); } finally { b.disabled = false; }
+    });
+
+    wireRestart();
+    loadFreezers().then(loadContacts).catch(fail);
+    loadReminders().catch(fail);
+})();
+</script>
+}

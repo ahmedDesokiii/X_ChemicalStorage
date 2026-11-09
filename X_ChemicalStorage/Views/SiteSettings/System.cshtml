@@ -1,0 +1,168 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+<link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
+
+<div class="ss-page" dir="ltr">
+<div class="ss-wrap">
+    <div class="ss-head">
+        <div>
+            <h1>Settings</h1>
+            <p class="ss-sub">Everything the lab station needs. Saved on this PC only (appsettings.Local.json).</p>
+        </div>
+    </div>
+    <nav class="ss-tabs">
+        <a href="/biobank/settings" class="active">System</a>
+        <a href="/biobank/alarm-settings">Alarms and contacts</a>
+    </nav>
+
+    <div class="ss-banner" id="ssRestartBanner" hidden>
+        <i class="bi bi-arrow-repeat"></i>
+        <span id="ssRestartText">Settings saved. Restart the app to apply them.</span>
+        <button type="button" class="ss-btn" id="ssRestartBtn"><i class="bi bi-power"></i> Restart now</button>
+    </div>
+
+    <!-- Station -->
+    <section class="ss-card">
+        <h2><i class="bi bi-pc-display"></i> This station</h2>
+        <dl class="ss-kv" id="ssStation"><dt>Loading</dt><dd>…</dd></dl>
+    </section>
+
+    <!-- MQTT -->
+    <section class="ss-card">
+        <h2><i class="bi bi-hdd-network"></i> Freezer data (MQTT broker)</h2>
+        <p class="ss-hint">The Haier gateways send readings to Mosquitto on this PC; the app reads them from here. Leave user and password empty if Mosquitto runs without a password.</p>
+        <label class="ss-check"><input type="checkbox" id="mqttEnabled" /> Receive freezer data</label>
+        <div class="ss-grid">
+            <div class="ss-field"><label for="mqttHost">Broker address</label><input class="form-control" id="mqttHost" placeholder="127.0.0.1" /></div>
+            <div class="ss-field"><label for="mqttPort">Port</label><input class="form-control" id="mqttPort" type="number" min="1" max="65535" /></div>
+            <div class="ss-field"><label for="mqttTopic">Topic</label><input class="form-control" id="mqttTopic" placeholder="freezer/+/+" /></div>
+            <div class="ss-field"><label for="mqttUser">User</label><input class="form-control" id="mqttUser" autocomplete="off" /></div>
+            <div class="ss-field"><label for="mqttPass">Password</label><input class="form-control" id="mqttPass" type="password" autocomplete="new-password" /></div>
+        </div>
+        <label class="ss-check"><input type="checkbox" id="mqttClearPass" /> Remove the saved MQTT password</label>
+    </section>
+
+    <!-- Notifications -->
+    <section class="ss-card">
+        <h2><i class="bi bi-send"></i> Alarm messages</h2>
+        <p class="ss-hint">Needs internet on this PC. Without internet the alarm still sounds on the Station screen; messages wait and go out when internet is back. Who receives them is set on the Alarms page.</p>
+        <label class="ss-check"><input type="checkbox" id="tgEnabled" /> Telegram</label>
+        <div class="ss-grid">
+            <div class="ss-field"><label for="tgToken">Bot token</label><input class="form-control" id="tgToken" type="password" autocomplete="off" /></div>
+        </div>
+        <div class="ss-sep"></div>
+        <label class="ss-check"><input type="checkbox" id="emEnabled" /> E-mail</label>
+        <div class="ss-grid">
+            <div class="ss-field"><label for="emHost">SMTP server</label><input class="form-control" id="emHost" placeholder="smtp.gmail.com" /></div>
+            <div class="ss-field"><label for="emPort">Port</label><input class="form-control" id="emPort" type="number" min="1" max="65535" /></div>
+            <div class="ss-field"><label for="emUser">User</label><input class="form-control" id="emUser" autocomplete="off" /></div>
+            <div class="ss-field"><label for="emPass">Password</label><input class="form-control" id="emPass" type="password" autocomplete="new-password" /></div>
+            <div class="ss-field"><label for="emFrom">From address</label><input class="form-control" id="emFrom" /></div>
+        </div>
+        <label class="ss-check"><input type="checkbox" id="emSsl" /> Use SSL / TLS</label>
+        <div class="ss-sep"></div>
+        <p class="ss-hint" id="smsStatus">SMS: …</p>
+    </section>
+
+    <!-- Backup -->
+    <section class="ss-card">
+        <h2><i class="bi bi-database-check"></i> Daily backup</h2>
+        <label class="ss-check"><input type="checkbox" id="bkEnabled" /> Back up the database every day</label>
+        <div class="ss-grid">
+            <div class="ss-field"><label for="bkDir">Backup folder</label><input class="form-control" id="bkDir" placeholder="D:\BioBank_Backups" /></div>
+            <div class="ss-field"><label for="bkDir2">Second copy (USB / other drive)</label><input class="form-control" id="bkDir2" placeholder="E:\BioBank_Backups" /></div>
+            <div class="ss-field"><label for="bkTime">Time (Cairo)</label><input class="form-control" id="bkTime" placeholder="02:00" /></div>
+            <div class="ss-field"><label for="bkKeep">Keep backups (days)</label><input class="form-control" id="bkKeep" type="number" min="1" max="3650" /></div>
+        </div>
+    </section>
+
+    <!-- Password -->
+    <section class="ss-card">
+        <h2><i class="bi bi-key"></i> Your sign-in password</h2>
+        <p class="ss-hint">At least 6 characters. Applies to the account you're signed in with right now.</p>
+        <div class="ss-grid">
+            <div class="ss-field"><label for="pwNew">New password</label><input class="form-control" id="pwNew" type="password" autocomplete="new-password" /></div>
+            <div class="ss-field"><label for="pwConfirm">Repeat it</label><input class="form-control" id="pwConfirm" type="password" autocomplete="new-password" /></div>
+        </div>
+        <div><button type="button" class="ss-btn" id="pwSave"><i class="bi bi-check2"></i> Change password</button></div>
+    </section>
+</div>
+</div>
+
+<div class="ss-savebar">
+    <button type="button" class="ss-btn" id="ssReload"><i class="bi bi-arrow-counterclockwise"></i> Discard changes</button>
+    <button type="button" class="ss-btn primary" id="ssSave"><i class="bi bi-save"></i> Save settings</button>
+</div>
+
+@section Scripts {
+<script src="~/js/site-settings.js" asp-append-version="true"></script>
+<script>
+(() => {
+    const { $, esc, api, toast, fail, wireRestart } = window.SiteSettings;
+    let cfg = null;
+
+    const setChk = (id, v) => $(id).checked = !!v;
+    const setVal = (id, v) => $(id).value = v ?? "";
+    const secretPh = (id, has, hint) => { $(id).value = ""; $(id).placeholder = has ? `Saved ${hint || ""} (leave empty to keep)` : "Not set"; };
+
+    async function load() {
+        cfg = await api("GET", "/biobank/api/site-config");
+        const st = cfg.station;
+        $("ssStation").innerHTML = `
+            <dt>Computer</dt><dd>${esc(st.machineName)}</dd>
+            <dt>IP addresses</dt><dd>${(st.addresses || []).map(esc).join("<br>") || "—"}</dd>
+            <dt>App address</dt><dd>${esc(st.urls)}</dd>
+            <dt>Running as</dt><dd>${st.runningAsService ? '<span class="ss-pill ok">Windows Service</span>' : '<span class="ss-pill warn">Visual Studio / manual</span>'} ${esc(st.environment)}</dd>
+            <dt>Settings file</dt><dd>${esc(st.localSettingsFile)} ${st.localSettingsExists ? "" : '<span class="ss-pill off">not created yet</span>'}</dd>`;
+
+        setChk("mqttEnabled", cfg.mqtt.enabled); setVal("mqttHost", cfg.mqtt.host); setVal("mqttPort", cfg.mqtt.port);
+        setVal("mqttTopic", cfg.mqtt.topic); setVal("mqttUser", cfg.mqtt.username); secretPh("mqttPass", cfg.mqtt.hasPassword);
+        $("mqttClearPass").checked = false;
+
+        setChk("tgEnabled", cfg.telegram.enabled); secretPh("tgToken", cfg.telegram.hasToken, cfg.telegram.tokenHint);
+        setChk("emEnabled", cfg.email.enabled); setVal("emHost", cfg.email.host); setVal("emPort", cfg.email.port);
+        setVal("emUser", cfg.email.user); secretPh("emPass", cfg.email.hasPassword); setVal("emFrom", cfg.email.from); setChk("emSsl", cfg.email.enableSsl);
+        $("smsStatus").textContent = cfg.sms.enabled ? "SMS: on (provider settings live in appsettings.Local.json)." : "SMS: off. Ask for help if the lab needs SMS.";
+
+        setChk("bkEnabled", cfg.backup.enabled); setVal("bkDir", cfg.backup.directory); setVal("bkDir2", cfg.backup.secondaryDirectory);
+        setVal("bkTime", cfg.backup.dailyTime); setVal("bkKeep", cfg.backup.keepDays);
+    }
+
+    const num = id => { const v = $(id).value.trim(); return v === "" ? null : Number(v); };
+
+    $("ssSave").addEventListener("click", async () => {
+        const body = {
+            mqttEnabled: $("mqttEnabled").checked, mqttHost: $("mqttHost").value, mqttPort: num("mqttPort"),
+            mqttTopic: $("mqttTopic").value, mqttUsername: $("mqttUser").value, mqttPassword: $("mqttPass").value || null,
+            mqttClearPassword: $("mqttClearPass").checked,
+            telegramEnabled: $("tgEnabled").checked, telegramBotToken: $("tgToken").value || null,
+            emailEnabled: $("emEnabled").checked, emailHost: $("emHost").value, emailPort: num("emPort"), emailEnableSsl: $("emSsl").checked,
+            emailUser: $("emUser").value, emailPassword: $("emPass").value || null, emailFrom: $("emFrom").value,
+            backupEnabled: $("bkEnabled").checked, backupDirectory: $("bkDir").value, backupSecondaryDirectory: $("bkDir2").value,
+            backupDailyTime: $("bkTime").value, backupKeepDays: num("bkKeep")
+        };
+        try {
+            $("ssSave").disabled = true;
+            const r = await api("PUT", "/biobank/api/site-config", body);
+            window.SiteSettings.showRestart(r.canRestart);
+            toast("Settings saved");
+            await load();
+        } catch (e) { fail(e); } finally { $("ssSave").disabled = false; }
+    });
+
+    $("ssReload").addEventListener("click", () => load().catch(fail));
+
+    $("pwSave").addEventListener("click", async () => {
+        try {
+            const r = await api("POST", "/biobank/api/account/password", { newPassword: $("pwNew").value, confirmPassword: $("pwConfirm").value });
+            $("pwNew").value = ""; $("pwConfirm").value = "";
+            toast(r.message);
+        } catch (e) { fail(e); }
+    });
+
+    wireRestart();
+    load().catch(fail);
+})();
+</script>
+}

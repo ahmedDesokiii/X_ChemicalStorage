@@ -521,6 +521,12 @@
                                         <i class="bi bi-broadcast-pin"></i>Station
                                     </a>
                                 </li>
+                                @* Site settings: system (MQTT, notifications, backup) + alarm limits and contacts *@
+                                <li has-permission="@Permissions.IoT.ManageSettings" class="nav-item mx-1">
+                                    <a class="nav-link fs-6 @(currentController == "SiteSettings" ? "active" : "")" href="/biobank/settings">
+                                        <i class="bi bi-gear-fill"></i>Settings
+                                    </a>
+                                </li>
 
                                 @* Services Dropdown (hidden entirely when none of its pages is allowed) *@
                                 <li has-permission="@servicesPermissions" class="nav-item dropdown mx-1">

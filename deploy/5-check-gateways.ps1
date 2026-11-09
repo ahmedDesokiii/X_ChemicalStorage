@@ -5,12 +5,13 @@
     - هل بتبعت رسايل MQTT للجهاز ده، وآخر رسالة شكلها إيه
     - هل الحرارة قريبة من المتوقع
 
-  مثال:  .\5-check-gateways.ps1 -User biobank -Password '...'
-         .\5-check-gateways.ps1 -User biobank -Password '...' -ListenSeconds 90
+  مثال:  .\5-check-gateways.ps1                                   (Mosquitto من غير باسورد)
+         .\5-check-gateways.ps1 -User biobank -Password '...'      (لو عليه باسورد)
+         .\5-check-gateways.ps1 -ListenSeconds 90
 #>
 param(
-    [Parameter(Mandatory)] [string]$User,
-    [Parameter(Mandatory)] [string]$Password,
+    [string]$User = '',
+    [string]$Password = '',
     [int]$ListenSeconds = 60,
     [string]$CsvPath = (Join-Path $PSScriptRoot 'gateways.csv'),
     [string]$MosquittoDir = 'C:\Program Files\mosquitto'
@@ -35,7 +36,9 @@ foreach ($g in $gateways) {
 }
 
 Write-Host "`n== بسمع على MQTT لمدة $ListenSeconds ثانية ==" -ForegroundColor Cyan
-$out = & $sub -h 127.0.0.1 -t 'freezer/#' -v -u $User -P $Password -W $ListenSeconds 2>$null
+$subArgs = @('-h', '127.0.0.1', '-t', 'freezer/#', '-v', '-W', $ListenSeconds)
+if ($User) { $subArgs += @('-u', $User, '-P', $Password) }
+$out = & $sub @subArgs 2>$null
 $last = @{}; $count = @{}
 foreach ($line in @($out)) {
     if ($line -match '^freezer/([^/]+)/\S+\s+(.*)$') {
