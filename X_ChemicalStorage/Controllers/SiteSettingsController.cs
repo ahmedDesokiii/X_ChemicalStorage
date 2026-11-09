@@ -294,6 +294,64 @@ namespace X_ChemicalStorage.Controllers
             return Ok(new { message = "Password changed. Use it next time you sign in." });
         }
 
+        // ================================================================ telegram chat finder
+        /// <summary>
+        /// Lists people who recently messaged the bot, so their chat ID can be picked from a list
+        /// instead of reading Telegram's raw getUpdates output.
+        /// </summary>
+        [HasPermission(Permissions.IoT.ManageSettings)]
+        [HttpGet("biobank/api/telegram/recent-chats")]
+        public async Task<IActionResult> TelegramRecentChats([FromServices] IHttpClientFactory http)
+        {
+            var token = _config["Notifications:Telegram:BotToken"];
+            if (string.IsNullOrWhiteSpace(token))
+                return BadRequest(new { message = "Save the Telegram bot token on the System page first." });
+            var baseUrl = (_config["Notifications:Telegram:ApiBaseUrl"] ?? "https://api.telegram.org").TrimEnd('/');
+
+            JsonDocument doc;
+            try
+            {
+                var client = http.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var json = await client.GetStringAsync($"{baseUrl}/bot{token}/getUpdates?limit=100");
+                doc = JsonDocument.Parse(json);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == global::System.Net.HttpStatusCode.Unauthorized
+                                                  || ex.StatusCode == global::System.Net.HttpStatusCode.NotFound)
+            {
+                return BadRequest(new { message = "Telegram rejected the bot token. Check it on the System page." });
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return BadRequest(new { message = "Can't reach Telegram. This PC needs internet for this step." });
+            }
+
+            var chats = new Dictionary<long, object>();
+            using (doc)
+            {
+                if (doc.RootElement.TryGetProperty("result", out var results) && results.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var upd in results.EnumerateArray())
+                    {
+                        // a normal message, or a message in a group/channel the bot was added to
+                        JsonElement msg = default;
+                        foreach (var k in new[] { "message", "edited_message", "channel_post", "my_chat_member" })
+                            if (upd.TryGetProperty(k, out msg)) break;
+                        if (msg.ValueKind != JsonValueKind.Object || !msg.TryGetProperty("chat", out var chat)) continue;
+                        if (!chat.TryGetProperty("id", out var idEl) || !idEl.TryGetInt64(out var id)) continue;
+
+                        string Str(string p) => chat.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
+                        var name = (Str("first_name") + " " + Str("last_name")).Trim();
+                        if (name.Length == 0) name = Str("title");
+                        var text = msg.TryGetProperty("text", out var t) && t.ValueKind == JsonValueKind.String ? t.GetString() : null;
+
+                        chats[id] = new { chatId = id.ToString(CultureInfo.InvariantCulture), name, username = Str("username"), type = Str("type"), lastText = text };
+                    }
+                }
+            }
+            return Ok(chats.Values);
+        }
+
         // ================================================================ helpers
         private static string? Mask(string? secret) =>
             string.IsNullOrEmpty(secret) ? null : secret.Length <= 6 ? "••••" : "••••" + secret[^4..];

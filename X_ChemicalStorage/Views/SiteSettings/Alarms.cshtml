@@ -62,14 +62,18 @@
     <!-- Contacts -->
     <section class="ss-card">
         <h2><i class="bi bi-people"></i> Who gets the alarm</h2>
-        <p class="ss-hint">Tier 1 is told immediately. Tier 2 is told only if nobody acknowledges within the escalation time. To get a Telegram chat ID: the person sends any message to the bot, then open https://api.telegram.org/bot&lt;token&gt;/getUpdates and copy the number after "chat":{"id":</p>
+        <p class="ss-hint">Tier 1 is told immediately. Tier 2 is told only if nobody acknowledges within the escalation time.</p>
+        <p class="ss-hint"><b>Adding someone on Telegram:</b> 1) they open the lab bot in Telegram and send it any message (for example "hi"); 2) press <b>Find Telegram people</b> below; 3) press <b>Add</b> next to their name, choose the tier, then <b>Save</b>.</p>
         <div class="ss-table-wrap">
             <table class="ss-table">
                 <thead><tr><th>Name</th><th>Telegram chat ID</th><th>Phone (SMS)</th><th>E-mail</th><th>Tier</th><th>Freezer</th><th>Active</th><th></th></tr></thead>
                 <tbody id="ctRows"><tr><td colspan="8">Loading…</td></tr></tbody>
             </table>
         </div>
-        <div><button type="button" class="ss-btn" id="ctAdd"><i class="bi bi-person-plus"></i> Add contact</button></div>
+        <div class="ss-tools">
+            <button type="button" class="ss-btn" id="ctFind"><i class="bi bi-telegram"></i> Find Telegram people</button>
+            <button type="button" class="ss-btn" id="ctAdd"><i class="bi bi-person-plus"></i> Add contact by hand</button>
+        </div>
     </section>
 </div>
 </div>
@@ -210,11 +214,43 @@
         return { name: s("name"), telegramChatId: s("tg"), phone: s("phone"), email: s("email"),
                  tier: Number(q("tier").value), freezerId: s("fz"), isActive: q("active").checked };
     }
-    $("ctAdd").addEventListener("click", () => {
+    $("ctAdd").addEventListener("click", () => addContactRow({ tier: 1, isActive: true }));
+    function addContactRow(c) {
         const body = $("ctRows");
         if (!body.querySelector("tr[data-cid]")) body.innerHTML = "";
-        body.insertAdjacentHTML("beforeend", contactRow({ tier: 1, isActive: true }));
+        body.insertAdjacentHTML("beforeend", contactRow(c));
+        const tr = body.lastElementChild; tr.classList.add("dirty");
+        tr.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    $("ctFind").addEventListener("click", async () => {
+        const b = $("ctFind");
+        try {
+            b.disabled = true;
+            const list = await api("GET", "/biobank/api/telegram/recent-chats");
+            const known = new Set([...document.querySelectorAll('#ctRows td[data-k="tg"] input')].map(i => i.value.trim()));
+            if (!list.length) {
+                Swal.fire({ icon: "info", title: "Nobody yet",
+                    text: "Ask the person to open the lab bot in Telegram and send it any message, then press Find again. Messages older than 24 hours don't show." });
+                return;
+            }
+            const rows = list.map((c, i) => `
+                <tr><td style="text-align:left"><b>${esc(c.name || "(no name)")}</b>${c.username ? ` <span style="color:#6b7b88">@@${esc(c.username)}</span>` : ""}
+                    <div style="color:#6b7b88;font-size:.8rem">${esc(c.type)} · ${esc(c.chatId)}${c.lastText ? ` · “${esc(c.lastText)}”` : ""}</div></td>
+                    <td>${known.has(c.chatId) ? '<span class="ss-pill ok">already added</span>' : `<button type="button" class="ss-btn sm primary" data-pick="${i}">Add</button>`}</td></tr>`).join("");
+            Swal.fire({
+                title: "People who messaged the bot", width: 640, showConfirmButton: false, showCloseButton: true,
+                html: `<table class="ss-table" style="min-width:0">${rows}</table>`,
+                didOpen: el => el.addEventListener("click", ev => {
+                    const p = ev.target.closest("[data-pick]"); if (!p) return;
+                    const c = list[Number(p.dataset.pick)];
+                    Swal.close();
+                    addContactRow({ name: c.name || c.username || "", telegramChatId: c.chatId, tier: 1, isActive: true });
+                    toast("Added below. Choose the tier, then Save.");
+                })
+            });
+        } catch (e) { fail(e); } finally { b.disabled = false; }
     });
+
     $("ctRows").addEventListener("click", async e => {
         const b = e.target.closest("button[data-act]"); if (!b) return;
         const tr = b.closest("tr"); const id = tr.dataset.cid;
