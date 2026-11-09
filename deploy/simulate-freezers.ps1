@@ -9,6 +9,9 @@
     .\simulate-freezers.ps1 -Scenario PowerFail
     .\simulate-freezers.ps1 -Scenario Offline                # يبعت شوية وبعدين يسكت (اختبار الانقطاع)
     .\simulate-freezers.ps1 -User biobank -Password xxx      # لو الـ broker عليه باسورد
+    .\simulate-freezers.ps1 -RealLoggers                     # الـ 6 فريزرات بأرقام الـ Logger الحقيقية (gateways.csv)
+    .\simulate-freezers.ps1 -RealLoggers -Scenario HighTemp -Freezer 44088274
+        # الفريزر ده بس اللي بيعمل المشكلة، والباقيين شغالين طبيعي زي الواقع
 
   شكل الرسالة:  topic = freezer/<CODE>/telemetry
   { "temperature": -79.8, "set_temp": -80, "ambient_temp": 24.5, "door": "closed", "power": "ok", "online": true }
@@ -22,7 +25,8 @@ param(
     [string]$User = '',
     [string]$Password = '',
     [int]$IntervalSeconds = 10,
-    [int]$Count = 0   # 0 = لحد ما توقفيه بـ Ctrl+C
+    [int]$Count = 0,  # 0 = لحد ما توقفيه بـ Ctrl+C
+    [switch]$RealLoggers
 )
 
 $ErrorActionPreference = 'Stop'
@@ -33,7 +37,15 @@ if (-not (Test-Path $pub)) { throw "mosquitto_pub مش موجود. نصّبي Mo
 
 # أكواد الفريزرات الوهمية ودرجة الضبط بتاعة كل واحد
 $freezers = [ordered]@{ 'SIM-80A' = -80; 'SIM-20A' = -20; 'SIM-04A' = 4 }
-if ($Freezer) {
+$target = ''
+if ($RealLoggers) {
+    # كل الفريزرات بتبعت، والسيناريو بيتطبق على -Freezer بس (لو محدد)
+    $freezers = [ordered]@{}
+    foreach ($g in Import-Csv (Join-Path $PSScriptRoot 'gateways.csv')) { $freezers[$g.Logger] = [double]$g.ExpectedTemp }
+    $target = $Freezer
+    if ($target -and -not $freezers.Contains($target)) { throw "الـ Logger $target مش موجود في gateways.csv" }
+}
+elseif ($Freezer) {
     if (-not $freezers.Contains($Freezer)) { $freezers = [ordered]@{ $Freezer = -80 } }
     else { $freezers = [ordered]@{ $Freezer = $freezers[$Freezer] } }
 }
@@ -45,15 +57,17 @@ Write-Host "Scenario=$Scenario  Broker=${BrokerHost}:$Port  Freezers=$($freezers
 
 while ($true) {
     foreach ($code in $freezers.Keys) {
+        $affected = (-not $target) -or ($code -eq $target)
+        if ($Scenario -eq 'Offline' -and $affected -and $target -and $sent -ge 3) { continue }   # الفريزر ده بس سكت
         $set = [double]$freezers[$code]
         $temp = $set + ($rand.NextDouble() - 0.5)          # تذبذب طبيعي ±0.5
         $door = 'closed'; $power = 'ok'
 
-        switch ($Scenario) {
+        if ($affected) { switch ($Scenario) {
             'HighTemp'  { $temp = $set + 5 + ($sent * 1.5) }   # بتطلع تدريجياً لحد ما تعدّي الحد
             'DoorOpen'  { $door = 'open' }
             'PowerFail' { $power = 'fail'; $temp = $set + ($sent * 0.8) }
-        }
+        } }
 
         $payload = [ordered]@{
             temperature  = [math]::Round($temp, 1)
@@ -74,7 +88,10 @@ while ($true) {
     }
 
     $sent++
-    if ($Scenario -eq 'Offline' -and $sent -ge 3) {
+    if ($Scenario -eq 'Offline' -and $sent -eq 3 -and $target) {
+        Write-Host "`nOffline: $target وقف إرسال، والباقيين مكملين. المفروض إنذار انقطاع اتصال يظهر له بعد المهلة." -ForegroundColor Yellow
+    }
+    if ($Scenario -eq 'Offline' -and -not $target -and $sent -ge 3) {
         Write-Host "`nOffline: وقفت الإرسال. المفروض إنذار انقطاع الاتصال يظهر خلال المهلة المضبوطة للفريزر." -ForegroundColor Yellow
         break
     }
