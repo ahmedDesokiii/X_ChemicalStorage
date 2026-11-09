@@ -10,7 +10,7 @@
     .\simulate-freezers.ps1 -Scenario Offline                # يبعت شوية وبعدين يسكت (اختبار الانقطاع)
     .\simulate-freezers.ps1 -User biobank -Password xxx      # لو الـ broker عليه باسورد
     .\simulate-freezers.ps1 -RealLoggers                     # الـ 6 فريزرات بأرقام الـ Logger الحقيقية (gateways.csv)
-    .\simulate-freezers.ps1 -RealLoggers -Scenario HighTemp -Freezer 44088274
+    .\simulate-freezers.ps1 -RealLoggers -Scenario HighTemp -Freezer GF5022544088274
         # الفريزر ده بس اللي بيعمل المشكلة، والباقيين شغالين طبيعي زي الواقع
 
   شكل الرسالة:  topic = freezer/<CODE>/telemetry
@@ -41,9 +41,9 @@ $target = ''
 if ($RealLoggers) {
     # كل الفريزرات بتبعت، والسيناريو بيتطبق على -Freezer بس (لو محدد)
     $freezers = [ordered]@{}
-    foreach ($g in Import-Csv (Join-Path $PSScriptRoot 'gateways.csv')) { $freezers[$g.Logger] = [double]$g.ExpectedTemp }
+    foreach ($g in Import-Csv (Join-Path $PSScriptRoot 'gateways.csv')) { $freezers[$g.Collector] = [double]$g.ExpectedTemp }
     $target = $Freezer
-    if ($target -and -not $freezers.Contains($target)) { throw "الـ Logger $target مش موجود في gateways.csv" }
+    if ($target -and -not $freezers.Contains($target)) { throw "الكود $target مش موجود في gateways.csv (عمود Collector)" }
 }
 elseif ($Freezer) {
     if (-not $freezers.Contains($Freezer)) { $freezers = [ordered]@{ $Freezer = -80 } }

@@ -47,11 +47,11 @@ foreach ($line in @($out)) {
 Write-Host ''
 $fail = 0
 foreach ($g in $gateways) {
-    $msgs = [int]$count[$g.Logger]
+    $msgs = [int]$count[$g.Collector]
     $temp = $null
-    if ($last[$g.Logger]) {
+    if ($last[$g.Collector]) {
         try {
-            $j = $last[$g.Logger] | ConvertFrom-Json
+            $j = $last[$g.Collector] | ConvertFrom-Json
             foreach ($k in 'temperature', 'temp', 'current_temp', 'tem') { if ($null -ne $j.$k) { $temp = [double]$j.$k; break } }
         } catch { }
     }
@@ -66,7 +66,7 @@ foreach ($g in $gateways) {
     if ($state -eq 'XX' ) { Write-Host '           البوابة مش على الشبكة — الكابل؟ الـ IP اتغير صح؟' -ForegroundColor Red }
 }
 
-$unknown = $last.Keys | Where-Object { $_ -notin $gateways.Logger }
+$unknown = $last.Keys | Where-Object { $_ -notin $gateways.Collector }
 foreach ($u in $unknown) { Write-Host "  [??]   كود مش في gateways.csv بيبعت: $u  ←  $($last[$u])" -ForegroundColor Yellow }
 
 $sample = $last.Values | Select-Object -First 1
