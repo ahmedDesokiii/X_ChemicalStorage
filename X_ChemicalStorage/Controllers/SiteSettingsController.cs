@@ -2,6 +2,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using X_ChemicalStorage.BioBank.Services;
 
 namespace X_ChemicalStorage.Controllers
 {
@@ -292,6 +293,22 @@ namespace X_ChemicalStorage.Controllers
 
             _log.LogInformation("User {User} changed their password from the settings page", user.UserName);
             return Ok(new { message = "Password changed. Use it next time you sign in." });
+        }
+
+        // ================================================================ site setup (freezers, links, limits, contacts)
+        [HasPermission(Permissions.IoT.ManageSettings)]
+        [HttpGet("biobank/api/site-setup/export")]
+        public async Task<IActionResult> ExportSiteSetup([FromServices] ISiteSetupService setup)
+            => Ok(await setup.ExportAsync());
+
+        [HasPermission(Permissions.IoT.ManageSettings)]
+        [HttpPost("biobank/api/site-setup/import")]
+        public async Task<IActionResult> ImportSiteSetup([FromServices] ISiteSetupService setup, [FromBody] SiteSetupFile file)
+        {
+            if (file?.Freezers == null || file.Freezers.Count == 0)
+                return BadRequest(new { message = "That file has no freezers. Choose a site-setup.json exported from Settings." });
+            var r = await setup.ImportAsync(file, User.Identity?.Name ?? "settings page");
+            return Ok(new { message = r.Summary, problems = r.Problems });
         }
 
         // ================================================================ telegram chat finder

@@ -37,10 +37,17 @@ if ($existing -and $existing.Status -ne 'Stopped') {
 New-Item -ItemType Directory -Path $AppDir -Force | Out-Null
 # نحافظ على الإعدادات والملفات المرفوعة الخاصة بالموقع
 robocopy $PublishDir $AppDir /E /NFL /NDL /NJH /NJS /XF appsettings.Local.json /XD App_Data | Out-Null
-if ($LASTEXITCODE -ge 8) { throw "النسخ فشل (robocopy code $LASTEXITCODE)" }
+$robocopyCode = $LASTEXITCODE
+if ($robocopyCode -ge 8) { throw "النسخ فشل (robocopy code $robocopyCode)" }
 New-Item -ItemType Directory -Path (Join-Path $AppDir 'App_Data') -Force | Out-Null
 
 $local = Join-Path $AppDir 'appsettings.Local.json'
+$prepared = Join-Path $PublishDir 'appsettings.Local.json'
+if (-not (Test-Path $local) -and (Test-Path $prepared)) {
+    # الباكدج المجهزة من make-site-package.ps1 فيها الإعدادات جاهزة
+    Copy-Item $prepared $local
+    Write-Host 'الإعدادات الجاهزة اتنسخت (appsettings.Local.json).' -ForegroundColor Green
+}
 if (-not (Test-Path $local)) {
     Copy-Item (Join-Path $AppDir 'appsettings.Local.example.json') $local
     Write-Host "`nاتعمل $local من النموذج. اكتبي باسورد الأدمن واحفظي، وبعدين شغّلي السكريبت تاني. الباقي من صفحة Settings في البرنامج." -ForegroundColor Yellow
@@ -61,17 +68,38 @@ if (-not $existing) {
     Write-Host 'الخدمة اتنصبت.' -ForegroundColor Green
 }
 
-# الخدمة شغالة كـ LocalSystem: لازم يكون ليها دخول على SQL Express
-$sqlcmd = Get-Command sqlcmd -ErrorAction SilentlyContinue
-if ($sqlcmd) {
-    sqlcmd -S '.\SQLEXPRESS' -E -b -Q "IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'NT AUTHORITY\SYSTEM') CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS; IF IS_SRVROLEMEMBER('dbcreator', N'NT AUTHORITY\SYSTEM') = 0 ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];" | Out-Null
-    if ($LASTEXITCODE -eq 0) { Write-Host 'صلاحية الخدمة على SQL Express تمام.' -ForegroundColor Green }
-    else { Write-Host 'معرفتش أظبط صلاحية SQL. شوفي DEPLOYMENT.md (مشاكل شائعة).' -ForegroundColor Yellow }
-} else { Write-Host 'sqlcmd مش موجود: اتأكدي إن NT AUTHORITY\SYSTEM ليه dbcreator على SQL Express (DEPLOYMENT.md).' -ForegroundColor Yellow }
+# الخدمة شغالة كـ LocalSystem: لازم يكون ليها دخول على SQL Express (من غير sqlcmd)
+try {
+    $cn = New-Object System.Data.SqlClient.SqlConnection 'Server=.\SQLEXPRESS;Integrated Security=True;Connection Timeout=15'
+    $cn.Open()
+    $cmd = $cn.CreateCommand()
+    $cmd.CommandText = "IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'NT AUTHORITY\SYSTEM') CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS; IF IS_SRVROLEMEMBER('sysadmin', N'NT AUTHORITY\SYSTEM') = 0 ALTER SERVER ROLE sysadmin ADD MEMBER [NT AUTHORITY\SYSTEM];"
+    [void]$cmd.ExecuteNonQuery(); $cn.Close()
+    Write-Host 'صلاحية الخدمة على SQL Express تمام.' -ForegroundColor Green
+} catch {
+    Write-Host "معرفتش أوصل لـ SQL Express: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host 'اتأكدي إن SQL Server Express متنصب وشغال (MSSQL$SQLEXPRESS).' -ForegroundColor Yellow
+}
 
 if (-not (Get-NetFirewallRule -DisplayName "BioBank Web $Port" -ErrorAction SilentlyContinue)) {
     New-NetFirewallRule -DisplayName "BioBank Web $Port" -Direction Inbound -Protocol TCP -LocalPort $Port -Profile Any -RemoteAddress LocalSubnet -Action Allow | Out-Null
 }
+
+# أول تشغيل بعد التنصيب/التحديث بيبني الداتابيز ويستورد site-setup.json، وده ممكن ياخد دقايق.
+# Windows بيقفل أي خدمة تاخد أكتر من 30 ثانية تقوم، فبنشغله الأول كبرنامج عادي لحد ما يجهز.
+Write-Host 'تشغيل أولي لتجهيز الداتابيز (ممكن ياخد لحد 10 دقايق أول مرة)...' -ForegroundColor Cyan
+$warm = Start-Process -FilePath $exe -WorkingDirectory $AppDir -PassThru -WindowStyle Minimized
+$ready = $false
+foreach ($i in 1..200) {
+    Start-Sleep 3
+    if ($warm.HasExited) { break }
+    try { Invoke-RestMethod "http://localhost:$Port/healthz" -TimeoutSec 5 | Out-Null; $ready = $true; break } catch { }
+}
+if (-not $warm.HasExited) { Stop-Process -Id $warm.Id -Force; Start-Sleep 2 }
+if (-not $ready) {
+    throw 'البرنامج مقامش في التشغيل الأولي. افتحي C:\XChemicalStorage وشغّلي X_ChemicalStorage.exe بإيدك وشوفي الخطأ.'
+}
+Write-Host '  [OK]   الداتابيز جاهزة.' -ForegroundColor Green
 
 Start-Service $svc
 Write-Host 'مستني البرنامج يقوم (أول مرة بيعمل الداتابيز)...' -ForegroundColor Cyan

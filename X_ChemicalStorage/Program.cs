@@ -145,6 +145,7 @@ builder.Services.AddScoped<IServicesRepository<ManufacuterCompany>, ServicesManu
 // جنب باقي الـ builder.Services.AddScoped<...>
 builder.Services.AddScoped<IBioAttachmentService, BioAttachmentService>();
 builder.Services.AddScoped<IFreezerIoTService, FreezerIoTService>();
+builder.Services.AddScoped<ISiteSetupService, SiteSetupService>();
 
 //builder.Services.AddScoped<LotCleanupJob>();
 
@@ -225,6 +226,31 @@ using (var scope = app.Services.CreateScope())
         // أدمن الموقع: الباسورد من appsettings.Local.json (AdminSeed:Password)
         await X_ChemicalStorage.Seeds.DefaultUsers.SeedConfiguredAdminAsync(
             userManager, app.Configuration.GetSection("AdminSeed"), logger);
+
+        // إعداد الموقع: لو فيه site-setup.json جنب البرنامج والداتابيز لسه مفيهاش فريزرات،
+        // الفريزرات والربط والحدود وجهات الاتصال بيتعملوا لوحدهم أول تشغيل.
+        try
+        {
+            var setupPath = Path.Combine(app.Environment.ContentRootPath, "site-setup.json");
+            var setupDb = services.GetRequiredService<ApplicationDbContext>();
+            if (File.Exists(setupPath) && !await setupDb.Bio_Freezers.AnyAsync())
+            {
+                var json = await File.ReadAllTextAsync(setupPath);
+                var setupJsonOptions = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+                setupJsonOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());   // "Minus80" or 1
+                var file = System.Text.Json.JsonSerializer.Deserialize<SiteSetupFile>(json, setupJsonOptions);
+                if (file != null)
+                {
+                    var result = await services.GetRequiredService<ISiteSetupService>().ImportAsync(file, "site-setup.json");
+                    logger.LogInformation("Site setup imported on first start: {Summary}", result.Summary);
+                    File.Move(setupPath, setupPath + $".imported-{DateTime.Now:yyyyMMdd-HHmm}", overwrite: true);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Site setup import failed. Import it from Settings > System instead.");
+        }
 
         // Sync the permission catalog into ERP_Permissions (+ migrate old role claims).
         // Never block startup: if the migration isn't applied yet, Admin still has full access.

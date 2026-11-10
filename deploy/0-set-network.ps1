@@ -17,7 +17,8 @@ param(
     [string]$Adapter = '',
     [string]$IP = '192.168.2.10',
     [int]$Prefix = 24,
-    [switch]$ListOnly
+    [switch]$ListOnly,
+    [switch]$Force
 )
 $ErrorActionPreference = 'Stop'
 
@@ -43,6 +44,15 @@ if ($Adapter) {
     if ($wired.Count -eq 0) { throw 'مفيش كارت كابل متوصل (Up). اتأكدي إن الكابل في السويتش والسويتش شغال.' }
     if ($wired.Count -gt 1) { throw "فيه أكتر من كارت كابل متوصل: $($wired.Name -join ' / '). حددي واحد: -Adapter 'الاسم'" }
     $nic = $wired[0]
+}
+
+# أمان: لو الكارت ده متوصل بشبكة المعمل العادية (فيها راوتر/نت)، متاخدهوش
+$hasRouter = Get-NetRoute -InterfaceIndex $nic.ifIndex -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue
+$curIp = (Get-NetIPAddress -InterfaceIndex $nic.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress
+if ($hasRouter -and -not ($curIp -like '192.168.2.*') -and -not $Force) {
+    throw ("الكارت '$($nic.Name)' متوصل بشبكة فيها نت ($curIp). لو غيّرته، الجهاز هيفصل عن شبكة المعمل والنت (وTelegram). " +
+           "وصّلي السويتش في بورت شبكة تاني أو USB-Ethernet adapter وشغّلي السكريبت تاني. " +
+           "لو متأكدة إن الكارت ده للفريزرات بس: .\0-set-network.ps1 -Force")
 }
 
 Write-Host "`nهظبط الكارت: $($nic.Name)" -ForegroundColor Cyan

@@ -77,6 +77,17 @@
         </div>
     </section>
 
+    <!-- Site setup -->
+    <section class="ss-card">
+        <h2><i class="bi bi-box-arrow-right"></i> Move the setup to another PC</h2>
+        <p class="ss-hint">Saves the freezers, their gateway links, alarm limits and alarm contacts to one file (site-setup.json). No samples, readings or alarm history. On the lab PC the installer imports it automatically on first start; you can also import it here.</p>
+        <div class="ss-tools">
+            <button type="button" class="ss-btn" id="suExport"><i class="bi bi-download"></i> Download site-setup.json</button>
+            <label class="ss-btn" for="suFile" style="margin:0"><i class="bi bi-upload"></i> Import a site-setup.json</label>
+            <input type="file" id="suFile" accept=".json,application/json" hidden />
+        </div>
+    </section>
+
     <!-- Password -->
     <section class="ss-card">
         <h2><i class="bi bi-key"></i> Your sign-in password</h2>
@@ -159,6 +170,39 @@
             $("pwNew").value = ""; $("pwConfirm").value = "";
             toast(r.message);
         } catch (e) { fail(e); }
+    });
+
+    $("suExport").addEventListener("click", async () => {
+        try {
+            const data = await api("GET", "/biobank/api/site-setup/export");
+            const fast = data.freezers.filter(f => (f.tempAlarmDelayMinutes ?? 99) <= 1 || (f.doorOpenMinutes ?? 99) <= 1).map(f => f.id);
+            const unlinked = data.freezers.filter(f => !f.collectorCode).map(f => f.id);
+            const notes = [];
+            if (fast.length) notes.push(`Testing delays (1 min) on: ${fast.join(", ")}. The lab would get those. Set normal delays on the Alarms page first.`);
+            if (unlinked.length) notes.push(`Not linked to a gateway: ${unlinked.join(", ")}.`);
+            if (notes.length && window.Swal) {
+                const ok = await Swal.fire({ icon: "warning", title: "Check before exporting", text: notes.join(" "),
+                    showCancelButton: true, confirmButtonText: "Download anyway", cancelButtonText: "Go back" });
+                if (!ok.isConfirmed) return;
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob); a.download = "site-setup.json";
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            toast(`${data.freezers.length} freezer(s), ${data.contacts.length} contact(s) saved to site-setup.json`);
+        } catch (e) { fail(e); }
+    });
+
+    $("suFile").addEventListener("change", async e => {
+        const f = e.target.files[0]; e.target.value = "";
+        if (!f) return;
+        try {
+            const data = JSON.parse(await f.text());
+            const r = await api("POST", "/biobank/api/site-setup/import", data);
+            if (window.Swal) Swal.fire({ icon: r.problems?.length ? "warning" : "success", title: "Import finished",
+                text: r.message + (r.problems?.length ? " — " + r.problems.join(" · ") : "") });
+        } catch (err) { fail(err instanceof SyntaxError ? new Error("That file isn't valid JSON.") : err); }
     });
 
     wireRestart();
