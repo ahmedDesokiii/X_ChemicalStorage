@@ -19,7 +19,7 @@ namespace X_ChemicalStorage.Models
         // ===== التوقيتات (بالدقائق) =====
         public int TempAlarmDelayMinutes { get; set; } = 10;  // مدة بقاء الحرارة خارج الحد قبل الإنذار
         public int DoorOpenMinutes { get; set; } = 5;         // مهلة الباب المفتوح
-        public int OfflineAfterMinutes { get; set; } = 2;     // انقطاع الرسايل = Offline
+        public int OfflineAfterMinutes { get; set; } = 12;    // انقطاع الرسايل = Offline (بوابات هاير بتبعت الحرارة كل 5 دقايق)
         public int EscalationMinutes { get; set; } = 10;      // مفيش استلام => مستوى 2
 
         // ===== وضع قيد التشغيل (Commissioning) =====

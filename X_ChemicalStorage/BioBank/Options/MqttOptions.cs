@@ -14,6 +14,9 @@ namespace X_ChemicalStorage.BioBank.Options
         public string Topic { get; set; } = "freezer/+/telemetry";
         public bool UseTls { get; set; } = false;
 
+        /// Topic بوابات هاير (MobiusHaier بعد توجيهها لجهاز المعمل). رسايل Binary، الكود آخر جزء في الـ Topic. فاضي = متتسمعش.
+        public string HaierTopic { get; set; } = "status/handle/+/+";
+
         /// ترتيب جزء كود الـ Collector في الـ Topic (0-based). freezer/<code>/telemetry => 1
         public int TopicCollectorIndex { get; set; } = 1;
 

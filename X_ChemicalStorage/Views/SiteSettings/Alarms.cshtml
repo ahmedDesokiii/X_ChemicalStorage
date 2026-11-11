@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Alarm settings";
 }
 <link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
@@ -27,8 +27,8 @@
         <h2><i class="bi bi-thermometer-snow"></i> Freezer alarm limits</h2>
         <p class="ss-hint">Changes apply right away (no restart). Every change is recorded with your name. Temperature delay = how long the reading must stay outside the limits before the alarm. Escalation = minutes with nobody acknowledging before tier-2 contacts are told.</p>
         <div class="ss-tools">
-            <button type="button" class="ss-btn" id="fzTest"><i class="bi bi-stopwatch"></i> Testing mode: all delays 1 min</button>
-            <button type="button" class="ss-btn" id="fzNormal"><i class="bi bi-shield-check"></i> Normal delays (10 / 5 / 2 / 10 min)</button>
+            <button type="button" class="ss-btn" id="fzTest"><i class="bi bi-stopwatch"></i> Testing mode: 1 min (offline 7)</button>
+            <button type="button" class="ss-btn" id="fzNormal"><i class="bi bi-shield-check"></i> Normal delays (10 / 5 / 12 / 10 min)</button>
             <span class="grow"></span>
             <button type="button" class="ss-btn primary" id="fzSaveAll"><i class="bi bi-save"></i> Save changed rows</button>
         </div>
@@ -84,7 +84,7 @@
 (() => {
     const { $, esc, api, toast, fail, showRestart, wireRestart } = window.SiteSettings;
     const PRESET = { 1: { low: -90, high: -70 }, 2: { low: -160, high: -140 } };      // Minus80, Minus150
-    const NORMAL = { delay: 10, door: 5, offline: 2, esc: 10 };
+    const NORMAL = { delay: 10, door: 5, offline: 12, esc: 10 };
     let freezers = [];
 
     // ---------------------------------------------------------------- freezers
@@ -153,7 +153,7 @@
         try { b.disabled = true; await saveRow(tr); toast(`${tr.dataset.id} saved`); updateTestWarn(); }
         catch (err) { fail(err); } finally { b.disabled = false; }
     });
-    $("fzTest").addEventListener("click", () => setDelays({ delay: 1, door: 1, offline: 1, esc: 2 }));
+    $("fzTest").addEventListener("click", () => setDelays({ delay: 1, door: 1, offline: 7, esc: 2 }));
     $("fzNormal").addEventListener("click", () => setDelays(NORMAL));
     $("fzSaveAll").addEventListener("click", async () => {
         const rows = [...document.querySelectorAll("#fzRows tr.dirty")];

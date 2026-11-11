@@ -120,19 +120,43 @@ namespace X_ChemicalStorage.BioBank.Services
 
             await client.ConnectAsync(builder.Build(), ct);
 
-            var topicFilter = new MqttTopicFilterBuilder()
-                .WithTopic(_options.Topic)
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                .Build();
-
-            await client.SubscribeAsync(topicFilter, ct);
+            foreach (var topic in SubscribedTopics())
+            {
+                var topicFilter = new MqttTopicFilterBuilder()
+                    .WithTopic(topic)
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build();
+                await client.SubscribeAsync(topicFilter, ct);
+            }
         }
+
+        /// Topic (comma-separated) + Haier gateways' own topic.
+        private IEnumerable<string> SubscribedTopics() =>
+            (_options.Topic + "," + _options.HaierTopic)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.Ordinal);
 
         private async Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs e)
         {
             try
             {
                 var topic = e.ApplicationMessage.Topic ?? "";
+                var raw = e.ApplicationMessage.PayloadSegment.ToArray();
+
+                // Haier gateway (MobiusHaier): binary frames
+                if (HaierFrameParser.IsHaierFrame(raw))
+                {
+                    _health.MqttMessageReceived(DateTime.UtcNow);
+                    var haier = HaierFrameParser.Parse(topic, raw, out var note);
+                    if (haier == null)
+                    {
+                        if (note != "event log")
+                            _logger.LogWarning("Haier frame ignored: {Note}. Topic={Topic}", note, topic);
+                        return;
+                    }
+                    await IngestAsync(haier, topic);
+                    return;
+                }
 
                 string payload;
                 try
@@ -158,6 +182,16 @@ namespace X_ChemicalStorage.BioBank.Services
                 foreach (var w in warnings)
                     _logger.LogWarning("MQTT {Collector}: {Warning}", dto.CollectorCode, w);
 
+                await IngestAsync(dto, topic);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing MQTT message");
+            }
+        }
+
+        private async Task IngestAsync(IngestReadingDto dto, string topic)
+        {
                 using var scope = _scopeFactory.CreateScope();
                 var iot = scope.ServiceProvider.GetRequiredService<IFreezerIoTService>();
                 var result = await iot.ProcessIncomingReadingAsync(dto);
@@ -178,11 +212,6 @@ namespace X_ChemicalStorage.BioBank.Services
                             dto.CollectorCode, dto.Temperature, result);
                         break;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing MQTT message");
-            }
         }
     }
 }
