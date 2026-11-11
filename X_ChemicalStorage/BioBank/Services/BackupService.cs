@@ -6,8 +6,8 @@ namespace X_ChemicalStorage.BioBank.Services
 {
     public class BackupService : IBackupService
     {
-        // نسخة واحدة في نفس الوقت على مستوى التطبيق كله
-        private static readonly SemaphoreSlim Gate = new(1, 1);
+        // نسخة واحدة في نفس الوقت على مستوى التطبيق كله (مشترك مع نسخ البايو بانك والاسترجاع)
+        private static SemaphoreSlim Gate => BackupLocks.Gate;
 
         private readonly ApplicationDbContext _db;
         private readonly IBackupExecutor _exec;
@@ -27,12 +27,12 @@ namespace X_ChemicalStorage.BioBank.Services
         // ============================================================ تشغيل نسخة
         public async Task<BackupResultDto> RunAsync(string type, string triggeredBy, CancellationToken ct = default)
         {
-            type = string.Equals(type, "Auto", StringComparison.OrdinalIgnoreCase) ? "Auto" : "Manual";
+            type = BackupLocks.NormalizeType(type);
 
             if (!_opt.Enabled && type == "Auto")
                 return new BackupResultDto { Code = "disabled", Message = "Backup is disabled in settings." };
 
-            if (!await Gate.WaitAsync(0, ct))
+            if (!await Gate.WaitAsync(type == "PreRestore" ? TimeSpan.FromMinutes(2) : TimeSpan.Zero, ct))
                 return new BackupResultDto { Code = "busy", Message = "A backup is already running. Please wait for it to finish." };
 
             try

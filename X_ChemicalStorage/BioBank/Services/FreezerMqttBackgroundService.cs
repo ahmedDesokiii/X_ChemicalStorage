@@ -18,14 +18,20 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly string _clientId;
         private readonly IoTHealth _health;
         private readonly StationState _station;
+        private readonly MaintenanceState _maintenance;
+        private readonly X_ChemicalStorage.BioBank.Live.LiveBroadcaster _live;
 
         public FreezerMqttBackgroundService(
             IServiceScopeFactory scopeFactory,
             IOptions<MqttOptions> options,
             ILogger<FreezerMqttBackgroundService> logger,
             IoTHealth health,
-            StationState station)
+            StationState station,
+            MaintenanceState maintenance,
+            X_ChemicalStorage.BioBank.Live.LiveBroadcaster live)
         {
+            _maintenance = maintenance;
+            _live = live;
             _station = station;
             _health = health;
             _scopeFactory = scopeFactory;
@@ -141,6 +147,11 @@ namespace X_ChemicalStorage.BioBank.Services
             try
             {
                 var topic = e.ApplicationMessage.Topic ?? "";
+                if (_maintenance.Active)
+                {
+                    _health.MqttMessageReceived(DateTime.UtcNow);
+                    return;   // a restore is replacing the data right now; the gateway sends again in a few minutes
+                }
                 var raw = e.ApplicationMessage.PayloadSegment.ToArray();
 
                 // Haier gateway (MobiusHaier): binary frames
@@ -200,6 +211,7 @@ namespace X_ChemicalStorage.BioBank.Services
                 {
                     case IngestResult.UnknownDevice:
                         _station.UnlinkedCollectorSeen(dto.CollectorCode, topic, dto.Temperature, DateTime.UtcNow);
+                        _live.StationChanged();
                         if (_unknownLogged.Add(dto.CollectorCode))
                             _logger.LogWarning(
                                 "Data received from unregistered collector {Collector}. Link it to a freezer (api/iot/link).",

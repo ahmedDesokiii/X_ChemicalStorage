@@ -49,7 +49,8 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
     var connectionString = configuration.GetConnectionString(selectedConn);
 
     options.UseSqlServer(connectionString)
-       .AddInterceptors(new ReadingImmutabilityInterceptor());
+       .AddInterceptors(new ReadingImmutabilityInterceptor(),
+                        serviceProvider.GetRequiredService<X_ChemicalStorage.BioBank.Live.LiveChangeInterceptor>());
 });
 
 
@@ -64,6 +65,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Scoped);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSignalR();
+// Live screens (Station, Bio Bank): push "something changed" over SignalR instead of waiting for the next poll
+builder.Services.AddSingleton<X_ChemicalStorage.BioBank.Live.LiveBroadcaster>();
+builder.Services.AddSingleton<X_ChemicalStorage.BioBank.Live.LiveChangeInterceptor>();
+builder.Services.AddSingleton<X_ChemicalStorage.BioBank.Services.MaintenanceState>();
 builder.Services.AddLogging(logging =>
 {
     logging.AddConsole();
@@ -160,6 +165,8 @@ builder.Services.AddScoped<IBackupExecutor, SqlServerBackupExecutor>();
 builder.Services.AddScoped<SystemNoticeService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddHostedService<DailyBackupWorker>();
+builder.Services.AddScoped<BackupCenterService>();
+builder.Services.AddHostedService<BioBankBackupWorker>();
 
 #endregion
 
@@ -301,6 +308,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+app.MapHub<X_ChemicalStorage.BioBank.Live.LiveHub>("/hubs/live");
 
 // فحص سريع بدون تسجيل دخول (للسكريبتات والمراقبة الخارجية). الحالة بس، من غير أي تفاصيل.
 app.MapGet("/healthz", (IoTHealth health) =>

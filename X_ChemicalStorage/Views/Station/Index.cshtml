@@ -1,7 +1,8 @@
-@{
+﻿@{
     ViewData["Title"] = "Monitoring Station";
 }
 <link rel="stylesheet" href="~/css/station.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/live.css" asp-append-version="true" />
 
 <div class="st-page" dir="ltr" id="stationApp">
 
@@ -26,6 +27,7 @@
             <div class="st-sub" id="stStationInfo">Connecting…</div>
         </div>
         <div class="st-head-actions">
+            <span class="live-chip live-connecting" data-live-chip><span class="live-dot"></span><span data-live-text>Connecting…</span></span>
             <span class="st-overall" id="stOverall"><span class="dot"></span><span>Checking…</span></span>
             <button type="button" class="st-btn st-btn-arm" id="stArm" title="Browsers need one click before a page may play sound">
                 <i class="bi bi-bell-slash-fill"></i> <span>Arm local alarm sound</span>
@@ -78,7 +80,7 @@
         </aside>
     </div>
 
-    <div class="st-foot">Last update: <span id="stUpdated">–</span> · refreshes every 10 s · server <span id="stServer"></span></div>
+    <div class="st-foot">Last update: <span id="stUpdated">–</span> · live updates, safety refresh every 30 s · server <span id="stServer"></span></div>
 </div>
 
 <!-- Link dialog -->
@@ -120,5 +122,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/live.js" asp-append-version="true"></script>
     <script src="~/js/station.js" asp-append-version="true"></script>
 }

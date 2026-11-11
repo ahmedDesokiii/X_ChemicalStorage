@@ -29,5 +29,16 @@
         public int MaxAutoAttemptsPerDay { get; set; } = 3;
         public int RetryAfterMinutes { get; set; } = 30;
         public int StaleWarningHours { get; set; } = 36;                 // تحذير لو آخر نسخة ناجحة أقدم من كده
+
+        // ---------------------------------------------------------- نسخة البايو بانك (بيانات البايو بانك بس)
+        /// نسخة لبيانات البايو بانك بس (الفريزرات، العينات، القرايات، الإنذارات، الإعدادات) + مرفقات العينات، كل كام ساعة.
+        /// بتترجع لوحدها من غير ما تلمس باقي البرنامج (المخزن، المستخدمين…).
+        public bool BioBankEnabled { get; set; } = true;
+        public int BioBankEveryHours { get; set; } = 6;
+        /// فولدر فرعي جوه Directory
+        public string BioBankFolder { get; set; } = "BioBank";
+
+        /// أقصى حجم لملف نسخة بيترفع من الصفحة
+        public int UploadMaxMegabytes { get; set; } = 4096;
     }
 }

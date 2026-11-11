@@ -1,0 +1,177 @@
+﻿@{
+    ViewData["Title"] = "Backup";
+}
+<link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/backup-center.css" asp-append-version="true" />
+
+<div class="ss-page bk-page" dir="ltr">
+<div class="ss-wrap">
+    <div class="ss-head">
+        <div>
+            <h1>Settings</h1>
+            <p class="ss-sub">Two separate safety nets: the whole application, and the Bio Bank data on its own. Both run by themselves and on demand.</p>
+        </div>
+    </div>
+    <nav class="ss-tabs">
+        <a href="/biobank/settings">System</a>
+        <a href="/biobank/alarm-settings">Alarms and contacts</a>
+        <a href="/biobank/backup-settings" class="active">Backup</a>
+    </nav>
+
+    <div class="ss-banner" id="ssRestartBanner" hidden>
+        <i class="bi bi-arrow-repeat"></i>
+        <span id="ssRestartText">Settings saved. Restart the app to apply them.</span>
+        <button type="button" class="ss-btn" id="ssRestartBtn"><i class="bi bi-power"></i> Restart now</button>
+    </div>
+
+    <div class="bk-maint" id="bkMaint" hidden>
+        <span class="bk-spinner"></span>
+        <div><b>Restore in progress</b><small id="bkMaintText">Freezer data intake is paused until it finishes.</small></div>
+    </div>
+
+    <!-- The two vaults -->
+    <div class="bk-vaults">
+        <section class="bk-vault" id="vaultFull" data-scope="full">
+            <div class="bk-vault-head">
+                <div class="bk-vault-icon"><i class="bi bi-hdd-stack-fill"></i></div>
+                <div class="bk-vault-title">
+                    <h2>Whole application</h2>
+                    <p>Everything in the database (stock, users, permissions and Bio Bank) plus sample attachments. SQL Server native backup, verified after every run.</p>
+                </div>
+            </div>
+            <div class="bk-health" data-health>
+                <div class="bk-ring"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="bk-ring-bg" cx="18" cy="18" r="15.5"/><circle class="bk-ring-fg" cx="18" cy="18" r="15.5"/></svg><i class="bi bi-shield-check"></i></div>
+                <div class="bk-health-text">
+                    <div class="bk-health-state" data-state>Loading…</div>
+                    <div class="bk-health-meta" data-meta></div>
+                </div>
+            </div>
+            <dl class="bk-facts" data-facts></dl>
+            <div class="bk-actions">
+                <button type="button" class="ss-btn primary" data-run has-permission="Backup.Run"><i class="bi bi-lightning-charge-fill"></i> Back up now</button>
+                <label class="bk-drop" data-drop has-permission="Backup.Restore">
+                    <input type="file" accept=".bak" hidden data-file />
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <span><b>Upload a backup</b><small>Drop a .bak file here, or click</small></span>
+                    <span class="bk-progress" hidden><span></span></span>
+                </label>
+            </div>
+            <details class="bk-auto" has-permission="IoT.ManageSettings">
+                <summary><i class="bi bi-clock-history"></i> Automatic schedule</summary>
+                <label class="ss-check"><input type="checkbox" id="setFullEnabled" /> Back up the whole application every day</label>
+                <div class="ss-grid">
+                    <div class="ss-field"><label for="setFullTime">At (Cairo time)</label><input class="form-control" id="setFullTime" type="time" /></div>
+                </div>
+            </details>
+        </section>
+
+        <section class="bk-vault bio" id="vaultBio" data-scope="biobank">
+            <div class="bk-vault-head">
+                <div class="bk-vault-icon"><i class="bi bi-snow2"></i></div>
+                <div class="bk-vault-title">
+                    <h2>Bio Bank data</h2>
+                    <p>Freezers, boxes, samples, readings, alarms, alarm limits and contacts, plus sample attachments. Restores on its own without touching the rest of the application.</p>
+                </div>
+            </div>
+            <div class="bk-health" data-health>
+                <div class="bk-ring"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="bk-ring-bg" cx="18" cy="18" r="15.5"/><circle class="bk-ring-fg" cx="18" cy="18" r="15.5"/></svg><i class="bi bi-shield-check"></i></div>
+                <div class="bk-health-text">
+                    <div class="bk-health-state" data-state>Loading…</div>
+                    <div class="bk-health-meta" data-meta></div>
+                </div>
+            </div>
+            <dl class="bk-facts" data-facts></dl>
+            <div class="bk-actions">
+                <button type="button" class="ss-btn primary" data-run has-permission="Backup.Run"><i class="bi bi-lightning-charge-fill"></i> Back up now</button>
+                <label class="bk-drop" data-drop has-permission="Backup.Restore">
+                    <input type="file" accept=".zip" hidden data-file />
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <span><b>Upload a backup</b><small>Drop a BioBank_….zip here, or click</small></span>
+                    <span class="bk-progress" hidden><span></span></span>
+                </label>
+            </div>
+            <details class="bk-auto" has-permission="IoT.ManageSettings">
+                <summary><i class="bi bi-clock-history"></i> Automatic schedule</summary>
+                <label class="ss-check"><input type="checkbox" id="setBioEnabled" /> Back up the Bio Bank data automatically</label>
+                <div class="ss-grid">
+                    <div class="ss-field"><label for="setBioHours">Every (hours)</label><input class="form-control" id="setBioHours" type="number" min="1" max="168" /></div>
+                </div>
+            </details>
+        </section>
+    </div>
+
+    <!-- Restore points -->
+    <section class="ss-card bk-points">
+        <div class="bk-points-head">
+            <h2><i class="bi bi-clock-history"></i> Restore points</h2>
+            <div class="bk-seg" role="tablist">
+                <button type="button" role="tab" class="active" data-tab="full">Whole application <span data-count="full"></span></button>
+                <button type="button" role="tab" data-tab="biobank">Bio Bank <span data-count="biobank"></span></button>
+            </div>
+        </div>
+        <div class="bk-legend">
+            <span class="bk-chip Auto">Automatic</span><span class="bk-chip Manual">Manual</span>
+            <span class="bk-chip PreRestore">Safety copy</span><span class="bk-chip Uploaded">Uploaded</span>
+            <span class="bk-legend-note">A safety copy is taken automatically right before every restore, so a restore can always be undone.</span>
+        </div>
+        <div class="bk-list" id="bkList"><div class="bk-empty">Loading…</div></div>
+    </section>
+
+    <div class="bk-two">
+        <!-- Storage -->
+        <section class="ss-card" has-permission="IoT.ManageSettings">
+            <h2><i class="bi bi-folder2-open"></i> Where backups are kept</h2>
+            <label class="ss-check"><input type="checkbox" id="setEnabled" /> Backups on (turning this off stops both automatic backups)</label>
+            <div class="ss-grid">
+                <div class="ss-field"><label for="setDir">Backup folder</label><input class="form-control" id="setDir" placeholder="D:\BioBank_Backups" /></div>
+                <div class="ss-field"><label for="setDir2">Second copy (USB / other drive)</label><input class="form-control" id="setDir2" placeholder="E:\BioBank_Backups" /></div>
+                <div class="ss-field"><label for="setKeep">Keep backups (days)</label><input class="form-control" id="setKeep" type="number" min="1" max="3650" /></div>
+            </div>
+            <p class="ss-hint">The Bio Bank backups go to a BioBank folder inside the backup folder. The last 7 backups of each kind are always kept, however old.</p>
+            <div><button type="button" class="ss-btn primary" id="setSave"><i class="bi bi-save"></i> Save backup settings</button></div>
+        </section>
+
+        <!-- Activity -->
+        <section class="ss-card">
+            <h2><i class="bi bi-journal-text"></i> Activity</h2>
+            <ol class="bk-activity" id="bkActivity"><li class="bk-empty">Loading…</li></ol>
+        </section>
+    </div>
+</div>
+
+<!-- Restore dialog -->
+<div class="bk-modal" id="bkModal" hidden role="dialog" aria-modal="true" aria-labelledby="bkModalTitle">
+    <div class="bk-modal-card">
+        <div class="bk-modal-head">
+            <div class="bk-modal-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+            <div>
+                <h3 id="bkModalTitle">Restore</h3>
+                <div class="bk-modal-file" id="bkModalFile"></div>
+            </div>
+        </div>
+        <div class="bk-modal-body" id="bkModalBody"></div>
+        <ol class="bk-steps" id="bkSteps" hidden>
+            <li data-step="safety"><span class="bk-step-dot"></span>Safety copy of the current data</li>
+            <li data-step="pause"><span class="bk-step-dot"></span>Pause freezer data intake</li>
+            <li data-step="restore"><span class="bk-step-dot"></span>Replace the data</li>
+            <li data-step="check"><span class="bk-step-dot"></span>Check and resume</li>
+        </ol>
+        <div class="bk-modal-result" id="bkModalResult" hidden></div>
+        <div class="bk-confirm" id="bkConfirm">
+            <label for="bkConfirmInput">Type <b>RESTORE</b> to continue</label>
+            <input id="bkConfirmInput" class="form-control" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="bk-modal-foot">
+            <button type="button" class="ss-btn" id="bkCancel">Cancel</button>
+            <button type="button" class="ss-btn bk-danger" id="bkGo" disabled><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
+        </div>
+    </div>
+</div>
+</div>
+
+@section Scripts {
+<script src="~/js/site-settings.js" asp-append-version="true"></script>
+<script src="~/lib/signalr/signalr.min.js"></script>
+<script src="~/js/live.js" asp-append-version="true"></script>
+<script src="~/js/backup-center.js" asp-append-version="true"></script>
+}

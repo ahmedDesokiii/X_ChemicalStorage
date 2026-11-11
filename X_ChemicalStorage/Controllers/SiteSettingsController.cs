@@ -1,4 +1,4 @@
-using System.Net.NetworkInformation;
+﻿using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -106,7 +106,9 @@ namespace X_ChemicalStorage.Controllers
                     directory = S("Backup:Directory", @"D:\BioBank_Backups"),
                     secondaryDirectory = S("Backup:SecondaryDirectory"),
                     dailyTime = S("Backup:DailyTime", "02:00"),
-                    keepDays = I("Backup:KeepDays", 30)
+                    keepDays = I("Backup:KeepDays", 30),
+                    bioEnabled = B("Backup:BioBankEnabled", true),
+                    bioEveryHours = I("Backup:BioBankEveryHours", 6)
                 }
             });
         }
@@ -143,6 +145,8 @@ namespace X_ChemicalStorage.Controllers
             public string? BackupSecondaryDirectory { get; set; }
             public string? BackupDailyTime { get; set; }
             public int? BackupKeepDays { get; set; }
+            public bool? BackupBioEnabled { get; set; }
+            public int? BackupBioEveryHours { get; set; }
         }
 
         [HasPermission(Permissions.IoT.ManageSettings)]
@@ -158,6 +162,7 @@ namespace X_ChemicalStorage.Controllers
             if (u.EmailPort is < 1 or > 65535) return BadRequest(new { message = "E-mail port must be 1-65535." });
             if (u.ReminderIntervalMinutes is < 1 or > 1440) return BadRequest(new { message = "Reminder interval must be 1-1440 minutes." });
             if (u.MaxReminders is < 0 or > 500) return BadRequest(new { message = "Max reminders must be 0-500." });
+            if (u.BackupBioEveryHours is < 1 or > 168) return BadRequest(new { message = "Bio Bank backup interval must be 1-168 hours." });
             if (u.BackupKeepDays is < 1 or > 3650) return BadRequest(new { message = "Keep backups for 1-3650 days." });
             if (u.BackupDailyTime != null && !TimeSpan.TryParseExact(u.BackupDailyTime.Trim(), "hh\\:mm", CultureInfo.InvariantCulture, out _))
                 return BadRequest(new { message = "Backup time must look like 02:00." });
@@ -232,6 +237,8 @@ namespace X_ChemicalStorage.Controllers
                 SetStr("Backup:SecondaryDirectory", u.BackupSecondaryDirectory);
                 SetStr("Backup:DailyTime", u.BackupDailyTime);
                 SetIf("Backup:KeepDays", u.BackupKeepDays);
+                SetIf("Backup:BioBankEnabled", u.BackupBioEnabled);
+                SetIf("Backup:BioBankEveryHours", u.BackupBioEveryHours);
 
                 // write to a temp file first so a crash never leaves half a settings file
                 var tmp = LocalFilePath + ".tmp";

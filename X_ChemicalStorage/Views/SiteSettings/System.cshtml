@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Settings";
 }
 <link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
@@ -14,6 +14,7 @@
     <nav class="ss-tabs">
         <a href="/biobank/settings" class="active">System</a>
         <a href="/biobank/alarm-settings">Alarms and contacts</a>
+        <a href="/biobank/backup-settings">Backup</a>
     </nav>
 
     <div class="ss-banner" id="ssRestartBanner" hidden>
@@ -65,16 +66,11 @@
         <p class="ss-hint" id="smsStatus">SMS: …</p>
     </section>
 
-    <!-- Backup -->
-    <section class="ss-card">
-        <h2><i class="bi bi-database-check"></i> Daily backup</h2>
-        <label class="ss-check"><input type="checkbox" id="bkEnabled" /> Back up the database every day</label>
-        <div class="ss-grid">
-            <div class="ss-field"><label for="bkDir">Backup folder</label><input class="form-control" id="bkDir" placeholder="D:\BioBank_Backups" /></div>
-            <div class="ss-field"><label for="bkDir2">Second copy (USB / other drive)</label><input class="form-control" id="bkDir2" placeholder="E:\BioBank_Backups" /></div>
-            <div class="ss-field"><label for="bkTime">Time (Cairo)</label><input class="form-control" id="bkTime" placeholder="02:00" /></div>
-            <div class="ss-field"><label for="bkKeep">Keep backups (days)</label><input class="form-control" id="bkKeep" type="number" min="1" max="3650" /></div>
-        </div>
+    <!-- Backup lives on its own tab now -->
+    <section class="ss-card ss-card-link">
+        <h2><i class="bi bi-shield-check"></i> Backups</h2>
+        <p class="ss-hint">Automatic and manual backups of the whole application and of the Bio Bank data, upload and restore.</p>
+        <div><a class="ss-btn" href="/biobank/backup-settings"><i class="bi bi-arrow-right-circle"></i> Open Backup</a></div>
     </section>
 
     <!-- Site setup -->
@@ -136,8 +132,6 @@
         setVal("emUser", cfg.email.user); secretPh("emPass", cfg.email.hasPassword); setVal("emFrom", cfg.email.from); setChk("emSsl", cfg.email.enableSsl);
         $("smsStatus").textContent = cfg.sms.enabled ? "SMS: on (provider settings live in appsettings.Local.json)." : "SMS: off. Ask for help if the lab needs SMS.";
 
-        setChk("bkEnabled", cfg.backup.enabled); setVal("bkDir", cfg.backup.directory); setVal("bkDir2", cfg.backup.secondaryDirectory);
-        setVal("bkTime", cfg.backup.dailyTime); setVal("bkKeep", cfg.backup.keepDays);
     }
 
     const num = id => { const v = $(id).value.trim(); return v === "" ? null : Number(v); };
@@ -149,9 +143,7 @@
             mqttClearPassword: $("mqttClearPass").checked,
             telegramEnabled: $("tgEnabled").checked, telegramBotToken: $("tgToken").value || null,
             emailEnabled: $("emEnabled").checked, emailHost: $("emHost").value, emailPort: num("emPort"), emailEnableSsl: $("emSsl").checked,
-            emailUser: $("emUser").value, emailPassword: $("emPass").value || null, emailFrom: $("emFrom").value,
-            backupEnabled: $("bkEnabled").checked, backupDirectory: $("bkDir").value, backupSecondaryDirectory: $("bkDir2").value,
-            backupDailyTime: $("bkTime").value, backupKeepDays: num("bkKeep")
+            emailUser: $("emUser").value, emailPassword: $("emPass").value || null, emailFrom: $("emFrom").value
         };
         try {
             $("ssSave").disabled = true;

@@ -41,6 +41,86 @@
         return Number(fz.currentTemperature).toFixed(1) + "°C";
     }
 
+    // ===================== LIVE (SignalR) =====================
+    // Values from SQL come back without "Z" although they are UTC.
+    function liveUtc(iso) { return iso ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : iso + "Z") : null; }
+    function liveAgo(iso) {
+        const d = liveUtc(iso);
+        if (!d) return "no data yet";
+        const s = Math.max(0, (Date.now() - d.getTime()) / 1000);
+        if (s < 60) return "just now";
+        if (s < 3600) return `${Math.round(s / 60)} min ago`;
+        if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+        return d.toLocaleString();
+    }
+    function liveFlash(el) {
+        if (!el) return;
+        el.classList.remove("live-flash"); void el.offsetWidth; el.classList.add("live-flash");
+    }
+    function statusBadgeHtml(fz) {
+        if (fz.hasActiveAlarm) return `<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>`;
+        if (fz.status === 2 || fz.status === "Offline") return `<span class="bb-status-badge bb-status-offline">● Offline</span>`;
+        if (fz.status === 3 || fz.status === "Maintenance") return `<span class="bb-status-badge bb-status-maint">● Maintenance</span>`;
+        return `<span class="bb-status-badge bb-status-online">● Online</span>`;
+    }
+
+    /// Patch the freezer cards in place (no re-render: hover, scroll and open menus stay as they are).
+    async function liveRefresh(ids) {
+        try {
+            if (currentView === "room") {
+                const list = await apiGet(API.freezers);
+                const cards = document.querySelectorAll(".bb-room [data-freezer-id]");
+                if (cards.length !== list.length) { navigateTo("room"); return; }      // freezer added/removed
+                list.forEach(fz => {
+                    const old = freezersCache.find(f => f.id === fz.id);
+                    const card = document.querySelector(`.bb-room .bb-freezer[data-freezer-id="${CSS.escape(fz.id)}"]`);
+                    if (!card) return;
+                    const is150 = fz.type === 2 || fz.type === "Minus150";
+                    const t = fz.currentTemperature != null ? Number(fz.currentTemperature).toFixed(1) : (fz.temperature ?? (is150 ? -150 : -80));
+                    const badge = card.querySelector("[data-live-temp]");
+                    const stat = card.querySelector("[data-live-temp-stat]");
+                    const age = card.querySelector("[data-live-age]");
+                    const status = card.querySelector(".bb-freezer-status");
+                    if (badge) { badge.innerHTML = `🌡️ ${t}°C`; badge.classList.toggle("bb-temp-alarm", !!fz.hasActiveAlarm); }
+                    if (stat) { stat.textContent = `${t}°C`; stat.classList.toggle("bb-temp-alarm", !!fz.hasActiveAlarm); }
+                    if (age) { age.dataset.liveAge = fz.lastReadingAt || ""; age.textContent = liveAgo(fz.lastReadingAt); }
+                    if (status) status.innerHTML = statusBadgeHtml(fz);
+                    card.classList.toggle("bb-freezer-alarm", !!fz.hasActiveAlarm);
+                    const changed = !old || old.currentTemperature !== fz.currentTemperature || old.hasActiveAlarm !== fz.hasActiveAlarm || old.status !== fz.status;
+                    if (changed && (!ids || ids.includes(fz.id))) liveFlash(badge);
+                });
+                freezersCache = list;
+            } else if (currentPath[0]) {
+                const id = currentPath[0].id;
+                if (ids && !ids.includes(id)) return;
+                const fz = await apiGet(API.freezer(encodeURIComponent(id)));
+                const live = document.querySelector(".bb-iot-live");
+                if (live && fz) {
+                    const strong = live.querySelector("strong");
+                    if (strong && fz.currentTemperature != null) strong.textContent = Number(fz.currentTemperature).toFixed(1) + "°C";
+                    live.classList.toggle("alarm", !!fz.hasActiveAlarm);
+                    liveFlash(strong);
+                }
+            }
+        } catch (e) { console.warn("[BioBank] live refresh failed:", e); }
+    }
+
+    function bindLive() {
+        if (!window.BBLive) return;
+        let queued = null, pending = new Set(), all = false;
+        const soon = (ids) => {
+            if (ids) ids.forEach(i => pending.add(i)); else all = true;
+            if (queued) return;
+            queued = setTimeout(() => {
+                const list = all ? null : [...pending];
+                queued = null; pending = new Set(); all = false;
+                liveRefresh(list);
+            }, 300);
+        };
+        BBLive.on("freezersChanged", p => soon(p && p.freezerIds)).on("resync", () => soon(null)).on("maintenance", () => soon(null));
+        setInterval(() => document.querySelectorAll("[data-live-age]").forEach(el => { el.textContent = liveAgo(el.dataset.liveAge); }), 30000);
+    }
+
     function getStatusBadge(fz) {
         if (fz.hasActiveAlarm) {
             return `<span class="bb-status-badge bb-status-alarm">⚠ Alarm</span>`;
@@ -479,7 +559,11 @@
             </div>
             <div class="bb-stat-row">
                 <span class="bb-stat-label">Live Temp</span>
-                <span class="bb-stat-value ${fz.hasActiveAlarm ? "bb-temp-alarm" : ""}">${liveTemp}°C</span>
+                <span class="bb-stat-value ${fz.hasActiveAlarm ? "bb-temp-alarm" : ""}" data-live-temp-stat>${liveTemp}°C</span>
+            </div>
+            <div class="bb-stat-row">
+                <span class="bb-stat-label">Updated</span>
+                <span class="bb-stat-value bb-live-age" data-live-age="${fz.lastReadingAt || ""}">${liveAgo(fz.lastReadingAt)}</span>
             </div>
             <div class="bb-stat-row">
                 <span class="bb-stat-label">${is150 ? "Racks" : "Shelves"}</span>
@@ -506,7 +590,7 @@
     <div class="bb-freezer ${typeClass} ${alarmClass}" data-nav="freezer" data-hover="freezer" data-freezer-id="${fz.id}">
         <div class="bb-freezer-header">
             <div class="bb-freezer-id">${fz.id}</div>
-            <div class="bb-temp-badge ${is150 ? "cold" : ""} ${fz.hasActiveAlarm ? "bb-temp-alarm" : ""}">
+            <div class="bb-temp-badge ${is150 ? "cold" : ""} ${fz.hasActiveAlarm ? "bb-temp-alarm" : ""}" data-live-temp>
                 🌡️ ${liveTemp}°C
             </div>
         </div>
@@ -2476,6 +2560,7 @@
             try { bindAddFreezerUI(); } catch (e2) { console.error(e2); }
         }
         try { bindBackupUI(); } catch (e) { console.error("[BioBank] bindBackupUI failed:", e); }
+        try { bindLive(); } catch (e) { console.error("[BioBank] bindLive failed:", e); }
         navigateTo("room");
     }
 

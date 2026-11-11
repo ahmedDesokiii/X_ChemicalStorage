@@ -174,6 +174,7 @@ namespace X_ChemicalStorage.Constants
         {
             [Permission("View status", "عرض حالة النسخ الاحتياطي")] public const string View = "Backup.View";
             [Permission("Run backup", "تشغيل نسخة احتياطية")] public const string Run = "Backup.Run";
+            [Permission("Upload and restore", "رفع واسترجاع نسخة احتياطية")] public const string Restore = "Backup.Restore";
         }
     }
 }

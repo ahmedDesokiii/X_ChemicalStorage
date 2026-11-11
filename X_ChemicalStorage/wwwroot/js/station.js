@@ -1,4 +1,4 @@
-// ===== Local monitoring station =====
+﻿// ===== Local monitoring station =====
 // Polls /biobank/api/iot/station and sounds an alarm on THIS machine while any alarm is unacknowledged.
 // Everything is served from the local PC, so the alarm keeps working when the internet is down.
 (function () {
@@ -153,7 +153,7 @@
                 </div>
                 <div class="st-fz-grid">
                     ${g.freezers.map(f => `
-                        <div class="st-fz ${esc(f.state)} ${f.unacknowledgedAlarms ? "has-alarm" : ""}" title="${esc(f.activeAlarmTypes.join(", "))}">
+                        <div class="st-fz ${esc(f.state)} ${f.unacknowledgedAlarms ? "has-alarm" : ""}" data-fz="${esc(f.freezerId)}" title="${esc(f.activeAlarmTypes.join(", "))}">
                             ${f.unacknowledgedAlarms ? `<span class="st-fz-badge">${f.unacknowledgedAlarms}</span>` : ""}
                             <div class="st-fz-id">${esc(f.freezerId)}</div>
                             <div class="st-fz-type">${esc(f.deviceName || f.type)}</div>
@@ -165,7 +165,21 @@
                         </div>`).join("")}
                 </div>
             </div>`).join("");
+
+        // Glow the tiles whose reading changed since the last render
+        const now = {};
+        d.gateways.forEach(g => g.freezers.forEach(f => { now[f.freezerId] = `${f.temperature}|${f.state}|${f.lastReadingAt}`; }));
+        if (prevTiles) {
+            Object.keys(now).forEach(id => {
+                if (prevTiles[id] !== undefined && prevTiles[id] !== now[id]) {
+                    const el = document.querySelector(`.st-fz[data-fz="${CSS.escape(id)}"] .st-fz-temp`);
+                    if (el) { el.classList.remove("live-flash"); void el.offsetWidth; el.classList.add("live-flash"); }
+                }
+            });
+        }
+        prevTiles = now;
     }
+    let prevTiles = null;
 
     function renderAlarms(d) {
         const open = d.alarms;
@@ -243,7 +257,9 @@
         $("stServer").textContent = utc(data.serverTimeUtc).toLocaleTimeString();
     }
 
+    let lastLoad = 0, loadQueued = null;
     async function load() {
+        lastLoad = Date.now();
         try {
             const res = await fetch(API, { cache: "no-store" });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -331,6 +347,19 @@
 
     updateArmButton();
     load();
-    setInterval(load, REFRESH_MS);
+    // Live: the server pushes "changed" the moment a reading / alarm lands; polling is only the safety net.
+    function loadSoon() {
+        if (loadQueued) return;
+        loadQueued = setTimeout(() => { loadQueued = null; load(); }, 250);
+    }
+    if (window.BBLive) {
+        BBLive.on("freezersChanged", loadSoon).on("stationChanged", loadSoon).on("resync", loadSoon)
+              .on("maintenance", loadSoon);
+    }
+    setInterval(() => {
+        if (window.BBLive && BBLive.connected && Date.now() - lastLoad < 30000) return;
+        load();
+    }, REFRESH_MS);
+    setInterval(() => { if (data) renderGateways(data); }, 15000);   // keeps "x min ago" honest between pushes
     setInterval(() => { if (data) renderAlarmState(data); }, 15000);   // ends a silence period on time
 })();

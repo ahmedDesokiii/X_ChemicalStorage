@@ -4,6 +4,7 @@
 }
 
 <link rel="stylesheet" href="~/css/biobank.css" />
+<link rel="stylesheet" href="~/css/live.css" asp-append-version="true" />
 
 <!-- Hero Header -->
 <div class="page-hero pb-2 pt-1 mb-2" dir="ltr">
@@ -32,6 +33,7 @@
             <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
                <!-- NEW -->
                 <div class="bb-actions">
+                    <span class="live-chip live-connecting bb-live-chip" data-live-chip><span class="live-dot"></span><span data-live-text>Connecting…</span></span>
                     @* <div class="bb-search-box">
                         <span class="bb-search-icon">🔍</span>
                         <input type="text" id="bbSearch" placeholder="Search freezer, barcode..." autocomplete="off">
@@ -232,5 +234,7 @@
         })();
     </script>
     <script src="~/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/live.js" asp-append-version="true"></script>
     <script src="~/js/biobank.js" asp-append-version="true"></script>
 }
