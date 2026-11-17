@@ -1,4 +1,4 @@
-using X_ChemicalStorage.BioBank.DTOs;
+﻿using X_ChemicalStorage.BioBank.DTOs;
 
 namespace X_ChemicalStorage.BioBank.Services
 {
@@ -15,6 +15,12 @@ namespace X_ChemicalStorage.BioBank.Services
     ///
     /// 81 data (int16 LE, from offset 14):  +4 cabinet temp x10 (-802 = -80.2 °C) · +6 ambient °C · +20 mains voltage V
     /// 84 data (from offset 14):            +0 set point x10 · +2 high alarm x10 · +4 low alarm x10 · +11 door (1 = open)
+    ///
+    /// -150 freezers (FZ150, captured on site 2026-11-17) use a longer header without the FF byte:
+    ///   [0..1] AF AF · [2] C0|type (C0 heartbeat · C1 data every 5 min · C3 event · C4 status) · [3] 81 · [4] E0
+    ///   [5..6] length · [7..12] yy MM dd HH mm ss · data from 13 · [last] checksum
+    ///   C1: int16 LE @33 mains voltage V · @39 cabinet temp x10 · @41 ambient x10   (@63.. = refrigeration-circuit sensors)
+    ///   C4: @28 status bits (0x20 = door open) · @40 set point x10 · @42 high alarm x10 · @44 low alarm x10
     /// </summary>
     public static class HaierFrameParser
     {
@@ -43,6 +49,8 @@ namespace X_ChemicalStorage.BioBank.Services
                 CollectorCode = collector.Trim(),
                 RawPayload = "haier:" + Convert.ToHexString(b)
             };
+
+            if (b[2] >= 0xC0) return ParseLong(b, dto, out note);
 
             switch (b[2])
             {
@@ -73,6 +81,42 @@ namespace X_ChemicalStorage.BioBank.Services
 
                 default:
                     note = $"unknown frame type {b[2]:X2}";
+                    return null;
+            }
+        }
+
+        /// FZ150 (-150 °C) frames.
+        private static IngestReadingDto? ParseLong(byte[] b, IngestReadingDto dto, out string? note)
+        {
+            note = null;
+            switch (b[2])
+            {
+                case 0xC0:
+                    return dto;
+
+                case 0xC1:
+                    if (b.Length < 44) { note = "short FZ150 data frame"; return null; }
+                    var t = I16(b, 39);
+                    if (t is > -2000 and < 1000) dto.Temperature = t / 10m; else dto.TemperatureInvalid = true;
+                    var amb = I16(b, 41);
+                    if (amb is > -400 and < 800) dto.AmbientTemperature = amb / 10m;
+                    var volts = I16(b, 33);
+                    if (volts >= 0 && volts < 400) dto.PowerStatus = volts >= 150 ? "OK" : "Fail";
+                    return dto;
+
+                case 0xC4:
+                    if (b.Length < 46) { note = "short FZ150 status frame"; return null; }
+                    dto.DoorStatus = (b[28] & 0x20) != 0 ? "Open" : "Closed";
+                    var sp = I16(b, 40);
+                    if (sp is > -2000 and < 1000) dto.SetTemperature = sp / 10m;
+                    return dto;
+
+                case 0xC3:
+                    note = "event log";
+                    return null;
+
+                default:
+                    note = $"unknown FZ150 frame type {b[2]:X2}";
                     return null;
             }
         }
