@@ -1,0 +1,156 @@
+USE [Dev_WebOrder]
+GO
+/****** Object:  StoredProcedure [dbo].[PR_Corrugator_Save]    Script Date: 2026-09-24 09:17:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+/* ════════════════════════════════════════════════════════════════════
+   4) CREATE SP: PR_Corrugator_Save
+   ════════════════════════════════════════════════════════════════════ */
+ALTER PROCEDURE [dbo].[PR_Corrugator_Save]
+    @TrxID         INT              OUTPUT,
+    @TrxNo         INT              OUTPUT,
+    @TrxDate       DATETIME,
+    @DecklingID    INT,
+    @ShiftID       INT,
+    @StartTime     TIME(7)          = NULL,
+    @EndTime       TIME(7)          = NULL,
+    @GLueKg        DECIMAL(18,5)    = NULL,
+    @SteamKg       DECIMAL(18,5)    = NULL,
+    @ActualMeter   INT              = 0,
+    @ActualCorrTon DECIMAL(18,5)    = 0,
+    @ActualTrimTon DECIMAL(18,5)    = 0,
+    @Remarks       NVARCHAR(500)    = NULL,
+    @Verifier_Json NVARCHAR(MAX)    = NULL,
+    @IsConfirmed   BIT              = 0,
+    @IsFinished    BIT              = 0,
+    @UserID        INT              = 0,
+    @ExchID        INT              = NULL,
+    @SaveDetail    dbo.TVP_PR_CorrugatorDetails     READONLY,
+    @SaveMaterial  dbo.TVP_PR_CorrugatorRowMaterial READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewID INT;
+
+    IF ISNULL(@TrxID, 0) = 0
+    BEGIN
+        -- رقم الحركة الجديد
+        SET @TrxNo = ISNULL((SELECT MAX(TrxNo) FROM dbo.PR_CorrugatorProduction), 0) + 1;
+
+        INSERT INTO dbo.PR_CorrugatorProduction
+        (
+            TrxNo, TrxDate, DecklingID, ShiftID, StartTime, EndTime,
+            GLueKg, SteamKg, ActualMeter, ActualCorrTon, ActualTrimTon,
+            Remarks, Verifier_Json, IsConfirmed, IsFinished, UserID, ExchID
+        )
+        VALUES
+        (
+            @TrxNo, @TrxDate, @DecklingID, @ShiftID, @StartTime, @EndTime,
+            @GLueKg, @SteamKg, @ActualMeter, @ActualCorrTon, @ActualTrimTon,
+            @Remarks, @Verifier_Json, @IsConfirmed, @IsFinished, @UserID, @ExchID
+        );
+
+        SET @NewID = SCOPE_IDENTITY();
+
+        INSERT INTO dbo.PR_CorrugatorProduction_Details
+        (
+            MainID, DecklingDetailID, MasterID, OrderID,
+            Meters, CutNo, GoodSheets, LostSheets, TotalSheets,
+            Pallets, SheetWeight_Product
+        )
+        SELECT
+            @NewID,
+            NULLIF(S.DecklingDetailID, 0),
+            NULLIF(S.MasterID, 0),
+            NULLIF(S.OrderID, 0),
+            S.Meters,
+            S.CutNo,
+            ISNULL(S.GoodSheets, 0),
+            ISNULL(S.LostSheets, 0),
+            ISNULL(S.GoodSheets, 0) + ISNULL(S.LostSheets, 0),
+            ISNULL(S.Pallets, 0),
+            0
+        FROM @SaveDetail S;
+
+        INSERT INTO dbo.PR_CorrugatorProduction_RowMaterial
+        (
+            MainID, LayerNo, ItemID, LayerWeight, ActualCost
+        )
+        SELECT
+            @NewID,
+            M.LayerNo,
+            NULLIF(M.ItemID, 0),
+            M.LayerWeight,
+            M.ActualCost
+        FROM @SaveMaterial M
+        WHERE M.ItemID IS NOT NULL AND M.ItemID > 0;
+    END
+    ELSE
+    BEGIN
+        UPDATE dbo.PR_CorrugatorProduction
+        SET
+            TrxDate       = @TrxDate,
+            DecklingID    = @DecklingID,
+            ShiftID       = @ShiftID,
+            StartTime     = @StartTime,
+            EndTime       = @EndTime,
+            GLueKg        = @GLueKg,
+            SteamKg       = @SteamKg,
+            ActualMeter   = @ActualMeter,
+            ActualCorrTon = @ActualCorrTon,
+            ActualTrimTon = @ActualTrimTon,
+            Remarks       = @Remarks,
+            Verifier_Json = @Verifier_Json,
+            IsConfirmed   = @IsConfirmed,
+            IsFinished    = @IsFinished,
+            UserID        = @UserID,
+            ExchID        = @ExchID
+        WHERE ID = @TrxID;
+
+        DELETE FROM dbo.PR_CorrugatorProduction_Details    WHERE MainID = @TrxID;
+        DELETE FROM dbo.PR_CorrugatorProduction_RowMaterial WHERE MainID = @TrxID;
+
+        INSERT INTO dbo.PR_CorrugatorProduction_Details
+        (
+            MainID, DecklingDetailID, MasterID, OrderID,
+            Meters, CutNo, GoodSheets, LostSheets, TotalSheets,
+            Pallets, SheetWeight_Product
+        )
+        SELECT
+            @TrxID,
+            NULLIF(S.DecklingDetailID, 0),
+            NULLIF(S.MasterID, 0),
+            NULLIF(S.OrderID, 0),
+            S.Meters,
+            S.CutNo,
+            ISNULL(S.GoodSheets, 0),
+            ISNULL(S.LostSheets, 0),
+            ISNULL(S.GoodSheets, 0) + ISNULL(S.LostSheets, 0),
+            ISNULL(S.Pallets, 0),
+            0
+        FROM @SaveDetail S;
+
+        INSERT INTO dbo.PR_CorrugatorProduction_RowMaterial
+        (
+            MainID, LayerNo, ItemID, LayerWeight, ActualCost
+        )
+        SELECT
+            @TrxID,
+            M.LayerNo,
+            NULLIF(M.ItemID, 0),
+            M.LayerWeight,
+            M.ActualCost
+        FROM @SaveMaterial M
+        WHERE M.ItemID IS NOT NULL AND M.ItemID > 0;
+
+        SET @NewID = @TrxID;
+    END
+
+    SET @TrxID = @NewID;
+    -- @TrxNo محفوظ من الـ INSERT في وضع الإضافة، أو كما هو في التعديل
+    RETURN @NewID;
+END
