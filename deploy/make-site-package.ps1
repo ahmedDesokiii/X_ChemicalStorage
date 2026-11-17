@@ -15,7 +15,9 @@ param(
     [Parameter(Mandatory)] [string]$Target,
     [string]$SiteSetup = '',
     [string]$AdminEmail = 'admin@lab.local',
-    [string]$AdminPassword = ''
+    [string]$AdminPassword = '',
+    # معمل جديد: من غير فريزرات المعمل التاني (الفريزرات بتتضاف من البرنامج في الموقع)
+    [switch]$NoSiteSetup
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
@@ -27,13 +29,17 @@ $todo = 0
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'dotnet مش موجود. لازم Visual Studio أو .NET SDK على الجهاز ده.' }
 
 # ---- site-setup.json: من الـ Downloads لو مش متحدد
+if ($NoSiteSetup) { $SiteSetup = '__none__' }
 if (-not $SiteSetup) {
     $dl = Join-Path $env:USERPROFILE 'Downloads'
     $SiteSetup = Get-ChildItem $dl -Filter 'site-setup*.json' -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
 $setup = $null
-if (-not $SiteSetup -or -not (Test-Path $SiteSetup)) {
+if ($NoSiteSetup) {
+    Write-Host '  [--]   من غير site-setup.json: الداتابيز هتبدأ فاضية، والفريزرات تتضاف من البرنامج في المعمل' -ForegroundColor Yellow
+    $SiteSetup = ''
+} elseif (-not $SiteSetup -or -not (Test-Path $SiteSetup)) {
     # تحديث لمعمل شغال: الفريزرات موجودة في داتابيز المعمل، فالملف ده مش محتاج
     Write-Host '  [--]   مفيش site-setup.json: تمام لو ده تحديث لمعمل شغال. لأول تنصيب: Settings ← System ← Download site-setup.json' -ForegroundColor Yellow
     $SiteSetup = ''
