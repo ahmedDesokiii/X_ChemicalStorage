@@ -1,4 +1,5 @@
-﻿@{
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
     ViewData["Title"] = "Backup";
 }
 <link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
@@ -14,7 +15,7 @@
     </div>
     <nav class="ss-tabs">
         <a href="/biobank/settings">System</a>
-        <a href="/biobank/alarm-settings">Alarms and contacts</a>
+        @if (Configuration.GetValue("Features:BioBank", true)) { <a href="/biobank/alarm-settings">Alarms and contacts</a> }
         <a href="/biobank/backup-settings" class="active">Backup</a>
     </nav>
 
@@ -65,6 +66,8 @@
             </details>
         </section>
 
+        @if (Configuration.GetValue("Features:BioBank", true))
+        {
         <section class="bk-vault bio" id="vaultBio" data-scope="biobank">
             <div class="bk-vault-head">
                 <div class="bk-vault-icon"><i class="bi bi-snow2"></i></div>
@@ -98,6 +101,7 @@
                 </div>
             </details>
         </section>
+        }
     </div>
 
     <!-- Restore points -->
@@ -106,7 +110,10 @@
             <h2><i class="bi bi-clock-history"></i> Restore points</h2>
             <div class="bk-seg" role="tablist">
                 <button type="button" role="tab" class="active" data-tab="full">Whole application <span data-count="full"></span></button>
+                @if (Configuration.GetValue("Features:BioBank", true))
+                {
                 <button type="button" role="tab" data-tab="biobank">Bio Bank <span data-count="biobank"></span></button>
+                }
             </div>
         </div>
         <div class="bk-legend">

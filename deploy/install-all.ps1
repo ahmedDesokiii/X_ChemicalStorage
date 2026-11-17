@@ -20,7 +20,12 @@ function Ok($m)   { Write-Host "  [OK]   $m" -ForegroundColor Green }
 function Warn($m) { Write-Host "  [!!]   $m" -ForegroundColor Yellow; $script:warnings += $m }
 $warnings = @()
 
+$chemicalOnly = Test-Path (Join-Path $root 'chemical-only.flag')
+
 try {
+    if ($chemicalOnly) {
+        Write-Host "`nنسخة من غير Bio Bank: الشبكة و Mosquitto مش محتاجين، بنتخطاهم." -ForegroundColor Cyan
+    } else {
     # ------------------------------------------------------------------ 1
     Step 1 'الشبكة'
     try { & (Join-Path $dep '0-set-network.ps1') }
@@ -39,6 +44,7 @@ try {
     }
     Ok 'Mosquitto متنصب'
     & (Join-Path $dep '2-configure-mosquitto.ps1')
+    }
 
     # ------------------------------------------------------------------ 3
     Step 3 'SQL Server Express'
@@ -83,7 +89,7 @@ try {
 
     Write-Host "`n=========================================" -ForegroundColor Green
     Write-Host ' خلص. افتحي: http://localhost:5000' -ForegroundColor Green
-    Write-Host ' الخطوة الجاية: ظبط البوابات (DEPLOYMENT.md - 2.5)' -ForegroundColor Green
+    if (-not $chemicalOnly) { Write-Host ' الخطوة الجاية: ظبط البوابات (DEPLOYMENT.md - 2.5)' -ForegroundColor Green }
     Write-Host "=========================================" -ForegroundColor Green
     if ($warnings.Count) { Write-Host "`nملاحظات:" -ForegroundColor Yellow; $warnings | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow } }
     Start-Process 'http://localhost:5000'

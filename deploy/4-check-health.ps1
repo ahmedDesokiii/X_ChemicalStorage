@@ -10,7 +10,9 @@ function Check($name, [scriptblock]$test) {
 
 Write-Host "`n== الخدمات ==" -ForegroundColor Cyan
 Check 'SQL Server Express شغال'   { (Get-Service 'MSSQL$SQLEXPRESS').Status -eq 'Running' }
-Check 'Mosquitto شغال'            { (Get-Service mosquitto).Status -eq 'Running' }
+if (-not (Test-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'chemical-only.flag'))) {
+    Check 'Mosquitto شغال'        { (Get-Service mosquitto).Status -eq 'Running' }
+}
 Check 'XChemicalStorage شغال'      { (Get-Service XChemicalStorage).Status -eq 'Running' }
 Check 'الخدمة بتقوم مع الجهاز'     { (Get-CimInstance Win32_Service -Filter "Name='XChemicalStorage'").StartMode -eq 'Auto' }
 

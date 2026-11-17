@@ -49,6 +49,7 @@
 
     function renderVault(scope, v, periodHours) {
         const root = $(SCOPES[scope]);
+        if (!root) return;                                   // that part is switched off on this site
         const health = root.querySelector("[data-health]");
         const last = utc(v.lastSuccessAt);
         const ageH = last ? (Date.now() - last.getTime()) / 3600000 : Infinity;
@@ -292,6 +293,7 @@
 
     Object.entries(SCOPES).forEach(([scope, id]) => {
         const root = $(id);
+        if (!root) return;
         root.querySelector("[data-run]")?.addEventListener("click", e => runNow(scope, e.currentTarget));
         const drop = root.querySelector("[data-drop]");
         if (drop) {

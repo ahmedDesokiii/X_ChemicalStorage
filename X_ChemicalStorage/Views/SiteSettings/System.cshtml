@@ -1,4 +1,5 @@
-﻿@{
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
     ViewData["Title"] = "Settings";
 }
 <link rel="stylesheet" href="~/css/site-settings.css" asp-append-version="true" />
@@ -13,7 +14,7 @@
     </div>
     <nav class="ss-tabs">
         <a href="/biobank/settings" class="active">System</a>
-        <a href="/biobank/alarm-settings">Alarms and contacts</a>
+        @if (Configuration.GetValue("Features:BioBank", true)) { <a href="/biobank/alarm-settings">Alarms and contacts</a> }
         <a href="/biobank/backup-settings">Backup</a>
     </nav>
 

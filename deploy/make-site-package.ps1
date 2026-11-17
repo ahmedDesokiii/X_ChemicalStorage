@@ -17,8 +17,11 @@ param(
     [string]$AdminEmail = 'admin@lab.local',
     [string]$AdminPassword = '',
     # معمل جديد: من غير فريزرات المعمل التاني (الفريزرات بتتضاف من البرنامج في الموقع)
-    [switch]$NoSiteSetup
+    [switch]$NoSiteSetup,
+    # معمل من غير Bio Bank (مخزن الكيماويات بس): من غير فريزرات ولا Mosquitto ولا شبكة البوابات
+    [switch]$ChemicalOnly
 )
+if ($ChemicalOnly) { $NoSiteSetup = $true }
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $proj = Join-Path $repo 'X_ChemicalStorage\X_ChemicalStorage.csproj'
@@ -67,6 +70,11 @@ Ok 'البرنامج'
 
 # ---- إعدادات الموقع: باسورد الأدمن بس، والباقي من appsettings.json (Telegram، MQTT من غير باسورد)
 $local = [ordered]@{ AdminSeed = [ordered]@{ UserName = 'admin'; Email = $AdminEmail; Password = $AdminPassword } }
+if ($ChemicalOnly) {
+    $local.Features = [ordered]@{ BioBank = $false }
+    $local.Mqtt     = [ordered]@{ Enabled = $false }
+    $local.Backup   = [ordered]@{ BioBankEnabled = $false }
+}
 [IO.File]::WriteAllText((Join-Path $app 'appsettings.Local.json'), ($local | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
 Ok "appsettings.Local.json (الأدمن: admin / $AdminEmail)"
 
@@ -85,12 +93,16 @@ Copy-Item (Join-Path $repo 'DEPLOYMENT.md') $Target -Force
 Move-Item (Join-Path $dep 'install-all.ps1') $Target -Force
 Copy-Item (Join-Path $PSScriptRoot 'INSTALL.cmd') $Target -Force
 Remove-Item (Join-Path $dep 'make-site-package.ps1'), (Join-Path $dep 'INSTALL.cmd') -ErrorAction SilentlyContinue
+$flag = Join-Path $Target 'chemical-only.flag'
+if ($ChemicalOnly) { Set-Content $flag 'Bio Bank off: install-all skips the gateway network and Mosquitto' -Encoding UTF8; Ok 'نسخة من غير Bio Bank (مخزن الكيماويات بس)' }
+elseif (Test-Path $flag) { Remove-Item $flag -Force }
 Ok 'السكريبتات + INSTALL.cmd'
 
 # ---- برامج التنصيب
 $inst = Join-Path $Target 'installers'
 New-Item -ItemType Directory -Path $inst -Force | Out-Null
-if (Get-ChildItem $inst -Filter 'mosquitto*.exe' -ErrorAction SilentlyContinue) { Ok 'Mosquitto installer' }
+if ($ChemicalOnly) { }
+elseif (Get-ChildItem $inst -Filter 'mosquitto*.exe' -ErrorAction SilentlyContinue) { Ok 'Mosquitto installer' }
 else { Todo "حطي تنصيب Mosquitto في $inst  ←  https://mosquitto.org/download  (mosquitto-...-install-windows-x64.exe)" }
 if (Get-ChildItem $inst -Filter 'SQLEXPR*.exe' -ErrorAction SilentlyContinue) { Ok 'SQL Server Express installer' }
 else { Todo "حطي SQLEXPR_x64_ENU.exe في $inst  ←  نزّلي SQL Server 2022 Express ← Download Media ← Express Core" }

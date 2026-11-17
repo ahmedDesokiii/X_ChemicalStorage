@@ -7,6 +7,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject RoleManager<ApplicationRole> RoleManager
 @inject X_ChemicalStorage.Data.ApplicationDbContext LayoutDb
+@inject Microsoft.Extensions.Configuration.IConfiguration LayoutConfig
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var servicesPermissions = string.Join(",", Permissions.Suppliers.View, Permissions.Categories.View, Permissions.Units.View,
@@ -509,7 +510,9 @@
                                         }
                                     </a>
                                 </li>
-                                @* Bio Bank *@
+                                @* Bio Bank + Station: off on sites without freezers (Features:BioBank = false) *@
+                                @if (LayoutConfig.GetValue("Features:BioBank", true))
+                                {
                                 <li has-permission="@Permissions.BioBank.View" class="nav-item mx-1">
                                     <a class="nav-link fs-6 @(currentController == "BioBank" ? "active" : "")" asp-controller="BioBank" asp-action="Index">
                                         <i class="bi bi-droplet"></i>Bio Bank
@@ -521,6 +524,7 @@
                                         <i class="bi bi-broadcast-pin"></i>Station
                                     </a>
                                 </li>
+                                }
                                 @* Site settings: system (MQTT, notifications, backup) + alarm limits and contacts *@
                                 <li has-permission="@Permissions.IoT.ManageSettings" class="nav-item mx-1">
                                     <a class="nav-link fs-6 @(currentController == "SiteSettings" ? "active" : "")" href="/biobank/settings">
