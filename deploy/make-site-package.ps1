@@ -32,12 +32,16 @@ if (-not $SiteSetup) {
     $SiteSetup = Get-ChildItem $dl -Filter 'site-setup*.json' -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
+$setup = $null
 if (-not $SiteSetup -or -not (Test-Path $SiteSetup)) {
-    throw 'مش لاقي site-setup.json. من البرنامج: Settings ← System ← Download site-setup.json، وبعدين شغّلي السكريبت تاني.'
+    # تحديث لمعمل شغال: الفريزرات موجودة في داتابيز المعمل، فالملف ده مش محتاج
+    Write-Host '  [--]   مفيش site-setup.json: تمام لو ده تحديث لمعمل شغال. لأول تنصيب: Settings ← System ← Download site-setup.json' -ForegroundColor Yellow
+    $SiteSetup = ''
+} else {
+    $setup = Get-Content $SiteSetup -Raw -Encoding UTF8 | ConvertFrom-Json
+    $fast = @($setup.freezers | Where-Object { $_.tempAlarmDelayMinutes -le 1 -or $_.doorOpenMinutes -le 1 })
+    if ($fast.Count) { throw "site-setup.json فيه مهلات التجربة (دقيقة) على: $($fast.id -join ', '). رجّعي Normal delays من Settings ← Alarms ونزّلي الملف تاني." }
 }
-$setup = Get-Content $SiteSetup -Raw -Encoding UTF8 | ConvertFrom-Json
-$fast = @($setup.freezers | Where-Object { $_.tempAlarmDelayMinutes -le 1 -or $_.doorOpenMinutes -le 1 })
-if ($fast.Count) { throw "site-setup.json فيه مهلات التجربة (دقيقة) على: $($fast.id -join ', '). رجّعي Normal delays من Settings ← Alarms ونزّلي الملف تاني." }
 
 if (-not $AdminPassword) {
     $sec = Read-Host 'باسورد الأدمن للبرنامج في المعمل (6 حروف على الأقل)' -AsSecureString
@@ -60,9 +64,11 @@ $local = [ordered]@{ AdminSeed = [ordered]@{ UserName = 'admin'; Email = $AdminE
 [IO.File]::WriteAllText((Join-Path $app 'appsettings.Local.json'), ($local | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
 Ok "appsettings.Local.json (الأدمن: admin / $AdminEmail)"
 
-Copy-Item $SiteSetup (Join-Path $app 'site-setup.json') -Force
-$linked = @($setup.freezers | Where-Object collectorCode).Count
-Ok "site-setup.json: $(@($setup.freezers).Count) فريزر، $linked مربوط، $(@($setup.contacts).Count) جهة اتصال"
+if ($setup) {
+    Copy-Item $SiteSetup (Join-Path $app 'site-setup.json') -Force
+    $linked = @($setup.freezers | Where-Object collectorCode).Count
+    Ok "site-setup.json: $(@($setup.freezers).Count) فريزر، $linked مربوط، $(@($setup.contacts).Count) جهة اتصال"
+}
 
 # ---- السكريبتات
 $dep = Join-Path $Target 'deploy'
