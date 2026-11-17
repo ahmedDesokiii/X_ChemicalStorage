@@ -19,6 +19,7 @@ namespace X_ChemicalStorage.BioBank.Services
         private readonly IoTHealth _health;
         private readonly StationState _station;
         private readonly MaintenanceState _maintenance;
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _lastHeartbeat = new(StringComparer.OrdinalIgnoreCase);
         private readonly X_ChemicalStorage.BioBank.Live.LiveBroadcaster _live;
 
         public FreezerMqttBackgroundService(
@@ -164,6 +165,15 @@ namespace X_ChemicalStorage.BioBank.Services
                         if (note != "event log")
                             _logger.LogWarning("Haier frame ignored: {Note}. Topic={Topic}", note, topic);
                         return;
+                    }
+                    // A Haier gateway can get stuck sending the same heartbeat dozens of times a second
+                    // (seen on site 2026-11-17). One per minute is enough to know it is alive.
+                    if (haier.Temperature == null && haier.DoorStatus == null && haier.PowerStatus == null && haier.SetTemperature == null)
+                    {
+                        var nowHb = DateTime.UtcNow;
+                        if (_lastHeartbeat.TryGetValue(haier.CollectorCode, out var lastHb) && nowHb - lastHb < TimeSpan.FromSeconds(60))
+                            return;
+                        _lastHeartbeat[haier.CollectorCode] = nowHb;
                     }
                     await IngestAsync(haier, topic);
                     return;
