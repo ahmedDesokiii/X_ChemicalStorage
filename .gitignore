@@ -366,3 +366,7 @@ appsettings.Local.json
 **/appsettings.Local.json
 deploy/out/
 *.patch
+
+# Bio Bank restore leaves the previous attachments next to the live folder (safety copy, local only)
+**/App_Data/biobank-uploads.before-restore-*/
+**/App_Data/biobank-uploads.restoring/
